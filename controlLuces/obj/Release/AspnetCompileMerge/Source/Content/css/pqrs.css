@@ -1,0 +1,50 @@
+﻿* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: sans-serif;
+}
+
+h1 {
+    text-align: center;
+}
+
+.container {
+    width: 800px;
+    margin: 0 auto;
+}
+
+.row {
+    display: flex;
+    flex-wrap: wrap;
+}
+
+.col-6 {
+    width: 50%;
+}
+
+.col-12 {
+    width: 100%;
+}
+
+label {
+    display: block;
+    margin-bottom: 5px;
+}
+
+input, textarea, select {
+    width: 100%;
+    padding: 5px;
+    border: 1px solid #ccc;
+}
+
+select {
+    appearance: none;
+    background-image: url("data:image/svg+xml;utf8,<svg fill='none' stroke='%23ccc' stroke-width='1' viewBox='0 0 20 20'><path d='M5 10L10 15L15 10'/></svg>");
+    background-repeat: no-repeat;
+    background-position: right 10px top 50%;
+    background-size: 10px;
+}

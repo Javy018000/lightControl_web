@@ -1,0 +1,134 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="~/Content/css/inicio.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to bottom, #87CEEB, #007bff);
+            font-family: 'Product Sans', sans-serif;
+            color: #333;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+        }
+
+        .upload-container {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        .upload-area {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 20px;
+            width: 100%;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+            .upload-area p {
+                margin: 0;
+                font-size: 16px;
+                color: #555;
+            }
+
+        #fileInput {
+            margin-top: 10px;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: 100%;
+        }
+
+        .btn-clear {
+            background-color: #d9534f; 
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            cursor: pointer;
+            transition: background-color 0.3s;
+            margin-top: 10px;
+        }
+
+            .btn-clear:hover {
+                background-color: #c9302c; 
+            }
+
+        #preview {
+            margin-top: 20px;
+            display: none;
+            text-align: center;
+        }
+
+            #preview img, #preview pdf {
+                max-width: 100%;
+                border-radius: 10px;
+            }
+    </style>
+</head>
+<body>
+    <div class="upload-container">
+        <div class="upload-area">
+            <p>Arrastra y suelta un archivo aquí o selecciona uno (PDF o Imagen)</p>
+            <input type="file" id="fileInput" accept="image/*,.pdf" />
+        </div>
+        <div id="preview">
+            <h5>Vista previa:</h5>
+            <img id="previewImage" src="" alt="Vista previa" style="display: none;" />
+            <embed id="previewPdf" src="" type="application/pdf" width="100%" height="500px" style="display: none;" />
+        </div>
+        <button id="clearButton" class="btn btn-clear">
+            <i class="fas fa-times"></i> Limpiar
+        </button>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const preview = document.getElementById('preview');
+        const previewImage = document.getElementById('previewImage');
+        const previewPdf = document.getElementById('previewPdf');
+
+        fileInput.addEventListener('change', function (event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                if (file.type.startsWith('image/')) {
+                    reader.onload = function (e) {
+                        previewImage.src = e.target.result;
+                        previewImage.style.display = 'block';
+                        previewPdf.style.display = 'none';
+                    }
+                    reader.readAsDataURL(file);
+                } else if (file.type === 'application/pdf') {
+                    reader.onload = function (e) {
+                        previewPdf.src = e.target.result;
+                        previewPdf.style.display = 'block';
+                        previewImage.style.display = 'none';
+                    }
+                    reader.readAsDataURL(file);
+                }
+                preview.style.display = 'block';
+            } else {
+                preview.style.display = 'none';
+            }
+        });
+
+        document.getElementById('clearButton').addEventListener('click', function () {
+            fileInput.value = '';
+            preview.style.display = 'none';
+            previewImage.src = '';
+            previewImage.style.display = 'none';
+            previewPdf.src = '';
+            previewPdf.style.display = 'none';
+        });
+    </script>
+</body>
+</html>

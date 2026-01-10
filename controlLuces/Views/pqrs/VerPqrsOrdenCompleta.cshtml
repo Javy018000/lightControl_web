@@ -1,0 +1,317 @@
+﻿@model controlLuces.Models.PqrsOrdenCompletaVM
+@{
+    ViewBag.Title = "Detalle Completo PQRS y Orden";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+<style>
+    .main-header {
+        background: linear-gradient(135deg,#0ea5e9,#3b82f6);
+        color: #fff;
+        border-radius: 14px;
+        padding: 20px 25px;
+        box-shadow: 0 10px 24px rgba(2,8,23,.12);
+        font-size: 26px;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 25px;
+        text-transform: uppercase;
+        letter-spacing: .5px
+    }
+
+    .section-card {
+        background: #fff;
+        border-radius: 14px;
+        box-shadow: 0 8px 22px rgba(2,8,23,.08);
+        padding: 22px;
+        margin-bottom: 22px
+    }
+
+    .section-header {
+        background: linear-gradient(135deg,#3b82f6,#0ea5e9);
+        color: #fff;
+        padding: 12px 16px;
+        border-radius: 10px;
+        margin-bottom: 16px;
+        font-weight: 700;
+        display: flex;
+        align-items: center;
+        gap: 10px
+    }
+
+    .badge-estado {
+        display: inline-block;
+        padding: 8px 14px;
+        border-radius: 999px;
+        font-weight: 700;
+        text-transform: uppercase
+    }
+
+    .estado-activo {
+        background: linear-gradient(135deg,#22c55e,#16a34a);
+        color: #fff
+    }
+
+    .estado-proceso {
+        background: linear-gradient(135deg,#f59e0b,#f97316);
+        color: #fff
+    }
+
+    .estado-cerrado {
+        background: linear-gradient(135deg,#ef4444,#dc2626);
+        color: #fff
+    }
+
+    .galeria img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(0,0,0,.1);
+        cursor: pointer
+    }
+</style>
+
+<div class="container-fluid py-3">
+
+    <div class="main-header">
+        <i class="fas fa-file-alt"></i> DETALLE COMPLETO PQRS Y ORDEN DE SERVICIO
+    </div>
+
+    @if (ViewBag.Error != null)
+    {
+        <div class="alert alert-danger"><i class="fas fa-exclamation-triangle me-2"></i>@ViewBag.Error</div>
+    }
+
+    <!-- ========== SECCIÓN 1: DATOS PQRS ========== -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-clipboard-list"></i><span>Datos Generales de la PQRS</span>
+        </div>
+
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">Consecutivo</label>
+                <input class="form-control" value="@Model.Pqrs.Consecutivo" readonly />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Tipo de PQRS</label>
+                <input class="form-control" value="@Model.Pqrs.Tipopqrs" readonly />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Fecha de Registro</label>
+                <input class="form-control" value="@Model.Pqrs.FechaRegistro" readonly />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Canal</label>
+                <input class="form-control" value="@Model.Pqrs.Canal" readonly />
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Estado</label>
+                <div>
+                    <span class="badge-estado @(Model.Pqrs.Estado == 1 ? "estado-activo" : Model.Pqrs.Estado == 2 ? "estado-proceso" : "estado-cerrado")">
+                        @Model.Pqrs.EstadoNombre
+                    </span>
+                </div>
+            </div>
+
+            <div class="col-md-3">
+                <label class="form-label">Nombre</label>
+                <input class="form-control" value="@($"{Model.Pqrs.Nombre} {Model.Pqrs.Apellido}")" readonly />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Documento</label>
+                <input class="form-control" value="@($"{Model.Pqrs.TipoDoc} {Model.Pqrs.Documento}")" readonly />
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">Teléfono</label>
+                <input class="form-control" value="@Model.Pqrs.Telefono" readonly />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Correo</label>
+                <input class="form-control" value="@Model.Pqrs.Correo" readonly />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Dirección Usuario</label>
+                <input class="form-control" value="@Model.Pqrs.DireccionUsuario" readonly />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Barrio Usuario</label>
+                <input class="form-control" value="@Model.Pqrs.BarrioUsuario" readonly />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Dirección Afectación</label>
+                <input class="form-control" value="@Model.Pqrs.DireccionAfectacion" readonly />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Barrio Afectación</label>
+                <input class="form-control" value="@Model.Pqrs.BarrioAfectacion" readonly />
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">Tipo de Alumbrado</label>
+                <input class="form-control" value="@Model.Pqrs.TipoAlumbrado" readonly />
+            </div>
+
+            <div class="col-md-4">
+                <label class="form-label">Referencia</label>
+                <input class="form-control" value="@Model.Pqrs.Referencia" readonly />
+            </div>
+            <div class="col-md-8">
+                <label class="form-label">Datos Relacionados</label>
+                <input class="form-control" value="@Model.Pqrs.DatosRelacionados" readonly />
+            </div>
+
+            <div class="col-md-12">
+                <label class="form-label">Descripción de la Afectación</label>
+                <textarea class="form-control" rows="2" readonly>@Model.Pqrs.DescripcionAfectacion</textarea>
+            </div>
+
+            @if (Model.Pqrs.img != null)
+            {
+                <div class="col-md-12">
+                    <label class="form-label">Imagen de la PQRS</label><br />
+                    <img class="img-fluid rounded shadow-sm" style="max-height:380px"
+                         src="data:image/jpeg;base64,@Convert.ToBase64String(Model.Pqrs.img)" />
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- ========== SECCIÓN 2: ORDEN (SI EXISTE) ========== -->
+    @if (Model.Orden != null && Model.Orden.IdOrden > 0)
+    {
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-tools"></i><span>Orden de Servicio</span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-2"><label class="form-label">ID Orden</label><input class="form-control" value="@Model.Orden.IdOrden" readonly /></div>
+                <div class="col-md-3"><label class="form-label">Código Orden</label><input class="form-control" value="@Model.Orden.CodigoOrden" readonly /></div>
+                <div class="col-md-3"><label class="form-label">Tipo de Elemento</label><input class="form-control" value="@Model.Orden.TipoDeElemento" readonly /></div>
+                <div class="col-md-4"><label class="form-label">Código de Elemento</label><input class="form-control" value="@Model.Orden.CodigoDeElemento" readonly /></div>
+
+                <div class="col-md-4"><label class="form-label">Elemento Relacionado</label><input class="form-control" value="@Model.Orden.ElementoRelacionado" readonly /></div>
+                <div class="col-md-4"><label class="form-label">Problema Relacionado</label><input class="form-control" value="@Model.Orden.ProblemaRelacionado" readonly /></div>
+                <div class="col-md-4"><label class="form-label">Problema Validado</label><input class="form-control" value="@Model.Orden.ProblemaValidado" readonly /></div>
+
+                <div class="col-md-3"><label class="form-label">Orden Prioridad</label><input class="form-control" value="@Model.Orden.OrdenPrioridad" readonly /></div>
+                <div class="col-md-3"><label class="form-label">Prioridad de Ruta</label><input class="form-control" value="@Model.Orden.PrioridadDeRuta" readonly /></div>
+                <div class="col-md-3"><label class="form-label">Fecha a Realizar</label><input class="form-control" value="@Model.Orden.FechaARealizar.ToString("dd/MM/yyyy")" readonly /></div>
+                <div class="col-md-3"><label class="form-label">Cuadrilla</label><input class="form-control" value="@Model.Orden.Cuadrilla" readonly /></div>
+
+                <div class="col-md-4"><label class="form-label">Tipo de Orden</label><input class="form-control" value="@Model.Orden.TipoDeOrden" readonly /></div>
+                <div class="col-md-4"><label class="form-label">Tipo de Solución</label><input class="form-control" value="@Model.Orden.TipoDeSolucion" readonly /></div>
+                <div class="col-md-4"><label class="form-label">Clase de Orden</label><input class="form-control" value="@Model.Orden.ClaseDeOrden" readonly /></div>
+
+                <div class="col-md-4"><label class="form-label">Obra Relacionada</label><input class="form-control" value="@Model.Orden.ObraRelacionada" readonly /></div>
+                <div class="col-md-4"><label class="form-label">Estado</label><input class="form-control" value="@Model.Orden.EstadoNombre" readonly /></div>
+
+                @if (!string.IsNullOrEmpty(Model.Orden.observaciones))
+                {
+                    <div class="col-md-12"><label class="form-label">Observaciones</label><textarea class="form-control" rows="2" readonly>@Model.Orden.observaciones</textarea></div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Orden.Trabajos))
+                {
+                    <div class="col-md-12"><label class="form-label">Trabajos</label><textarea class="form-control" rows="2" readonly>@Model.Orden.Trabajos</textarea></div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- ========== SECCIÓN 3: CIERRE (SI EXISTE) ========== -->
+    @if (Model.Cierre != null && Model.Cierre.Id_Orden_Cerrada > 0)
+    {
+        <div class="section-card">
+            <div class="section-header">
+                <i class="fas fa-check-circle"></i><span>Cierre de la Orden</span>
+            </div>
+
+            <div class="row g-3">
+                <div class="col-md-3"><label class="form-label">ID Cierre</label><input class="form-control" value="@Model.Cierre.Id_Orden_Cerrada" readonly /></div>
+                <div class="col-md-3"><label class="form-label">Respuesta</label><input class="form-control" value="@(Model.Cierre.Respuesta.HasValue ? Model.Cierre.Respuesta.Value.ToString() : "N/A")" readonly /></div>
+
+                @if (!string.IsNullOrEmpty(Model.Cierre.Observacion))
+                {
+                    <div class="col-md-12"><label class="form-label">Observación</label><textarea class="form-control" rows="2" readonly>@Model.Cierre.Observacion</textarea></div>
+                }
+                @if (!string.IsNullOrEmpty(Model.Cierre.MaterialesUsados))
+                {
+                    <div class="col-md-12"><label class="form-label">Materiales Usados</label><textarea class="form-control" rows="2" readonly>@Model.Cierre.MaterialesUsados</textarea></div>
+                }
+            </div>
+        </div>
+    }
+
+    <!-- ========== SECCIÓN 4: TRABAJOS (SIEMPRE) ========== -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-wrench"></i><span>Trabajos Realizados</span>
+        </div>
+
+        @if (Model.Trabajos != null && Model.Trabajos.Any())
+        {
+            <div class="table-responsive">
+                <table class="table table-striped table-bordered align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:90px;">ID</th>
+                            <th>Descripción</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var t in Model.Trabajos)
+                        {
+                            <tr>
+                                <td>@t.IdTrabajoRealizado</td>
+                                <td>@t.Descripcion</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+        else
+        {
+            <div class="text-muted fst-italic">No hay trabajos registrados.</div>
+        }
+    </div>
+
+    <!-- ========== SECCIÓN 5: IMÁGENES (SIEMPRE) ========== -->
+    <div class="section-card">
+        <div class="section-header">
+            <i class="fas fa-images"></i><span>Imágenes</span>
+        </div>
+
+        @if (Model.Imagenes != null && Model.Imagenes.Any(i => i.Imagen != null))
+        {
+            <div class="row g-3 galeria">
+                @foreach (var img in Model.Imagenes)
+                {
+                    if (img.Imagen != null)
+                    {
+                        <div class="col-6 col-md-3">
+                            <img src="data:image/jpeg;base64,@Convert.ToBase64String(img.Imagen)" alt="Imagen @img.IdImagen" />
+                        </div>
+                    }
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-muted fst-italic">No hay imágenes para esta orden.</div>
+        }
+    </div>
+
+    <div class="text-center pb-3">
+        <a href="@(Request?.UrlReferrer != null ? Request.UrlReferrer.ToString() : Url.Action("pqrsresuelta","pqrs"))" class="btn btn-primary">
+            <i class="fas fa-arrow-left me-2"></i>Volver
+        </a>
+    </div>
+</div>

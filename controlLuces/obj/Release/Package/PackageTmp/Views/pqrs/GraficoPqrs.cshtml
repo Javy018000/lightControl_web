@@ -1,0 +1,234 @@
+﻿@{
+    ViewBag.Title = "Gráficos de PQRS";
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to bottom, #87CEEB, #007bff);
+            font-family: 'Product Sans', sans-serif;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            flex-direction: column;
+            text-align: center;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            flex-direction: column;
+            width: 100%;
+            max-width: 1200px;
+            padding: 20px;
+        }
+
+        .chart-container {
+            margin-bottom: 30px;
+            width: 100%;
+            max-width: 800px;
+            padding: 20px;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .export-chart {
+            display: block;
+            margin: 10px auto;
+        }
+
+        media (max-width: 768px) {
+            .chart-container {
+                width: 100%;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mb-4">GRAFICO DE PQRS</h2>
+
+        <!-- Selector de gráfico -->
+        <select id="chartType" class="form-control mb-4" style="width: 200px; margin: 0 auto;">
+            <option value="bar">Gráfico de Barras</option>
+            <option value="pie">Gráfico Circular</option>
+        </select>
+
+        <!-- Gráfico por tipo de PQRS -->
+        <div class="chart-container">
+            <h3>Por Tipo de PQRS</h3>
+            <canvas id="chartTipoPqrs"></canvas>
+            <button class="btn btn-success btn-sm mt-2 export-chart" data-chart-id="chartTipoPqrs">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+            </button>
+        </div>
+
+        <!-- Gráfico por barrio de afectación -->
+        <div class="chart-container">
+            <h3>Por Barrio de Afectación</h3>
+            <canvas id="chartBarrioAfectacion"></canvas>
+            <button class="btn btn-success btn-sm mt-2 export-chart" data-chart-id="chartBarrioAfectacion">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+            </button>
+        </div>
+
+        <!-- Gráfico por canal -->
+        <div class="chart-container">
+            <h3>Por Canal</h3>
+            <canvas id="chartCanal"></canvas>
+            <button class="btn btn-success btn-sm mt-2 export-chart" data-chart-id="chartCanal">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+            </button>
+        </div>
+
+        <!-- Gráfico por fecha de registro -->
+        <div class="chart-container">
+            <h3>Por Fecha de Registro</h3>
+            <canvas id="chartFechaRegistro"></canvas>
+            <button class="btn btn-success btn-sm mt-2 export-chart" data-chart-id="chartFechaRegistro">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+            </button>
+        </div>
+    </div>
+
+    @section scripts {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.4/xlsx.full.min.js"></script>
+        <script>
+            $(document).ready(function () {
+                // Obtener los datos desde el ViewBag y convertirlos a objetos JavaScript
+                var tiposPqrs = @Html.Raw(ViewBag.TiposPqrs);
+                var barriosAfectacion = @Html.Raw(ViewBag.BarriosAfectacion);
+                var canales = @Html.Raw(ViewBag.Canales);
+                var fechasRegistro = @Html.Raw(ViewBag.FechasRegistro);
+
+                var charts = {};
+
+                // Paletas de colores actualizadas
+                var colors = {
+                    tipoPqrs: ['#FFD700', '#FF0000', '#FF69B4', '#B7E778', '#40DAB2', '#BE6283', '#ED7575', '#FFD700'],
+                    barrioAfectacion: ['#FFD700', '#FF0000', '#FF69B4', '#B7E778', '#40DAB2', '#BE6283', '#ED7575', '#FFD700'],
+                    canal: ['#FFD700', '#FF0000', '#FF69B4', '#B7E778', '#40DAB2', '#BE6283', '#ED7575', '#FFD700'],
+                    fechaRegistro: ['#FFD700', '#FF0000', '#FF69B4', '#B7E778', '#40DAB2', '#BE6283', '#ED7575', '#FFD700']
+                };
+
+                // Función para inicializar y dibujar los gráficos
+                function drawChart(chartType, data, options, canvasId) {
+                    if (charts[canvasId]) {
+                        charts[canvasId].destroy();
+                    }
+                    var ctx = document.getElementById(canvasId).getContext('2d');
+                    charts[canvasId] = new Chart(ctx, {
+                        type: chartType,
+                        data: data,
+                        options: options
+                    });
+                }
+
+                // Opciones comunes para los gráficos
+                var options = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    animation: {
+                        duration: 2000,
+                        easing: 'easeInOutBounce'
+                    }
+                };
+
+                // Configuración de datos para cada gráfico
+                var dataTipoPqrs = {
+                    labels: tiposPqrs.map(item => item.TipoPqrs),
+                    datasets: [{
+                        label: 'Cantidad',
+                        data: tiposPqrs.map(item => item.Total),
+                        backgroundColor: colors.tipoPqrs,
+                        borderColor: colors.tipoPqrs.map(color => color.replace('0.6', '1')),
+                        borderWidth: 1
+                    }]
+                };
+
+                var dataBarrioAfectacion = {
+                    labels: barriosAfectacion.map(item => item.BarrioAfectacion),
+                    datasets: [{
+                        label: 'Cantidad',
+                        data: barriosAfectacion.map(item => item.Total),
+                        backgroundColor: colors.barrioAfectacion,
+                        borderColor: colors.barrioAfectacion.map(color => color.replace('0.6', '1')),
+                        borderWidth: 1
+                    }]
+                };
+
+                var dataCanal = {
+                    labels: canales.map(item => item.Canal),
+                    datasets: [{
+                        label: 'Cantidad',
+                        data: canales.map(item => item.Total),
+                        backgroundColor: colors.canal,
+                        borderColor: colors.canal.map(color => color.replace('0.6', '1')),
+                        borderWidth: 1
+                    }]
+                };
+
+                var dataFechaRegistro = {
+                    labels: fechasRegistro.map(item => item.Fecha),
+                    datasets: [{
+                        label: 'Cantidad',
+                        data: fechasRegistro.map(item => item.Total),
+                        backgroundColor: colors.fechaRegistro,
+                        borderColor: colors.fechaRegistro.map(color => color.replace('0.6', '1')),
+                        borderWidth: 1
+                    }]
+                };
+
+                // Dibujar los gráficos iniciales al cargar la página
+                drawChart('bar', dataTipoPqrs, options, 'chartTipoPqrs');
+                drawChart('bar', dataBarrioAfectacion, options, 'chartBarrioAfectacion');
+                drawChart('bar', dataCanal, options, 'chartCanal');
+                drawChart('bar', dataFechaRegistro, options, 'chartFechaRegistro');
+
+                // Evento para cambiar el tipo de gráfico seleccionado
+                $('#chartType').change(function () {
+                    var selectedType = $(this).val();
+                    drawChart(selectedType, dataTipoPqrs, options, 'chartTipoPqrs');
+                    drawChart(selectedType, dataBarrioAfectacion, options, 'chartBarrioAfectacion');
+                    drawChart(selectedType, dataCanal, options, 'chartCanal');
+                    drawChart(selectedType, dataFechaRegistro, options, 'chartFechaRegistro');
+                });
+
+                // Función para exportar los datos del gráfico a Excel
+                function exportChartToExcel(chartId) {
+                    var chart = charts[chartId];
+                    var data = chart.config.data;
+                    var wb = XLSX.utils.book_new();
+                    var ws = XLSX.utils.json_to_sheet(data.datasets[0].data.map((item, index) => ({
+                        label: data.labels[index],
+                        value: item
+                    })));
+                    XLSX.utils.book_append_sheet(wb, ws, 'data');
+                    XLSX.writeFile(wb, `chart_data_${chartId}.xlsx`);
+                }
+
+                // Evento para exportar los datos del gráfico al hacer clic en el botón
+                $('.export-chart').click(function () {
+                    var chartId = $(this).data('chart-id');
+                    exportChartToExcel(chartId);
+                });
+            });
+        </script>
+    }
+</body>
+</html>

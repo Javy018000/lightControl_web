@@ -1,0 +1,213 @@
+﻿@{
+    ViewBag.Title = "CrearOrdenDeServicio";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crear Nueva Orden De Servicio</title>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --c1: #0ea5e9;
+            --c2: #3b82f6;
+            --bg: #f4f8fb;
+            --text: #0f172a;
+            --muted: #64748b;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+            margin: 0;
+        }
+
+        /* CONTENEDOR GENERAL (similar a inventario/PQRS) */
+        .orden-wrapper {
+            max-width: 1200px;
+            margin: 22px auto 24px auto;
+            padding: 0 15px 24px 15px;
+        }
+
+        /* HEADER TIPO INVENTARIO (pill azul) */
+        .orden-title-chip {
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            color: #ffffff;
+            border-radius: 30px;
+            padding: 14px 24px;
+            text-align: center;
+            text-transform: uppercase;
+            font-weight: 800;
+            font-size: 20px;
+            letter-spacing: .4px;
+            margin-bottom: 18px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .18);
+        }
+
+            .orden-title-chip i {
+                margin-right: 8px;
+            }
+
+        /* CARD QUE CONTIENE TABS + FORMULARIO */
+        .orden-card {
+            background-color: #ffffff;
+            border-radius: 18px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .12);
+            overflow: hidden;
+        }
+
+        .orden-card-body {
+            padding: 18px 22px 20px 22px;
+            background-color: #f9f9f9;
+        }
+
+        /* TABS */
+        .nav-tabs {
+            border-bottom: 1px solid #e5e7eb;
+        }
+
+            .nav-tabs .nav-link {
+                color: #555;
+                transition: color 0.3s ease;
+                font-weight: 600;
+            }
+
+                .nav-tabs .nav-link.active {
+                    color: #0ea5e9;
+                    border-color: #0ea5e9;
+                    border-bottom-color: transparent;
+                }
+
+                .nav-tabs .nav-link:hover {
+                    color: #0ea5e9;
+                }
+
+        #formularioContainer {
+            padding: 18px 0 4px 0;
+            background-color: #f9f9f9;
+        }
+
+        /* BOTÓN ATRÁS ABAJO */
+        .btn-center {
+            display: flex;
+            justify-content: center;
+            margin-top: 10px;
+        }
+
+        .btn-back {
+            border-radius: 999px;
+            padding: 8px 24px;
+            font-weight: 700;
+            font-size: 14px;
+            box-shadow: 0 8px 18px rgba(220, 38, 38, .25);
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+            .btn-back i {
+                margin-right: 4px;
+            }
+
+        /* (clases viejas que ya no rompen nada, pero no se usan) */
+        .card {
+            border: none;
+        }
+
+        .card-header {
+            display: none;
+        }
+    </style>
+
+    <script>
+        $(document).ready(function () {
+            $(".nav-link").click(function (e) {
+                e.preventDefault();
+                var opcion = $(this).data("opcion");
+                cargarFormulario(opcion);
+                $(".nav-link").removeClass("active");
+                $(this).addClass("active");
+            });
+
+            function cargarFormulario(opcion) {
+                var idPqrs = $("#IdPqrs").val();
+                var descripcionAfectacion = $("#descripcionAfectacion").val();
+                var codigoElemento = $("#CodigoElementoHidden").val(); // NUEVO: código a prefijar
+
+                $.get("/Ordenes/ObtenerFormulario",
+                    { opcion: opcion, idPqrs: idPqrs, descripcionAfectacion: descripcionAfectacion, codigoElemento: codigoElemento },
+                    function (data) {
+                        $("#formularioContainer").html(data);
+
+                        // Por si el parcial no trae prellenado por ViewBag, lo fijamos aquí
+                        if (codigoElemento) {
+                            $("#formularioContainer").find("#codigoDeElemento").val(codigoElemento);
+                        }
+                    }
+                );
+            }
+
+            // no cargamos ninguno por defecto
+        });
+    </script>
+</head>
+<body>
+    <div class="orden-wrapper">
+
+        <!-- HEADER ESTILO INVENTARIO -->
+        <div class="orden-title-chip">
+            <i class="fas fa-file-alt"></i>
+            CREAR NUEVA ORDEN DE SERVICIO
+        </div>
+
+        <div class="orden-card">
+            <div class="orden-card-body">
+
+                <!-- valores provenientes del controlador -->
+                <input type="text" name="ElementoRelacionado" class="form-control" id="IdPqrs" style="display: none;" value="@ViewBag.IdPqrs" readonly />
+                <input type="text" name="ElementoRelacionado" class="form-control" id="descripcionAfectacion" style="display: none;" value="@ViewBag.descripcionAfectacion" readonly />
+                <!-- código del elemento si viene desde el controlador -->
+                <input type="text" id="CodigoElementoHidden" style="display:none;" value="@ViewBag.CodigoElemento" readonly />
+
+                <!-- TABS -->
+                <ul class="nav nav-tabs justify-content-center">
+                    <li class="nav-item">
+                        <a class="nav-link" id="btnMantenimiento" href="#" data-opcion="mantenimiento">Mantenimiento</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="btnExpansion" href="#" data-opcion="expansion">Expansión</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="btnModernizacion" href="#" data-opcion="modernizacion">Modernización</a>
+                    </li>
+                </ul>
+
+                <!-- AQUÍ SE CARGA EL PARCIAL -->
+                <div id="formularioContainer">
+                    <!-- Se inyecta el formulario según la pestaña -->
+                </div>
+
+                <!-- BOTÓN ATRÁS ABAJO (independiente del que está dentro del parcial) -->
+                <div class="btn-center">
+                    <a href="@Url.Action("inicio","login")" class="btn-back">
+                        <i class="fas fa-arrow-left"></i> Atrás
+                    </a>
+                </div>
+
+            </div>
+        </div>
+
+    </div>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,406 @@
+﻿@model List<controlLuces.Models.TransformadorModel>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Transformadores - Light Control</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f8fb;
+            padding: 20px;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg,#0ea5e9,#3b82f6);
+            color: #fff;
+            border-radius: 14px;
+            padding: 18px 25px;
+            box-shadow: 0 10px 24px rgba(2,8,23,.12);
+            font-size: 28px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+        .control-bar {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 25px;
+        }
+
+            .control-bar input, .control-bar select {
+                padding: 12px 14px;
+                border-radius: 12px;
+                border: 1px solid #dbe6f5;
+                background: #fff;
+                box-shadow: 0 2px 6px rgba(2,8,23,.05) inset;
+                transition: .2s;
+            }
+
+                .control-bar input:focus, .control-bar select:focus {
+                    outline: none;
+                    border-color: #3b82f6;
+                    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+                }
+
+            .control-bar input {
+                width: min(560px,85vw);
+            }
+
+            .control-bar button {
+                background: linear-gradient(135deg,#3b82f6,#0ea5e9);
+                border: none;
+                color: #fff;
+                font-weight: 700;
+                padding: 12px 20px;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: .15s;
+                box-shadow: 0 10px 18px rgba(59,130,246,.22);
+            }
+
+                .control-bar button:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 14px 22px rgba(59,130,246,.28);
+                }
+
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 20px;
+        }
+
+        .btn-excel {
+            background: linear-gradient(135deg,#10b981,#059669);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: .15s;
+            box-shadow: 0 10px 18px rgba(16,185,129,.22);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+            .btn-excel:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 14px 22px rgba(16,185,129,.28);
+                color: #fff;
+                text-decoration: none;
+            }
+
+        .btn-back {
+            background: linear-gradient(135deg,#ef4444,#dc2626);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: .15s;
+            box-shadow: 0 10px 18px rgba(239,68,68,.22);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+            .btn-back:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 14px 22px rgba(239,68,68,.28);
+                color: #fff;
+                text-decoration: none;
+            }
+
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            gap: 25px;
+        }
+
+        .table-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 22px rgba(2,8,23,.08);
+            padding: 16px;
+            flex: 1 1 55%;
+            max-height: 640px;
+            overflow-y: auto;
+        }
+
+            .table-card::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            .table-card::-webkit-scrollbar-thumb {
+                background: #dbe6f5;
+                border-radius: 10px;
+            }
+
+            .table-card::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+            margin: 0;
+        }
+
+        thead {
+            background: #f3f7fc;
+            color: #334155;
+        }
+
+            thead th {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                border-bottom: 1px solid #e6edf5;
+            }
+
+        th, td {
+            padding: 10px 8px;
+            text-align: center;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5fb;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #fcfdff;
+        }
+
+        tbody tr:hover {
+            background-color: #f3f9ff;
+            transition: .2s;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg,#3b82f6,#0ea5e9) !important;
+            border: none !important;
+            color: #fff !important;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 8px 14px;
+            box-shadow: 0 8px 18px rgba(59,130,246,.25);
+        }
+
+            .btn-info:hover {
+                filter: brightness(1.03);
+                transform: translateY(-1px);
+            }
+
+        .map-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 22px rgba(2,8,23,.08);
+            padding: 16px;
+            flex: 1 1 43%;
+            height: 640px;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .legend {
+            position: absolute;
+            bottom: 14px;
+            left: 14px;
+            background: rgba(255,255,255,.95);
+            border-radius: 10px;
+            padding: 8px 12px;
+            box-shadow: 0 6px 16px rgba(2,8,23,.12);
+            font-size: 13px;
+        }
+
+            .legend .dot {
+                display: inline-block;
+                width: 12px;
+                height: 12px;
+                border-radius: 50%;
+                margin-right: 6px;
+                vertical-align: middle;
+            }
+
+        @@media (max-width: 992px) {
+            .table-card, .map-card {
+                flex: 1 1 100%;
+                max-height: 520px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-header">
+            <i class="fas fa-bolt"></i> Transformadores
+        </div>
+
+        <!-- Filtros -->
+        <div class="control-bar">
+            <select id="tipoFilter">
+                <option value="">Todos los tipos</option>
+                <option value="TRIFASICO">TRIFASICO</option>
+                <option value="MONOFASICO">MONOFASICO</option>
+            </select>
+
+            <input type="text" id="searchInput" placeholder="Buscar por código o estructura...">
+            <button id="searchButton"><i class="fas fa-search"></i> Buscar</button>
+        </div>
+
+        <div class="content">
+            <!-- TABLA (sin lat, lon, pintado ni fabricante) -->
+            <div class="table-card">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Ident.</th>
+                            <th>Código</th>
+                            <th>Nombre Estructura</th>
+                            <th>Tipo/Fase</th>
+                            <th>Potencia</th>
+                            <th>Obs.</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="traTable">
+                        @foreach (var t in Model)
+                        {
+                            var lat = t.latitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                            var lon = t.longitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                            <tr data-lat="@lat" data-lon="@lon" data-tipo="@t.tipo_fase">
+                                <td>@($"TRA {t.id.ToString().PadLeft(2,'0')}")</td>
+                                <td>@t.codigo_apoyo</td>
+                                <td>@t.nombre_estructura</td>
+                                <td class="tipo">@t.tipo_fase</td>
+                                <td>@t.potencia_kva</td>
+                                <td>@t.observaciones</td>
+                                <td class="text-center">
+                                    <a href="@Url.Action("VerTransformador","infraestructura", new { id = t.id })" class="btn btn-info btn-sm">
+                                        <i class="fas fa-eye"></i> Ver info
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- MAPA -->
+            <div class="map-card">
+                <div id="map"></div>
+                <div class="legend">
+                    <div><span class="dot" style="background:#3b82f6;border:2px solid #1e40af;"></span> TRIFASICO</div>
+                    <div><span class="dot" style="background:#10b981;border:2px solid #065f46;"></span> MONOFASICO</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botones de Acción: Exportar y Atrás (Debajo del mapa) -->
+        <div class="action-buttons" style="margin-top: 25px;">
+            <a href="@Url.Action("ExportarTransformadoresExcel", "infraestructura")" class="btn-excel">
+                <i class="fas fa-file-excel"></i> Exportar a Excel
+            </a>
+            <a href="@Url.Action("inicio", "login")" class="btn-back">
+            <i class="fas fa-arrow-left"></i> Atrás
+            </a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        $(function () {
+            var map = L.map('map').setView([4.732, -74.264], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+            function clearMarkers() {
+                map.eachLayer(function (l) { if (l instanceof L.Marker || l instanceof L.CircleMarker) map.removeLayer(l); });
+            }
+
+            function colorByTipo(tipo) {
+                var t = (tipo || '').toString().trim().toUpperCase();
+                if (t.indexOf('MONO') >= 0) return { fill: "#10b981", stroke: "#065f46" }; // verde
+                return { fill: "#3b82f6", stroke: "#1e40af" }; // azul
+            }
+
+            function addMarker(lat, lng, text, tipo) {
+                if (isFinite(lat) && isFinite(lng)) {
+                    var col = colorByTipo(tipo);
+                    L.circleMarker([lat, lng], {
+                        radius: 8, fillColor: col.fill, color: col.stroke, weight: 2, opacity: 1, fillOpacity: 0.9
+                    }).addTo(map).bindPopup(text);
+                }
+            }
+
+            function repaintMarkersFromVisibleRows() {
+                clearMarkers();
+                var any = false;
+                $('#traTable tr:visible').each(function () {
+                    var lat = parseFloat($(this).data('lat'));
+                    var lon = parseFloat($(this).data('lon'));
+                    var ident = $(this).find('td').eq(0).text().trim();
+                    var estructura = $(this).find('td').eq(2).text().trim();
+                    var tipo = $(this).find('td.tipo').text().trim();
+                    if (!isNaN(lat) && !isNaN(lon)) {
+                        addMarker(lat, lon, ident + ' - ' + estructura, tipo);
+                        any = true;
+                    }
+                });
+                if (any) {
+                    var first = $('#traTable tr:visible').first();
+                    var lat = parseFloat(first.data('lat'));
+                    var lon = parseFloat(first.data('lon'));
+                    if (!isNaN(lat) && !isNaN(lon)) map.setView([lat, lon], map.getZoom());
+                }
+            }
+
+            // Inicial
+            repaintMarkersFromVisibleRows();
+
+            // Filtro tipo
+            $('#tipoFilter').on('change', function () {
+                var filtro = ($(this).val() || '').toLowerCase();
+                $('#traTable tr').each(function () {
+                    var tipoText = $(this).find('td.tipo').text().toLowerCase();
+                    $(this).toggle(filtro === '' || tipoText.indexOf(filtro) >= 0);
+                });
+                repaintMarkersFromVisibleRows();
+            });
+
+            // Buscador
+            $('#searchButton').on('click', function () {
+                var q = ($('#searchInput').val() || '').toLowerCase();
+                $('#traTable tr').each(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(q) > -1);
+                });
+                repaintMarkersFromVisibleRows();
+            });
+            $('#searchInput').on('keypress', function (e) { if (e.which === 13) $('#searchButton').click(); });
+        });
+    </script>
+</body>
+</html>

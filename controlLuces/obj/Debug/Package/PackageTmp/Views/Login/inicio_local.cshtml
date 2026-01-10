@@ -1,0 +1,158 @@
+﻿@using controlLuces.Models
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Panel Administrador Local";
+
+    var usuario = Session["Usuario"] as UsuarioModel;
+    var muni = (Session["Municipio"] as string) ?? usuario?.Municipio ?? "";
+}
+
+<!-- Estilos locales solo para esta vista -->
+<style>
+    body {
+        background-color: #f4f8fb;
+    }
+
+    .main-header {
+        background: linear-gradient(135deg,#0ea5e9,#3b82f6);
+        color: #fff;
+        border-radius: 14px;
+        padding: 20px 25px;
+        box-shadow: 0 10px 24px rgba(2,8,23,.12);
+        font-size: 28px;
+        font-weight: 800;
+        text-align: center;
+        margin-bottom: 35px;
+        text-transform: uppercase;
+        letter-spacing: .5px;
+    }
+
+    .card-container {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 25px
+    }
+
+    .card {
+        border: none;
+        border-radius: 16px;
+        color: #fff;
+        box-shadow: 0 8px 22px rgba(2,8,23,.1);
+        flex: 1 1 260px;
+        max-width: 320px;
+        padding: 25px;
+        text-align: center;
+        transition: transform .25s ease, box-shadow .25s ease;
+        position: relative;
+        overflow: hidden;
+    }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 28px rgba(2,8,23,.18)
+        }
+
+        .card i {
+            font-size: 52px;
+            margin-bottom: 18px;
+            opacity: .9
+        }
+
+        .card h5 {
+            font-weight: 700;
+            margin-bottom: 10px
+        }
+
+        .card p {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px
+        }
+
+    .btn-primary {
+        background: linear-gradient(135deg,#3b82f6,#0ea5e9);
+        border: none;
+        color: #fff;
+        font-weight: 700;
+        padding: 10px 20px;
+        border-radius: 10px;
+        box-shadow: 0 8px 18px rgba(59,130,246,.25);
+        transition: transform .15s, box-shadow .15s;
+    }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(59,130,246,.3)
+        }
+
+    .card-blue {
+        background: linear-gradient(135deg,#3b82f6,#0ea5e9)
+    }
+
+    .card-orange {
+        background: linear-gradient(135deg,#f59e0b,#f97316)
+    }
+
+    .card-red {
+        background: linear-gradient(135deg,#ef4444,#dc2626)
+    }
+
+    .card-green {
+        background: linear-gradient(135deg,#22c55e,#16a34a)
+    }
+
+    @@media (max-width:768px) {
+        .card-container {
+            flex-direction: column;
+            align-items: center
+        }
+    }
+</style>
+
+<div class="container mt-3">
+
+    <!-- Encabezado -->
+    <div class="main-header">
+        <i class="fas fa-chart-line"></i> Panel Administrador Local
+        @if (!string.IsNullOrWhiteSpace(muni))
+        {
+            <div class="mt-2" style="font-size:16px;font-weight:600;letter-spacing:.4px">
+                Municipio: @muni
+            </div>
+        }
+    </div>
+
+    <!-- Tarjetas -->
+    <div class="card-container">
+
+        <div class="card card-blue">
+            <i class="fas fa-exclamation-circle"></i>
+            <h5>PQRS SIN ASIGNAR</h5>
+            <p>@(ViewBag.PqrsSinAsignar ?? 0)</p>
+            <a href='@Url.Action("pqrssinasignar","pqrs", new { municipio = muni })' class="btn btn-primary">Ver más</a>
+        </div>
+
+        <div class="card card-orange">
+            <i class="fas fa-spinner"></i>
+            <h5>PQRS EN PROCESO</h5>
+            <p>@(ViewBag.PqrsProceso ?? 0)</p>
+            <a href='@Url.Action("pqrsasignada","pqrs", new { municipio = muni })' class="btn btn-primary">Ver más</a>
+        </div>
+
+        <div class="card card-red">
+            <i class="fas fa-check-circle"></i>
+            <h5>PQRS CERRADAS</h5>
+            <p>@(ViewBag.PqrsCerradas ?? 0)</p>
+            <a href='@Url.Action("pqrsresuelta","pqrs", new { municipio = muni })' class="btn btn-primary">Ver más</a>
+        </div>
+
+        <div class="card card-green">
+            <i class="fas fa-cogs"></i>
+            <h5>ÓRDENES ACTIVAS</h5>
+            <p>@(ViewBag.OrdenesActivas ?? 0)</p>
+            <a href='@Url.Action("verOrdenes","Ordenes", new { municipio = muni })' class="btn btn-primary">Ver más</a>
+        </div>
+
+    </div>
+</div>

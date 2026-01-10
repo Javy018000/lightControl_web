@@ -1,0 +1,143 @@
+﻿@using System.IO
+
+@{
+    ViewBag.Title = "Archivos cargados";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var archivos = ViewBag.Archivos as IEnumerable<FileInfo>;
+    string mensajeExito = ViewBag.MensajeExito as string;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+<style>
+    :root {
+        --c1: #0ea5e9;
+        --c2: #0369a1;
+        --c3: #0b1120;
+        --c4: #e0f2fe;
+    }
+
+    .page-wrapper-archivos {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 24px 16px 40px;
+        background: radial-gradient(circle at top left, var(--c4) 0, var(--c1) 45%, var(--c2) 100%);
+        border-radius: 24px;
+        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
+    }
+
+    .main-header-archivos {
+        background: linear-gradient(120deg, var(--c1), var(--c2));
+        border-radius: 24px;
+        padding: 18px 22px;
+        color: #f9fafb;
+    }
+
+    .main-title-archivos {
+        font-size: 1.35rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .main-subtitle-archivos {
+        font-size: 0.8rem;
+        opacity: 0.9;
+        margin-top: 2px;
+    }
+
+    .content-wrapper-archivos {
+        margin-top: 18px;
+    }
+
+    .card-soft-archivos {
+        background: #ffffff;
+        border-radius: 24px;
+        padding: 24px 22px 26px;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
+    }
+</style>
+
+<div class="page-wrapper-archivos">
+    <div class="main-header-archivos d-flex justify-content-between align-items-center flex-wrap gap-2">
+        <div>
+            <div class="main-title-archivos">
+                <i class="fa-solid fa-folder-open"></i>
+                Archivos cargados
+            </div>
+            <div class="main-subtitle-archivos">
+                Listado de todos los archivos que se han cargado al sistema.
+            </div>
+        </div>
+    </div>
+
+    <div class="content-wrapper-archivos">
+        <div class="card-soft-archivos">
+            @if (!string.IsNullOrEmpty(mensajeExito))
+            {
+                <div class="alert alert-success mb-3">
+                    <i class="fa-solid fa-circle-check me-1"></i>
+                    @mensajeExito
+                </div>
+            }
+
+            <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                <a href="@Url.Action("Index", "Home")"
+                   class="btn btn-outline-secondary">
+                    <i class="fa-solid fa-house me-1"></i> Inicio
+                </a>
+
+                <a href="@Url.Action("NuevoArchivo", "Archivo")"
+                   class="btn btn-primary">
+                    <i class="fa-solid fa-file-arrow-up me-1"></i> Cargar nuevo archivo
+                </a>
+            </div>
+
+            @if (archivos == null || !archivos.Any())
+            {
+                <div class="alert alert-info mb-0">
+                    <i class="fa-solid fa-circle-info me-1"></i>
+                    No hay archivos cargados todavía.
+                </div>
+            }
+            else
+            {
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th>Nombre</th>
+                                <th class="text-end">Tamaño</th>
+                                <th style="width:210px;">Fecha de carga</th>
+                                <th style="width:120px;" class="text-center">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var f in archivos)
+                            {
+                                <tr>
+                                    <td>@f.Name</td>
+                                    <td class="text-end">
+                                        @String.Format("{0:N0} KB", f.Length / 1024.0)
+                                    </td>
+                                    <td>@f.LastWriteTime.ToString("dd/MM/yyyy HH:mm")</td>
+                                    <td class="text-center">
+                                        <a href="@Url.Action("MostrarArchivo", "Archivo", new { nombre = f.Name })"
+                                           class="btn btn-sm btn-outline-primary"
+                                           target="_blank">
+                                            <i class="fa-solid fa-eye me-1"></i> Ver
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+</div>

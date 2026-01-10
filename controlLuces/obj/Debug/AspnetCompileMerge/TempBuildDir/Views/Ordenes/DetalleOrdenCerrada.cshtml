@@ -1,0 +1,214 @@
+﻿@using System.Linq
+@model controlLuces.Models.OrdenCerradaDetalleVM
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var o = Model?.Orden;
+    var c = Model?.Cierre;
+
+    Func<object, string> S = v =>
+    {
+        if (v == null) return "-";
+        var s = v.ToString();
+        return string.IsNullOrWhiteSpace(s) ? "-" : s;
+    };
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>Detalle de Orden Cerrada</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <style>
+        .wrap {
+            max-width: 1100px;
+            margin: 20px auto;
+        }
+
+        .card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 22px rgba(2,8,23,.08);
+            padding: 18px;
+            margin-bottom: 20px;
+        }
+
+        .hdr {
+            background: linear-gradient(135deg,#0ea5e9,#3b82f6);
+            color: #fff;
+            border-radius: 14px;
+            padding: 10px 20px;
+            font-weight: 800;
+            margin-bottom: 14px;
+        }
+
+        .row2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 18px;
+        }
+
+        .lbl {
+            display: grid;
+            grid-template-columns: 180px 1fr;
+            gap: 12px;
+            padding: 6px 0;
+            border-bottom: 1px solid #f1f5fb;
+        }
+
+            .lbl > div:first-child {
+                color: #475569;
+                font-weight: 600;
+            }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+            .table th, .table td {
+                padding: 10px;
+                border-bottom: 1px solid #f1f5fb;
+                text-align: left;
+            }
+
+            .table thead {
+                background: #f3f7fc;
+                color: #334155;
+            }
+
+        .thumb {
+            width: 180px;
+            height: 140px;
+            object-fit: cover;
+            border-radius: 10px;
+            box-shadow: 0 6px 14px rgba(2,8,23,.12);
+        }
+
+        .btn {
+            display: inline-block;
+            padding: 8px 12px;
+            border-radius: 10px;
+            text-decoration: none;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg,#3b82f6,#0ea5e9);
+            color: #fff;
+            box-shadow: 0 6px 16px rgba(59,130,246,.25);
+        }
+
+        .btn-light {
+            background: #f1f5f9;
+            color: #0f172a;
+            border: 1px solid #e2e8f0;
+        }
+
+        .flex {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+    </style>
+</head>
+<body>
+    <div class="wrap">
+
+        <!-- Datos de la Orden + Cierre -->
+        <div class="row2">
+            <div class="card">
+                <div class="hdr"><i class="fas fa-clipboard-list"></i> Datos de la Orden</div>
+
+                <div class="lbl"><div>Consecutivo:</div>        <div>@S(o?.IdOrden)</div></div>
+                <div class="lbl"><div>Código Orden:</div>        <div>@S(o?.CodigoOrden)</div></div>
+                <div class="lbl"><div>Tipo Elemento:</div>       <div>@S(o?.TipoDeElemento)</div></div>
+                <div class="lbl"><div>Código Elemento:</div>     <div>@S(o?.CodigoDeElemento)</div></div>
+
+                <div class="lbl">
+                    <div>PQRS Relacionada:</div>
+                    <div class="flex">
+                        <span>@S(o?.ElementoRelacionado)</span>
+                        @if ((o?.Idpqrs ?? 0) > 0)
+                        {
+                            <a class="btn btn-light" target="_blank"
+                               href="@Url.Action("VerInfo", "pqrs", new { id = o.Idpqrs })">
+                                Ver info de la PQRS
+                            </a>
+                        }
+                    </div>
+                </div>
+
+                <div class="lbl"><div>Problema:</div>            <div>@S(o?.ProblemaRelacionado)</div></div>
+                <div class="lbl"><div>Validación:</div>          <div>@S(o?.ProblemaValidado)</div></div>
+                <div class="lbl"><div>Prioridad Ruta:</div>      <div>@S(o?.PrioridadDeRuta)</div></div>
+                <div class="lbl"><div>Fecha a realizar:</div>    <div>@(o?.FechaARealizar == DateTime.MinValue ? "-" : o?.FechaARealizar.ToString("dd/MM/yyyy"))</div></div>
+                <div class="lbl"><div>Cuadrilla:</div>           <div>@S(o?.Cuadrilla)</div></div>
+                <div class="lbl"><div>Tipo Orden:</div>          <div>@S(o?.TipoDeOrden)</div></div>
+                <div class="lbl"><div>Tipo Solución:</div>       <div>@S(o?.TipoDeSolucion)</div></div>
+                <div class="lbl"><div>Clase:</div>               <div>@S(o?.ClaseDeOrden)</div></div>
+                <div class="lbl"><div>Obra Relacionada:</div>    <div>@S(o?.ObraRelacionada)</div></div>
+                <div class="lbl"><div>Estado:</div>              <div>@S(o?.EstadoNombre)</div></div>
+                <div class="lbl"><div>Observaciones:</div>       <div>@S(o?.observaciones)</div></div>
+            </div>
+
+            <div class="card">
+                <div class="hdr"><i class="fas fa-lock"></i> Cierre de Orden</div>
+                <div class="lbl"><div>Id Orden Cerrada:</div>    <div>@S(c?.Id_Orden_Cerrada)</div></div>
+                <div class="lbl"><div>Observación:</div>         <div>@S(c?.Observacion)</div></div>
+                <div class="lbl"><div>Respuesta:</div>           <div>@(c?.Respuesta.HasValue == true ? c.Respuesta.Value.ToString() : "-")</div></div>
+                <div class="lbl"><div>Materiales Usados:</div>   <div>@S(c?.MaterialesUsados)</div></div>
+            </div>
+        </div>
+
+        <!-- Trabajos -->
+        <div class="card">
+            <div class="hdr"><i class="fas fa-tools"></i> Trabajos Realizados</div>
+            <table class="table">
+                <thead><tr><th>ID</th><th>Descripción</th><th>Detalle</th><th>Cantidad</th></tr></thead>
+                <tbody>
+                    @if (Model?.Trabajos != null && Model.Trabajos.Any())
+                    {
+                        foreach (var t in Model.Trabajos)
+                        {
+                            <tr>
+                                <td>@t.IdTrabajoRealizado</td>
+                                <td>@S(t.Descripcion)</td>
+                                <td>@S(t.Detalle)</td>
+                                <td>@(t.Cantidad.HasValue ? t.Cantidad.ToString() : "-")</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="4">Sin trabajos para este cierre.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Imágenes -->
+        <div class="card">
+            <div class="hdr"><i class="fas fa-images"></i> Imágenes</div>
+            @if (Model?.Imagenes != null && Model.Imagenes.Any(i => i.Imagen != null))
+            {
+                <div class="flex" style="flex-wrap:wrap;">
+                    @foreach (var img in Model.Imagenes.Where(i => i.Imagen != null))
+                    {
+                        var base64 = Convert.ToBase64String(img.Imagen);
+                        var src = $"data:image/jpeg;base64,{base64}";
+                        <img class="thumb" src="@src" alt="Imagen orden" />
+                    }
+                </div>
+            }
+            else
+            {
+                <div>Sin imágenes asociadas al cierre.</div>
+            }
+        </div>
+
+        <a class="btn btn-primary" href="@(Request?.UrlReferrer != null ? Request.UrlReferrer.ToString() : Url.Action("verOrdenes","Ordenes"))">
+            ← Volver
+        </a>
+    </div>
+</body>
+</html>

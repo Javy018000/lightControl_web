@@ -1,0 +1,315 @@
+﻿@{
+    
+        ViewBag.Title = "infraestructura";
+        Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+
+
+<link href="~/lib/leaflet/leaflet.css" rel="stylesheet" />
+<script src="~/lib/leaflet/leaflet.js"></script>
+<link href="~/lib/leaflet/leaflet.min.css" rel="stylesheet" />
+<script src="~/lib/leaflet/leaflet.min.js"></script>
+@model List<controlLuces.Models.infraestructuraModel>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infraestructura</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to bottom, #87CEEB, #007bff);
+            font-family: 'Product Sans', sans-serif;
+            padding-top: 40px;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            text-align: center;
+        }
+
+        .container {
+            width: 90%;
+            margin: 0 auto;
+        }
+
+        .main-header {
+            background-color: #17a2b8;
+            color: #fff;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+            .main-header i {
+                margin-right: 10px;
+            }
+
+        .table-container {
+            width: 100%;
+            margin-bottom: 20px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            border-spacing: 0;
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            font-family: 'Product Sans', sans-serif;
+        }
+
+            .table th,
+            .table td {
+                padding: 12px;
+                line-height: 1.6;
+                vertical-align: top;
+                border-top: 1px solid #ddd;
+                font-size: 16px;
+                text-align: center;
+                font-family: 'Product Sans', sans-serif;
+            }
+
+            .table th {
+                background-color: #f5f5f5;
+                font-weight: bold;
+                text-transform: uppercase;
+                font-size: 20px;
+                font-family: 'Product Sans', sans-serif;
+            }
+
+        .btn {
+            display: inline-block;
+            padding: 7px 13px;
+            margin-bottom: 0;
+            font-size: 16px;
+          
+           line-height: 1.5;
+            text-align: center;
+            white-space: nowrap;
+            vertical-align: middle;
+            cursor: pointer;
+            background-color: #007bff;
+            border: 1px solid transparent;
+            border-radius: 5px;
+            color: #fff;
+            transition: all 0.3s ease;
+            margin: 5px;
+        }
+
+            .btn:hover {
+                background-color: #0056b3;
+            }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+            .btn-danger:hover {
+                background-color: #c82333;
+                border-color: #bd2130;
+            }
+
+        .btn-block {
+            display: block;
+            width: auto;
+            margin: 0 auto;
+        }
+
+        .btn i {
+            margin-right: 5px;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+        .img-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px;
+        }
+
+            .img-container img {
+                max-width: 100%;
+                height: auto;
+                border-radius: 10px;
+            }
+
+        .form-buttons {
+            display: flex;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+            .form-buttons .btn {
+                margin: 0 5px;
+            }
+
+        .card-header {
+            background-color: #17a2b8;
+            color: #fff;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            margin-bottom: 20px;
+            font-size: 24px;
+            text-align: center;
+        }
+            .card-header h2 {
+                font-size: 24px; 
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-header">
+            <i class="fas fa-building"></i>
+            <span>Infraestructura</span>
+        </div>
+        <div class="row justify-content-center">
+            <div class="col-md-8">
+
+                <div class="card">
+                    <div class="card-body">
+                        <form method="post" action="@Url.Action("BuscarInfraestructura", "infraestructura")">
+                            <div class="form-group">
+                                <label for="tipoBusqueda">Tipo de Búsqueda:</label>
+                                <select id="tipoBusqueda" name="tipoBusqueda" class="form-control">
+                                    <option>Seleccionar</option>
+                                    <option value="codigo">Por Código</option>
+                                    <option value="barrio">Por Barrio</option>
+                                </select>
+                            </div>
+                            <div id="campoCodigo" style="display: none;">
+                                <div class="form-group">
+                                    <label for="codigo">Código:</label>
+                                    <input type="text" id="codigo" name="codigo" class="form-control">
+                                </div>
+                            </div>
+                            <div id="campoBarrio" style="display: none;">
+                                <div class="form-group">
+                                    <label for="barrio">Barrio:</label>
+                                    <input type="text" id="barrio" name="barrio" class="form-control" style="font-family: Arial, sans-serif;">
+                                </div>
+                            </div>
+                            <div class="form-buttons">
+                                <button type="submit" class="btn btn-primary mt-3"><i class="fas fa-search mr-2"></i>Buscar</button>
+                                <a href="@Url.Action("vertodainfraestructura", "infraestructura")" class="btn btn-success mt-3 btn-ver-infraestructura" style="background-color: #28a745 !important;"><i class="fas fa-eye mr-2"></i>Ver toda la infraestructura</a>
+
+
+
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="table-container">
+            <div class="row justify-content-center">
+                <div class="col-md-12">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="mb-0"><i class="fas fa-list mr-2"></i>Listado de Infraestructura</h2>
+                        </div>
+                        <div class="card-body">
+                            @if (Model != null && Model.Any())
+                            {
+                                <div class="table-responsive">
+                                    <table class="table">
+                                        <thead>
+                                            <tr>
+                                                <th>Código</th>
+                                                <th>Barrio</th>
+                                                <th>Dirección</th>
+                                                <th>Acciones</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var resultados in Model)
+                                            {
+                                                <tr>
+                                                    <td>@resultados.codigo</td>
+                                                    <td>@resultados.barrio</td>
+                                                    <td>@resultados.direccion</td>
+                                                    <td>
+                                                        <a href="@Url.Action("VerInfo", "infraestructura", new { id = resultados.codigo })" class="btn btn-primary btn-sm"><i class="fas fa-info-circle mr-2"></i>Ver Info</a>
+                                                        <a href="@Url.Action("EliminarPqrs", "infraestructura", new { id = resultados.codigo })" class="btn btn-danger btn-sm"><i class="fas fa-trash-alt mr-2"></i>Eliminar</a>
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div id="map" style="width: 100%; height: 400px;"></div>
+                                <script>
+                                    var latitud = @Model.FirstOrDefault().latitud;
+                                    var longitud = @Model.FirstOrDefault().longitud;
+
+                                    var map = L.map('map').setView([latitud, longitud], 13);
+
+                                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                                        maxZoom: 19,
+                                        attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+                                    }).addTo(map);
+
+                                    @foreach (var ubicacion in Model)
+                                    {
+                                        <text>
+                                            L.marker([@ubicacion.latitud, @ubicacion.longitud])
+                                            .addTo(map)
+                                            .bindPopup('Código: @ubicacion.codigo <br>Barrio: @ubicacion.barrio<br>Dirección: @ubicacion.direccion<br>Tipo: @ubicacion.tipo');
+                                        </text>
+                                    }
+                                </script>
+                            }
+                            else
+                            {
+                                <p>No se encontraron registros.</p>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $("#tipoBusqueda").change(function () {
+                var tipoBusqueda = $(this).val();
+                if (tipoBusqueda === "codigo") {
+                    $("#campoCodigo").show();
+                    $("#campoBarrio").hide();
+                } else if (tipoBusqueda === "barrio") {
+                    $("#campoCodigo").hide();
+                    $("#campoBarrio").show();
+                } else {
+                    $("#campoCodigo").hide();
+                    $("#campoBarrio").hide();
+                }
+            });
+        });
+    </script>
+</body>
+</html>
+

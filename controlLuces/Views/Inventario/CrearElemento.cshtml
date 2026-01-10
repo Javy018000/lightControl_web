@@ -1,0 +1,186 @@
+﻿@model controlLuces.Models.inventarioModel
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Insumos</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to bottom, #87CEEB, #007bff);
+            font-family: 'Product Sans', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container-form {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.1);
+            border: none;
+        }
+
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+            .card-header h2 {
+                margin-bottom: 0;
+                text-align: center;
+            }
+
+        .card-body {
+            padding: 30px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+        }
+
+        .btn-sm {
+            padding: 8px 12px; 
+            font-size: 14px; 
+        }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+        .btn-success {
+            background-color: #28a745; 
+            border-color: #28a745; 
+        }
+
+        .btn-danger:hover {
+            background-color: #c82333; 
+            border-color: #bd2130; 
+        }
+
+        .btn-success:hover {
+            background-color: #218838; 
+            border-color: #1e7e34; 
+        }
+    </style>
+</head>
+<body>
+    <div class="container-form">
+        <div class="card border-dark">
+            <div class="card-header">
+                <h2><i class="fas fa-plus mr-2"></i> Elementos</h2>
+            </div>
+            <div class="card-body">
+                @using (Html.BeginForm("CrearElemento", "Inventario", FormMethod.Post, new { id = "createForm" }))
+                {
+                    @Html.HiddenFor(model => model.ID)
+                    <div class="form-group">
+                        <label for="nombre_elemento">Nombre</label>
+                        @Html.TextBoxFor(model => model.nombre_elemento, new { @class = "form-control", @required = "required" })
+                    </div>
+                    <div class="form-group">
+                        <label for="cantidad">Cantidad</label>
+                        @Html.TextBoxFor(model => model.cantidad, new { @class = "form-control", @type = "number", @required = "required" })
+                    </div>
+                    <div class="form-group">
+                        <label for="descripcion">Descripción</label>
+                        @Html.TextAreaFor(model => model.descripcion, new { @class = "form-control", @rows = 3, @required = "required" })
+                    </div>
+                    <div class="form-group">
+                        <label for="estado">Estado</label>
+                        @Html.DropDownListFor(model => model.estado, new SelectList(new List<SelectListItem>
+                        {
+                            new SelectListItem { Text = "Disponible", Value = "Disponible" },
+                            new SelectListItem { Text = "No disponible", Value = "No disponible" }
+                        }, "Value", "Text"), new { @class = "form-control", @required = "required" })
+                    </div>
+                    <div class="form-group text-center">
+                        <button type="submit" class="btn btn-success btn-sm"><i class="fas fa-save"></i> Guardar</button>
+                        <a href="@Url.Action("VerElementos", "Inventario")" class="btn btn-danger btn-sm"><i class="fas fa-arrow-left"></i> Volver</a>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('createForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            // Crear el elemento usando AJAX
+            const form = event.target;
+            const data = new FormData(form);
+
+            fetch(form.action, {
+                method: form.method,
+                body: data,
+            })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) {
+                    Swal.fire({
+                        title: '¡Elemento Guardado!',
+                        text: 'El elemento ha sido guardado exitosamente.',
+                        icon: 'success',
+                        confirmButtonText: 'OK'
+                    }).then(() => {
+                        window.location.href = '@Url.Action("VerElementos", "Inventario")';
+                    });
+                } else {
+                    Swal.fire({
+                        title: 'Error',
+                        text: result.message || 'Hubo un error al guardar el elemento.',
+                        icon: 'error',
+                        confirmButtonText: 'OK'
+                    });
+                }
+            })
+            .catch(error => {
+                Swal.fire({
+                    title: 'Error',
+                    text: 'Hubo un error al procesar la solicitud.',
+                    icon: 'error',
+                    confirmButtonText: 'OK'
+                });
+            });
+        });
+    </script>
+</body>
+</html>

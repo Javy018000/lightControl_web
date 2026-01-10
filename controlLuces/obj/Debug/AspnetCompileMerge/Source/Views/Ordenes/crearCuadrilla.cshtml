@@ -1,0 +1,203 @@
+﻿@model controlLuces.Models.CuadrillaModel
+@using controlLuces.Models
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    ViewBag.Title = "Crear Cuadrilla";
+
+    var usuario = Session["Usuario"] as UsuarioModel;
+    var muniSesion = (Session["Municipio"] as string) ?? usuario?.Municipio;
+    var esAdminLocal = (usuario?.IdRol == Rol.Administrador_Local);
+
+    Func<string, string> Prefijo = (m) =>
+    {
+        var y = DateTime.Now.Year;
+        if (string.IsNullOrWhiteSpace(m)) return $"LC{y}";
+        var k = m.Trim().ToLowerInvariant();
+        if (k.Contains("madrid")) return $"MA{y}";
+        if (k.Contains("chía") || k.Contains("chia")) return $"CH{y}";
+        return $"LC{y}";
+    };
+    var prefijoInicial = Prefijo(muniSesion);
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: 'Product Sans', sans-serif;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg,#0ea5e9,#3b82f6);
+            color: #fff;
+            border-radius: 14px;
+            padding: 18px 25px;
+            box-shadow: 0 10px 24px rgba(2,8,23,.12);
+            font-size: 28px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+        .card-wrap {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 10px 24px rgba(2,8,23,.10);
+            padding: 22px;
+            max-width: 760px;
+            margin: 0 auto;
+        }
+
+        .hint {
+            font-size: 12px;
+            color: #64748b;
+            margin-top: 4px;
+        }
+
+        .btnSubmit {
+            background: linear-gradient(135deg,#3b82f6,#0ea5e9) !important;
+            border: none !important;
+            color: #fff !important;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 10px 18px;
+            box-shadow: 0 8px 18px rgba(59,130,246,.25);
+        }
+
+            .btnSubmit:hover {
+                filter: brightness(1.03);
+                transform: translateY(-1px);
+            }
+
+        .badge-prefijo {
+            display: inline-block;
+            padding: 6px 10px;
+            border-radius: 10px;
+            font-weight: 700;
+            color: #0f172a;
+            background: #f1f5ff;
+            border: 1px solid #dbe6f5;
+            margin-left: 8px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container py-3">
+        <div class="main-header">
+            <i class="fas fa-users-cog"></i> Crear Cuadrilla
+        </div>
+
+        <div class="card-wrap">
+            <form id="formularioCuadrilla" action="@Url.Action("crearNuevaCuadrilla", "Ordenes")" method="post" autocomplete="off">
+                <div class="form-row">
+                    <div class="form-group col-md-6">
+                        <label><i class="fas fa-id-badge mr-1"></i>Nombre de la Cuadrilla</label>
+                        <input type="text" name="Nombre" class="form-control" required />
+                        <div class="hint">Ej: Cuadrilla1, Cuadrilla2…</div>
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <label><i class="fas fa-city mr-1"></i>Municipio</label>
+
+                        @if (esAdminLocal)
+                        {
+                            <!-- Admin_Local: fijado por sesión -->
+                            <input type="text" id="MunicipioRO" class="form-control" value="@muniSesion" readonly />
+                            <input type="hidden" id="Municipio" name="Municipio" value="@muniSesion" />
+                        }
+                        else
+                        {
+                            <!-- Admin/Técnico: editable, precargado si hay sesión -->
+                            <select id="Municipio" name="Municipio" class="form-control" required>
+                                @if (!string.IsNullOrWhiteSpace(muniSesion))
+                                {
+                                    <option selected value="@muniSesion">@muniSesion</option>
+                                }
+                                <option value="Madrid">Madrid</option>
+                                <option value="Chía">Chía</option>
+                            </select>
+                        }
+
+                        <div class="hint">
+                            El prefijo se genera por municipio y año:
+                            <span id="prefijoPreview" class="badge-prefijo">@prefijoInicial</span>
+                        </div>
+                    </div>
+
+                    <div class="form-group col-md-6">
+                        <label><i class="fas fa-key mr-1"></i>Clave</label>
+                        <input type="text" name="Clave" class="form-control" />
+                        <div class="hint">(Opcional) Identificador interno</div>
+                    </div>
+                </div>
+
+                <div class="text-center mt-2">
+                    <button type="submit" class="btn btnSubmit">
+                        <i class="fas fa-save mr-1"></i>Crear Cuadrilla
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+    // Prefijo dinámico sin dependencias externas
+    function prefijoDesdeMunicipio(m) {
+        const y = new Date().getFullYear();
+        if (!m) return 'LC' + y;
+        const k = (m || '').toLowerCase();
+        if (k.includes('madrid')) return 'MA' + y;
+        if (k.includes('chía') || k.includes('chia')) return 'CH' + y;
+        return 'LC' + y;
+    }
+
+    (function(){
+        var sel = document.getElementById('Municipio'); // puede ser SELECT o input hidden (admin local)
+        var pv  = document.getElementById('prefijoPreview');
+
+        function currentMunicipio(){
+            if (!sel) return '';
+            // si es hidden (admin local), usa su value
+            return sel.value || '';
+        }
+        function refresh(){
+            if (pv) pv.textContent = prefijoDesdeMunicipio(currentMunicipio());
+        }
+        if (sel && sel.tagName === 'SELECT'){
+            sel.addEventListener('change', refresh);
+            sel.addEventListener('input', refresh);
+        }
+        refresh();
+    })();
+
+    // SweetAlert disparado por el controlador
+    @if (ViewBag.MostrarMensajeExito == true)
+    {
+        var pref = Convert.ToString(ViewBag.PrefijoCreado ?? prefijoInicial);
+        <text>
+        Swal.fire({
+            icon: 'success',
+            title: '¡Cuadrilla creada!',
+            html: 'La cuadrilla se creó con el prefijo <b>@pref</b>.',
+            confirmButtonText: 'Ir a Cuadrillas',
+            confirmButtonColor: '#3b82f6',
+            allowOutsideClick: false
+        }).then(() => {
+            window.location.href = '@Url.Action("ObtenerCuadrilla","Ordenes")';
+        });
+        </text>
+    }
+    </script>
+</body>
+</html>

@@ -1,0 +1,182 @@
+﻿@model List<controlLuces.Models.PqrsModel>
+@{
+    ViewBag.Title = "PQRS Sin Asignar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PQRS Sin Asignar</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/2.1.2/sweetalert.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to bottom, #87CEEB, #007bff);
+            font-family: 'Product Sans', sans-serif;
+            margin: 0;
+            padding-top: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container {
+            width: 95%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .card {
+            border-collapse: collapse;
+            border-spacing: 0;
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            height: 100%;
+            transition: transform 0.3s ease-in-out, box-shadow 0.3s ease-in-out;
+        }
+
+            .card:hover {
+                transform: scale(1.05);
+                box-shadow: 0 0 30px rgba(0, 0, 0, 0.3);
+            }
+
+        .card-header {
+            background-color: #17a2b8;
+            color: #fff;
+            border-bottom: none;
+            font-size: 24px;
+            text-transform: uppercase;
+            margin-bottom: 0;
+        }
+
+        .card-body {
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .btn {
+            padding: 7px 13px;
+            transition: background-color 0.3s, color 0.3s;
+            font-family: 'Product Sans', sans-serif;
+            font-size: 16px;
+            text-align: center;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            border-color: #007bff;
+        }
+
+            .btn-primary:hover {
+                background-color: #0056b3;
+                border-color: #0056b3;
+            }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+        }
+
+            .btn-danger:hover {
+                background-color: #c82333;
+                border-color: #bd2130;
+            }
+
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+        }
+
+            .btn-success:hover {
+                background-color: #218838;
+                border-color: #1e7e34;
+            }
+
+        .tuclase {
+            text-align: center;
+            font-weight: bold;
+            font-size: 30px;
+            color: #17202A;
+            text-shadow: 0 1px 0 #ddd, 0 2px 0 #ccc, 0 3px 0 #bbb, 0 4px 0 #aaa, 0 5px 0 #acacac, 0 6px 1px rgba(0, 0, 0, 0.1), 0 0 5px rgba(0, 0, 0, 0.1), 0 1px 3px rgba(0, 0, 0, 0.3), 0 3px 5px rgba(0, 0, 0, 0.2), 0 5px 10px rgba(0, 0, 0, 0.25), 0 10px 10px rgba(0, 0, 0, 0.2), 0 20px 20px rgba(0, 0, 0, 0.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2 class="mb-4 card-header"><i class="fas fa-exclamation-circle"></i> PQRS Sin Asignar</h2>
+        <div class="row justify-content-around">
+            @foreach (var pqrs in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">CH2024-@pqrs.Idpqrs</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Fecha:</strong> @pqrs.FechaRegistro</p>
+                            <p><strong>Tipo:</strong> @pqrs.Tipopqrs</p>
+                            <p><strong>Canal:</strong> @pqrs.Canal</p>
+                            <p><strong>Dirección:</strong> @pqrs.DireccionAfectacion</p>
+                            <p><strong>Descripción:</strong> @pqrs.DescripcionAfectacion</p>
+                        </div>
+                        <div class="card-footer">
+                            <a href="@Url.Action("VerInfo_usuario", "pqrs", new { id = pqrs.Idpqrs })" class="btn btn-primary btn-sm"><i class="fas fa-info-circle"></i> Ver Info</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="button-container mt-4">
+            <a href="@Url.Action("inicio", "login")" class="btn btn-danger btn-sm"><i class="fas fa-arrow-left"></i> Atrás</a>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            $('.delete-pqrs').click(function () {
+                var pqrsId = $(this).data('id');
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: "¡No podrás revertir esto!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminarlo!'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        $.ajax({
+                            url: '@Url.Action("EliminarPqrs", "pqrs")',
+                            type: 'POST',
+                            data: { id: pqrsId },
+                            success: function (response) {
+                                window.location.reload();
+                            },
+                            error: function (xhr, status, error) {
+                                console.error(xhr.responseText);
+                            }
+                        });
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
+

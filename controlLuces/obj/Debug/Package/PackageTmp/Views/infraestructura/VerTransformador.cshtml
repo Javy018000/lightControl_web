@@ -1,0 +1,126 @@
+﻿@model controlLuces.Models.TransformadorModel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var ident = $"TRA {Model.id.ToString().PadLeft(2, '0')}";
+    var lat = Model.latitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    var lon = Model.longitud.ToString(System.Globalization.CultureInfo.InvariantCulture);
+    var tipoUpper = (Model.tipo_fase ?? "").Trim().ToUpper();
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>@ident - Detalle de Transformador</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        body { font-family: 'Segoe UI', Arial, sans-serif; background:#f4f8fb; padding: 20px; }
+        .main-header{
+            background: linear-gradient(135deg,#0ea5e9,#3b82f6); color:#fff; border-radius:14px; padding:18px 25px;
+            box-shadow:0 10px 24px rgba(2,8,23,.12); font-size:26px; font-weight:800; text-align:center; margin-bottom:22px;
+            text-transform:uppercase; letter-spacing:.6px;
+        }
+        .wrap{ display:flex; gap:22px; flex-wrap:wrap; }
+        .card-pane{ background:#fff; border-radius:14px; box-shadow:0 8px 22px rgba(2,8,23,.08); padding:18px; }
+        .left{ flex:1 1 46%; }
+        .right{ flex:1 1 46%; position:relative; }
+        .kv{ display:grid; grid-template-columns: 160px 1fr; gap:8px 14px; font-size:15px; }
+        .kv .k{ color:#64748b; font-weight:700; text-transform:uppercase; letter-spacing:.5px; }
+        .badge-tipo{
+            display:inline-block; padding:6px 10px; border-radius:999px; font-weight:700; font-size:12px;
+        }
+        .badge-tri{ background:#dbeafe; color:#1e40af; border:1px solid #93c5fd; }
+        .badge-mono{ background:#d1fae5; color:#065f46; border:1px solid #6ee7b7; }
+
+        #map{ width:100%; height:420px; border-radius:12px; }
+        .legend{
+            position:absolute; bottom:14px; left:14px; background:#fff; border-radius:10px;
+            padding:8px 12px; box-shadow:0 6px 16px rgba(2,8,23,.12); font-size:13px;
+        }
+        .legend .dot{ display:inline-block; width:12px; height:12px; border-radius:50%; margin-right:6px; vertical-align:middle; }
+        .btn-back{ margin-top:14px; }
+        @@media (max-width: 992px){ .left,.right{ flex:1 1 100%; } }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-header">
+            <i class="fas fa-bolt"></i> @ident — Información Detallada
+        </div>
+
+        <div class="wrap">
+            <!-- Panel de datos -->
+            <div class="card-pane left">
+                <h5 class="mb-3">
+                    <i class="fas fa-microchip"></i> Datos del Transformador
+                    @if (tipoUpper.Contains("MONO"))
+                    {
+                        <span class="badge-tipo badge-mono ms-2">MONOFÁSICO</span>
+                    }
+                    else
+                    {
+                        <span class="badge-tipo badge-tri ms-2">TRIFÁSICO</span>
+                    }
+                </h5>
+
+                <div class="kv">
+                    <div class="k">Identificador</div><div>@ident</div>
+                    <div class="k">Código</div><div>@Model.codigo_apoyo</div>
+                    <div class="k">Nombre estructura</div><div>@Model.nombre_estructura</div>
+                    <div class="k">Tipo/Fase</div><div>@Model.tipo_fase</div>
+                    <div class="k">Potencia (kVA)</div><div>@Model.potencia_kva</div>
+                    @* Si NO quieres mostrar fabricante aquí, borra las dos líneas siguientes *@
+                    @* <div class="k">Fabricante</div><div>@Model.fabricante</div> *@
+                    <div class="k">Observaciones</div><div>@Model.observaciones</div>
+                    <div class="k">Latitud</div><div>@lat</div>
+                    <div class="k">Longitud</div><div>@lon</div>
+                </div>
+
+                <a href="@Url.Action("Transformadores","infraestructura")" class="btn btn-secondary btn-back">
+                    <i class="fas fa-arrow-left"></i> Volver al listado
+                </a>
+            </div>
+
+            <!-- Panel de mapa -->
+            <div class="card-pane right">
+                <h5 class="mb-3"><i class="fas fa-map-marker-alt"></i> Ubicación</h5>
+                <div id="map" data-lat="@lat" data-lon="@lon" data-tipo="@Model.tipo_fase"></div>
+
+                <div class="legend">
+                    <div><span class="dot" style="background:#3b82f6;border:2px solid #1e40af;"></span> TRIFÁSICO</div>
+                    <div><span class="dot" style="background:#10b981;border:2px solid #065f46;"></span> MONOFÁSICO</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+    (function(){
+        var mapEl = document.getElementById('map');
+        var lat = parseFloat(mapEl.dataset.lat);
+        var lon = parseFloat(mapEl.dataset.lon);
+        var tipo = (mapEl.dataset.tipo || '').toUpperCase();
+
+        var map = L.map('map').setView([isFinite(lat)?lat:4.732, isFinite(lon)?lon:-74.264], isFinite(lat)&&isFinite(lon)?16:14);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+        function colorByTipo(t) {
+            if (t.indexOf('MONO') >= 0) return {fill:"#10b981", stroke:"#065f46"};
+            return {fill:"#3b82f6", stroke:"#1e40af"};
+        }
+        var col = colorByTipo(tipo);
+
+        if (isFinite(lat) && isFinite(lon)) {
+            L.circleMarker([lat, lon], {
+                radius: 10, fillColor: col.fill, color: col.stroke, weight: 2, opacity: 1, fillOpacity: 0.9
+            }).addTo(map).bindPopup("@ident");
+        }
+    })();
+    </script>
+</body>
+</html>
+

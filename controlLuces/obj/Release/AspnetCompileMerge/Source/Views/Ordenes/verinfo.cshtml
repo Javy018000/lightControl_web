@@ -1,0 +1,242 @@
+﻿
+
+@model controlLuces.Models.OrdenModel
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver Información</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to bottom, #87CEEB, #007bff);
+            font-family: 'Product Sans', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+
+        .container-form {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 800px;
+            margin: 40px auto;
+        }
+
+        .card {
+            box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.1);
+            border: none;
+        }
+
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+            .card-header h4 {
+                margin-bottom: 0;
+                text-align: center;
+            }
+
+        .card-body {
+            padding: 30px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            font-size: 14px;
+            line-height: 1.5;
+            white-space: nowrap;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            margin: 4px;
+            font-family: 'Product Sans', sans-serif;
+        }
+
+            .btn.btn-danger {
+                background-color: #dc3545;
+                color: white;
+                border: none;
+            }
+
+                .btn.btn-danger:hover {
+                    background-color: #c82333;
+                    color: white;
+                }
+
+        .image-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            margin-top: 20px;
+        }
+
+        .image-item {
+            margin: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            overflow: hidden;
+            max-width: 150px;
+        }
+
+            .image-item img {
+                width: 100%;
+                height: auto;
+            }
+    </style>
+</head>
+<body>
+    <div class="container-form">
+        <div class="card border-dark">
+            <header class="card-header">
+                <h4 class="card-title"><i class="fas fa-info-circle"></i> Ver Información</h4>
+            </header>
+            <article class="card-body">
+                <form action="" method="post">
+                    <div class="form-content">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Id de Orden:</label>
+                                    <input type="text" name="IdOrden" class="form-control" value="@Model.IdOrden" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo de Elemento:</label>
+                                    <input type="text" name="TipoDeElemento" class="form-control" value="@Model.TipoDeElemento" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Código de Elemento:</label>
+                                    <input type="text" name="CodigoDeElemento" class="form-control" value="@Model.CodigoDeElemento" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Pqrs Relacionada:</label>
+                                    <input type="text" name="ElementoRelacionado" class="form-control" value="@Model.ElementoRelacionado" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Problema Relacionado:</label>
+                                    <input type="text" name="ProblemaRelacionado" class="form-control" value="@Model.ProblemaRelacionado" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Problema Validado:</label>
+                                    <input type="text" name="ProblemaValidado" class="form-control" value="@Model.ProblemaValidado" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Orden Prioridad:</label>
+                                    <input type="text" name="OrdenPrioridad" class="form-control" value="@Model.OrdenPrioridad" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Prioridad de Ruta:</label>
+                                    <input type="text" name="PrioridadDeRuta" class="form-control" value="@Model.PrioridadDeRuta" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Descripción:</label>
+                                    <input type="text" name="Descripcion" class="form-control" value="@Model.Descripcion" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Observaciones:</label>
+                                    <input type="text" name="observaciones" class="form-control" value="@Model.observaciones" readonly />
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Fecha a Realizar:</label>
+                                    <input type="text" name="FechaARealizar" class="form-control" value="@Model.FechaARealizar.ToString("dd/MM/yyyy")" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Cuadrilla:</label>
+                                    <input type="text" name="Cuadrilla" class="form-control" value="@Model.Cuadrilla" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo de Orden:</label>
+                                    <input type="text" name="TipoDeOrden" class="form-control" value="@Model.TipoDeOrden" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Tipo de Solución:</label>
+                                    <input type="text" name="TipoDeSolucion" class="form-control" value="@Model.TipoDeSolucion" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Clase de Orden:</label>
+                                    <input type="text" name="ClaseDeOrden" class="form-control" value="@Model.ClaseDeOrden" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Obra Relacionada:</label>
+                                    <input type="text" name="ObraRelacionada" class="form-control" value="@Model.ObraRelacionada" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Id de Estado:</label>
+                                    <input type="text" name="IdEstado" class="form-control" value="@Model.IdEstado" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Estado Nombre:</label>
+                                    <input type="text" name="EstadoNombre" class="form-control" value="@Model.EstadoNombre" readonly />
+                                </div>
+                                <div class="form-group">
+                                    <label>Trabajos:</label>
+                                    <input type="text" name="Trabajos" class="form-control" value="@Model.Trabajos" readonly />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Recursos:</label>
+                            <div class="image-container">
+                                @if (Model.Imagenes != null && Model.Imagenes.Count > 0)
+                                {
+                                    foreach (var imagen in Model.Imagenes)
+                                    {
+                                        string base64Image = Convert.ToBase64String(imagen.Imagen);
+                                        string imgSrc = $"data:image/jpeg;base64,{base64Image}"; // Asumiendo que las imágenes son JPEG
+                                        <div class="image-item">
+                                            <img src="@imgSrc" alt="Imagen @imagen.IdImagen" />
+                                        </div>
+                                    }
+                                }
+                                else
+                                {
+                                    <p>No hay imágenes disponibles.</p>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </form>
+            </article>
+        </div>
+    </div>
+</body>
+</html>

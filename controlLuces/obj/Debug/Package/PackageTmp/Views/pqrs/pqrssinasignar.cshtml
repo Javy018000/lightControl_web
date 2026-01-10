@@ -1,0 +1,290 @@
+﻿@model IEnumerable<controlLuces.Models.PqrsModel>
+@using controlLuces.Models
+@{
+    ViewBag.Title = "PQRS sin asignar";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Permisos para mostrar el botón "Crear Orden"
+    var usuario = Session["Usuario"] as UsuarioModel;
+    bool puedeCrearOrden =
+        usuario != null &&
+        (usuario.IdRol == Rol.Administrador ||
+         usuario.IdRol == Rol.Tecnico ||
+         usuario.IdRol == Rol.Administrador_Local);
+
+    // Solo el Administrador puede eliminar
+    bool puedeEliminar = usuario != null && usuario.IdRol == Rol.Administrador;
+
+    // Prefijo visual por municipio en sesión (solo presentación)
+    var muni = (Session["Municipio"] as string) ?? usuario?.Municipio;
+    var k = (muni ?? "").Trim().ToLower().Replace("í", "i");
+    var prefijo = k == "madrid" ? "MA" : k == "chia" ? "CH" : "CH"; // default CH
+    var year = DateTime.Now.Year;
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>PQRS sin asignar</title>
+
+    <!-- Mismas librerías que en Postes -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f8fb;
+            padding: 20px;
+        }
+
+        /* HEADER similar a Postes */
+        .main-header {
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            color: #fff;
+            border-radius: 14px;
+            padding: 18px 25px;
+            box-shadow: 0 10px 24px rgba(2, 8, 23, 0.12);
+            font-size: 24px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+            .main-header i {
+                margin-right: 8px;
+            }
+
+        /* CONTENEDOR TARJETAS */
+        .cards-wrapper {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 22px;
+            justify-content: center;
+        }
+
+        .pqrs-card {
+            background: #ffffff;
+            border-radius: 14px;
+            box-shadow: 0 8px 22px rgba(2, 8, 23, 0.10);
+            width: 320px;
+            max-width: 100%;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+
+            .pqrs-card:hover {
+                transform: translateY(-4px);
+                box-shadow: 0 16px 32px rgba(15, 23, 42, 0.18);
+            }
+
+        .pqrs-card-header {
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            color: #fff;
+            padding: 12px 16px;
+            font-size: 18px;
+            font-weight: 700;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        .pqrs-card-body {
+            padding: 14px 18px 8px;
+            text-align: left;
+            font-size: 14px;
+            color: #0f172a;
+        }
+
+            .pqrs-card-body p {
+                margin-bottom: 6px;
+            }
+
+            .pqrs-card-body strong {
+                color: #1e293b;
+            }
+
+        .pqrs-card-footer {
+            padding: 10px 16px 14px;
+            display: flex;
+            gap: 8px;
+            justify-content: space-between;
+        }
+
+            .pqrs-card-footer .btn {
+                font-size: 13px;
+                border-radius: 10px;
+                flex: 1 1 auto;
+                white-space: nowrap;
+            }
+
+        /* Botón "Ver info" estilo principal */
+        .btn-main-info {
+            background: linear-gradient(135deg, #3b82f6, #0ea5e9);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 8px 18px rgba(59,130,246,.25);
+        }
+
+            .btn-main-info:hover {
+                filter: brightness(1.04);
+                transform: translateY(-1px);
+                box-shadow: 0 10px 22px rgba(59,130,246,.30);
+            }
+
+        /* Botón Crear Orden */
+        .btn-main-success {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 8px 18px rgba(22,163,74,.28);
+        }
+
+            .btn-main-success:hover {
+                filter: brightness(1.04);
+                transform: translateY(-1px);
+                box-shadow: 0 10px 22px rgba(22,163,74,.34);
+            }
+
+        /* Botón Eliminar */
+        .btn-main-danger {
+            background: linear-gradient(135deg, #ef4444, #b91c1c);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            box-shadow: 0 8px 18px rgba(248,113,113,.30);
+        }
+
+            .btn-main-danger:hover {
+                filter: brightness(1.04);
+                transform: translateY(-1px);
+                box-shadow: 0 10px 22px rgba(248,113,113,.38);
+            }
+
+        /* Mensaje vacío */
+        .no-data {
+            margin-top: 20px;
+        }
+
+        /* Botón Atrás */
+        .back-wrapper {
+            margin-top: 24px;
+            text-align: center;
+        }
+
+        .btn-back {
+            padding: 8px 24px;
+            border-radius: 999px;
+            font-weight: 600;
+            border: none;
+            background: linear-gradient(135deg, #fb7185, #ef4444);
+            color: #fff;
+            box-shadow: 0 10px 22px rgba(248,113,113,.34);
+        }
+
+            .btn-back:hover {
+                filter: brightness(1.05);
+                transform: translateY(-1px);
+                color: #fff;
+            }
+
+        @@media (max-width: 576px) {
+            .pqrs-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid px-2 px-md-3">
+        <div class="main-header">
+            <i class="fas fa-exclamation-circle"></i> PQRS SIN ASIGNAR
+        </div>
+
+        <div class="cards-wrapper">
+            @if (Model != null && Model.Any())
+            {
+                foreach (var pqrs in Model)
+                {
+                    <div class="pqrs-card">
+                        <div class="pqrs-card-header">
+                            @pqrs.Consecutivo
+                        </div>
+
+                        <div class="pqrs-card-body">
+                            <p><strong>Fecha:</strong> @pqrs.FechaRegistro</p>
+                            <p><strong>Tipo:</strong> @pqrs.Tipopqrs</p>
+                            <p><strong>Canal:</strong> @pqrs.Canal</p>
+                            <p><strong>Dirección:</strong> @pqrs.DireccionAfectacion</p>
+                            <p><strong>Descripción:</strong> @pqrs.DescripcionAfectacion</p>
+                        </div>
+
+                        <div class="pqrs-card-footer">
+                            <a class="btn btn-main-info btn-sm"
+                               href="@Url.Action("VerInfo","pqrs", new { id = pqrs.Idpqrs })">
+                                <i class="fas fa-info-circle me-1"></i> Ver Info
+                            </a>
+
+                            @* Eliminar: SOLO Administrador *@
+                            @if (puedeEliminar)
+                            {
+                                <button type="button"
+                                        class="btn btn-main-danger btn-sm delete-pqrs"
+                                        data-id="@pqrs.Idpqrs">
+                                    <i class="fas fa-trash-alt me-1"></i> Eliminar
+                                </button>
+                            }
+
+                            @* Crear Orden: Admin / Técnico / Admin_Local *@
+                            @if (puedeCrearOrden)
+                            {
+                                <a class="btn btn-main-success btn-sm"
+                                   href='@Url.Action("CrearOrdenDeServicio","Ordenes",
+                                        new { idPqrs = pqrs.Idpqrs, descripcionAfectacion = pqrs.DescripcionAfectacion })'>
+                                    <i class="fas fa-plus me-1"></i> Crear Orden
+                                </a>
+                            }
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="col-12 no-data">
+                    <div class="alert alert-info text-center">
+                        No hay PQRS sin asignar.
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="back-wrapper">
+            <a href="@Url.Action("inicio","Login")" class="btn btn-back">
+                <i class="fas fa-arrow-left me-1"></i> Atrás
+            </a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(function () {
+            $('.delete-pqrs').on('click', function () {
+                var id = $(this).data('id');
+                if (confirm('¿Eliminar la PQRS ' + id + '?')) {
+                    $.post('@Url.Action("EliminarPqrs","pqrs")', { id: id })
+                        .done(function () { location.reload(); })
+                        .fail(function (xhr) { alert('Error al eliminar: ' + xhr.responseText); });
+                }
+            });
+        });
+    </script>
+</body>
+</html>

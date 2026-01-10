@@ -1,0 +1,1017 @@
+﻿@model IEnumerable<controlLuces.Models.infraestructuraModel>
+@{
+    ViewBag.Title = "Luminarias";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --c1: #0ea5e9;
+            --c2: #3b82f6;
+            --bg: #f4f8fb;
+            --text: #0f172a;
+            --muted: #64748b;
+        }
+
+        body {
+            font-family: 'Segoe UI',system-ui,-apple-system,Arial,sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 22px;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg,var(--c1),var(--c2));
+            color: #fff;
+            border-radius: 14px;
+            padding: 18px 24px;
+            text-align: center;
+            font-weight: 800;
+            letter-spacing: .4px;
+            box-shadow: 0 12px 28px rgba(2,8,23,.15);
+            text-transform: uppercase;
+            font-size: 32px;
+        }
+
+        .control-bar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            justify-content: center;
+            margin: 18px 0 14px;
+        }
+
+        .filters-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+            width: 100%;
+            justify-content: center;
+        }
+
+        .buttons-row {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: nowrap;
+            justify-content: center;
+        }
+
+        .control-bar .chip {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e6edf5;
+            border-radius: 12px;
+            padding: 8px 10px;
+            box-shadow: 0 2px 6px rgba(2,8,23,.05) inset;
+        }
+
+        .control-bar select, .control-bar input {
+            border: 0;
+            outline: 0;
+            background: transparent;
+            min-width: 180px;
+        }
+
+            .control-bar input#searchInput {
+                min-width: 360px;
+            }
+
+        .control-bar .btn-primary {
+            background: linear-gradient(135deg,var(--c2),var(--c1));
+            border: none;
+            font-weight: 700;
+            padding: 10px 16px;
+            border-radius: 12px;
+            box-shadow: 0 12px 26px rgba(59,130,246,.25);
+        }
+
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 22px;
+            justify-content: space-between;
+        }
+
+        .table-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 10px 24px rgba(2,8,23,.08);
+            padding: 14px;
+            flex: 1 1 56%;
+            max-height: 640px;
+            overflow: auto;
+        }
+
+            .table-card::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            .table-card::-webkit-scrollbar-thumb {
+                background: #dbe6f5;
+                border-radius: 10px;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 15px;
+        }
+
+        thead {
+            background: #f3f7fc;
+            color: #334155;
+        }
+
+            thead th {
+                position: sticky;
+                top: 0;
+                z-index: 2;
+                border-bottom: 1px solid #e6edf5;
+            }
+
+        th, td {
+            padding: 10px 8px;
+            text-align: center;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5fb;
+        }
+
+        tbody tr:nth-child(even) {
+            background: #fcfdff;
+        }
+
+        tbody tr:hover {
+            background: #f3f9ff;
+            transition: .15s;
+        }
+
+        .btn-info {
+            background: linear-gradient(135deg,var(--c2),var(--c1)) !important;
+            border: none !important;
+            color: #fff !important;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 8px 14px;
+            box-shadow: 0 8px 18px rgba(59,130,246,.25);
+        }
+
+        .map-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 10px 24px rgba(2,8,23,.08);
+            padding: 14px;
+            flex: 1 1 42%;
+            height: 640px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .btn-sodio {
+            background: #4AF0B7;
+            border: none;
+            color: #0b3b2e;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 10px 16px;
+            white-space: nowrap;
+        }
+
+        .btn-led {
+            background: #F59E56;
+            border: none;
+            color: #5b2b06;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 10px 16px;
+            white-space: nowrap;
+        }
+
+        .btn-led-solar {
+            background: #FFD700;
+            border: none;
+            color: #5b4b06;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 10px 16px;
+            white-space: nowrap;
+        }
+
+        .btn-proy {
+            background: #87CEEB;
+            border: none;
+            color: #0b2b3b;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 10px 16px;
+            white-space: nowrap;
+        }
+
+        /* BOTÓN VER TODO */
+        .btn-ver-todo {
+            background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 10px 16px;
+            white-space: nowrap;
+            box-shadow: 0 8px 18px rgba(139,92,246,.25);
+        }
+
+            .btn-ver-todo:hover {
+                background: linear-gradient(135deg, #7c3aed, #5b21b6);
+            }
+
+        /* BOTÓN EXPORTAR */
+        .btn-export {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 12px 24px;
+            box-shadow: 0 8px 20px rgba(16,185,129,.25);
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+            .btn-export:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 24px rgba(16,185,129,.35);
+                color: #fff;
+            }
+
+        .btn-excel {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 12px 24px;
+            box-shadow: 0 8px 20px rgba(16,185,129,.25);
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+            .btn-excel:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 24px rgba(29,78,216,.35);
+                background: linear-gradient(135deg, #1e40af, #1d4ed8);
+                color: #fff;
+            }
+
+            .btn-excel i {
+                margin-right: 8px;
+            }
+
+        /* ===== ESTILOS PARA SUBIR IMÁGENES ===== */
+        .upload-card {
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            border-radius: 14px;
+            padding: 24px;
+            margin: 18px 0;
+            box-shadow: 0 8px 20px rgba(2,8,23,.08);
+            border: 2px solid #bfdbfe;
+        }
+
+        .upload-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+            .upload-header i {
+                font-size: 32px;
+                color: var(--c1);
+                margin-right: 12px;
+            }
+
+            .upload-header h5 {
+                color: var(--c2);
+                font-weight: 700;
+                margin: 0;
+            }
+
+        .btn-upload {
+            background: linear-gradient(135deg, #10b981, #059669);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 12px 20px;
+            box-shadow: 0 8px 20px rgba(16,185,129,.25);
+            transition: all 0.3s ease;
+        }
+
+            .btn-upload:hover {
+                background: linear-gradient(135deg, #059669, #047857);
+                transform: translateY(-2px);
+                box-shadow: 0 10px 24px rgba(16,185,129,.35);
+            }
+
+        .btn-clear {
+            background: #6b7280;
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 12px;
+            padding: 12px 20px;
+            transition: all 0.3s ease;
+        }
+
+            .btn-clear:hover {
+                background: #4b5563;
+            }
+
+        .upload-card .form-control {
+            border: 2px solid #bfdbfe;
+            border-radius: 10px;
+            background: #fff;
+            padding: 10px 12px;
+        }
+
+            .upload-card .form-control:focus {
+                border-color: var(--c1);
+                box-shadow: 0 0 0 0.2rem rgba(14, 165, 233, 0.25);
+            }
+
+        .upload-card .form-label {
+            font-weight: 600;
+            color: #1e40af;
+            margin-bottom: 6px;
+        }
+
+        #loading-upload {
+            text-align: center;
+            padding: 20px;
+            margin-top: 16px;
+        }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
+            border-width: 0.3em;
+        }
+
+        #mensaje-upload .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 16px;
+            font-weight: 500;
+            margin-top: 16px;
+        }
+
+        #mensaje-upload .alert-success {
+            background: linear-gradient(135deg, #d1fae5, #a7f3d0);
+            color: #065f46;
+        }
+
+        #mensaje-upload .alert-danger {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            color: #991b1b;
+        }
+
+        #mensaje-upload .alert-warning {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            color: #92400e;
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 12px 24px;
+            box-shadow: 0 8px 20px rgba(239,68,68,.25);
+            text-decoration: none;
+            display: inline-block;
+            transition: all 0.3s ease;
+        }
+
+            .btn-back:hover {
+                transform: translateY(-2px);
+                box-shadow: 0 10px 24px rgba(239,68,68,.35);
+                background: linear-gradient(135deg, #dc2626, #b91c1c);
+                color: #fff;
+            }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-header">
+            <i class="fas fa-lightbulb me-2"></i> LUMINARIAS
+        </div>
+
+        <!-- Barra de controles -->
+        <div class="control-bar">
+            <!-- Primera fila: Filtros y búsqueda -->
+            <div class="filters-row">
+                <div class="chip">
+                    <i class="fa-solid fa-filter text-primary"></i>
+                    <select id="typeFilter" title="Tipo">
+                        <option value="">Tipo (todos)</option>
+                        <option value="LED">LED</option>
+                        <option value="SODIO">SODIO</option>
+                        <option value="LED-SOLAR">LED-SOLAR</option>
+                        <option value="PROYECTOR_LED">PROYECTOR_LED</option>
+                    </select>
+                </div>
+
+                <div class="chip flex-grow-1" style="min-width:380px; max-width:560px;">
+                    <i class="fa-solid fa-magnifying-glass text-primary"></i>
+                    <input id="searchInput" type="text" placeholder="Buscar en la tabla..." />
+                </div>
+
+                <button id="searchButton" class="btn btn-primary">
+                    <i class="fa-solid fa-search me-1"></i> Buscar
+                </button>
+            </div>
+
+            <!-- ========================================== -->
+            <!-- SECCIÓN PARA SUBIR IMÁGENES - MEJORADA -->
+            <!-- ========================================== -->
+            <div class="upload-card" style="width: 100%;">
+                <div class="upload-header">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <h5>Subir Imágenes a Elemento de Infraestructura</h5>
+                </div>
+
+                <form id="formSubirImagenes" enctype="multipart/form-data" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label class="form-label">
+                            <i class="fas fa-hashtag me-1"></i>Código del Elemento
+                        </label>
+                        <input type="text"
+                               id="codigoElemento"
+                               name="codigoElemento"
+                               class="form-control"
+                               placeholder="Ej: MA001, 3221, etc."
+                               required>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-info-circle me-1"></i>Debe existir en la tabla
+                        </small>
+                    </div>
+
+                    <div class="col-md-5">
+                        <label class="form-label">
+                            <i class="fas fa-images me-1"></i>Seleccionar Imágenes (múltiples)
+                        </label>
+                        <input type="file"
+                               id="archivos"
+                               name="archivos"
+                               multiple
+                               accept="image/jpeg,image/jpg,image/png,image/gif,image/bmp"
+                               class="form-control"
+                               required>
+                        <small class="text-muted d-block mt-1">
+                            <i class="fas fa-info-circle me-1"></i>Máx. 5MB por imagen. Formatos: JPG, PNG, GIF, BMP
+                        </small>
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="submit" class="btn btn-upload w-100">
+                            <i class="fas fa-upload me-2"></i>Subir
+                        </button>
+                    </div>
+
+                    <div class="col-md-2">
+                        <button type="button" class="btn btn-clear w-100" onclick="limpiarFormularioImagenes()">
+                            <i class="fas fa-times me-2"></i>Limpiar
+                        </button>
+                    </div>
+                </form>
+
+                <!-- Indicador de carga -->
+                <div id="loading-upload" style="display:none;">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">Cargando...</span>
+                    </div>
+                    <p style="color: var(--c1); font-weight: 600; margin-top: 12px;">
+                        <i class="fas fa-spinner fa-spin me-2"></i>Subiendo imágenes, por favor espere...
+                    </p>
+                </div>
+
+                <!-- Mensaje de resultado -->
+                <div id="mensaje-upload"></div>
+            </div>
+
+            <!-- Segunda fila: Botones de carga (todos en línea) -->
+            <div class="buttons-row">
+                <button class="btn btn-sodio" id="loadSodio">
+                    <i class="fa-solid fa-lightbulb me-1"></i> Cargar SODIO
+                </button>
+                <button class="btn btn-led" id="loadLed">
+                    <i class="fa-solid fa-bolt me-1"></i> Cargar LED
+                </button>
+                <button class="btn btn-led-solar" id="loadLedSolar" style="display:none;">
+                    <i class="fa-solid fa-sun me-1"></i> Cargar LED-SOLAR
+                </button>
+                <button class="btn btn-proy" id="loadProy" style="display:none;">
+                    <i class="fa-solid fa-video me-1"></i> Cargar PROYECTOR_LED
+                </button>
+                <button class="btn btn-ver-todo" id="loadVerTodo">
+                    <i class="fa-solid fa-globe me-1"></i> Ver Todo
+                </button>
+            </div>
+        </div>
+
+        <div class="content">
+            <!-- Tabla -->
+            <div class="table-card">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Latitud</th>
+                            <th>Longitud</th>
+                            <th>Línea</th>
+                            <th>Tipo</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="infraestructuraTable">
+                        @foreach (var i in Model)
+                        {
+                            if (i.tipo == "LED" || i.tipo == "SODIO" || i.tipo == "LED-SOLAR" || i.tipo == "PROYECTOR_LED")
+                            {
+                                <tr data-muni="@i.municipio"
+                                    data-idm="@(i.IdMunicipio.HasValue ? i.IdMunicipio.Value.ToString() : "")"
+                                    data-tipo="@i.tipo"
+                                    data-lat="@i.latitud.ToString().Replace(',', '.')"
+                                    data-lng="@i.longitud.ToString().Replace(',', '.')"
+                                    data-code="@i.codigo">
+                                    <td>@i.codigo</td>
+                                    <td>@i.latitud.ToString().Replace(',', '.')</td>
+                                    <td>@i.longitud.ToString().Replace(',', '.')</td>
+                                    <td>@i.linea</td>
+                                    <td>@i.tipo</td>
+                                    <td class="text-center">
+                                        <a href="@Url.Action("VerInfoDetallada", "Infraestructura", new { id = i.codigo })" class="btn btn-info btn-sm">
+                                            <i class="fas fa-eye"></i> Ver info
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Mapa -->
+            <div class="map-card">
+                <div id="map"></div>
+            </div>
+        </div>
+
+        <!-- Botones Exportar y Atrás alineados -->
+        <div class="d-flex justify-content-center gap-3 mt-4 mb-3">
+            <!-- BOTÓN EXPORTAR TODO A EXCEL (NUEVO - MÁS SIMPLE) -->
+            <a href="@Url.Action("ExportarTodoExcel", "infraestructura")" class="btn-excel">
+                <i class="fas fa-file-excel"></i> Exportar 
+            </a>
+
+            <a href="@Url.Action("inicio","login")" class="btn-back">
+                <i class="fas fa-arrow-left me-2"></i> Atrás
+            </a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+
+    <!-- ========================================== -->
+    <!-- SCRIPT PARA SUBIR IMÁGENES (SIN ERRORES) -->
+    <!-- ========================================== -->
+    <script>
+        // Función para subir imágenes
+        document.getElementById('formSubirImagenes').addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            var codigo = document.getElementById('codigoElemento').value.trim();
+            var archivos = document.getElementById('archivos').files;
+
+            // Validaciones
+            if (!codigo) {
+                mostrarMensajeUpload('Por favor ingresa el código del elemento.', 'warning');
+                return;
+            }
+
+            if (archivos.length === 0) {
+                mostrarMensajeUpload('Por favor selecciona al menos una imagen.', 'warning');
+                return;
+            }
+
+            // Validar tamaño de archivos (5MB máximo)
+            var archivoGrande = false;
+            var nombreGrande = '';
+            for (var i = 0; i < archivos.length; i++) {
+                if (archivos[i].size > 5242880) {
+                    archivoGrande = true;
+                    nombreGrande = archivos[i].name;
+                    break;
+                }
+            }
+
+            if (archivoGrande) {
+                mostrarMensajeUpload('La imagen "' + nombreGrande + '" excede el tamaño máximo de 5MB.', 'warning');
+                return;
+            }
+
+            // Preparar FormData
+            var formData = new FormData();
+            formData.append('codigoElemento', codigo);
+
+            for (var i = 0; i < archivos.length; i++) {
+                formData.append('archivos', archivos[i]);
+            }
+
+            // Mostrar loading
+            document.getElementById('loading-upload').style.display = 'block';
+            document.getElementById('mensaje-upload').innerHTML = '';
+
+            // Enviar con XMLHttpRequest (más compatible que fetch)
+            var xhr = new XMLHttpRequest();
+
+            xhr.open('POST', '@Url.Action("SubirImagenes", "infraestructura")', true);
+
+            xhr.onload = function () {
+                document.getElementById('loading-upload').style.display = 'none';
+
+                if (xhr.status === 200) {
+                    try {
+                        var data = JSON.parse(xhr.responseText);
+
+                        if (data.ok) {
+                            var mensaje = data.mensaje || (data.subidas + ' imagen(es) subida(s) correctamente');
+                            mostrarMensajeUpload(mensaje, 'success');
+
+                            // Limpiar formulario después de 2 segundos
+                            setTimeout(function () {
+                                limpiarFormularioImagenes();
+                            }, 2000);
+                        } else {
+                            mostrarMensajeUpload('Error: ' + (data.mensaje || 'No se pudieron subir las imágenes'), 'danger');
+                        }
+                    } catch (e) {
+                        mostrarMensajeUpload('Error al procesar la respuesta del servidor', 'danger');
+                        console.error('Error parsing JSON:', e);
+                    }
+                } else {
+                    mostrarMensajeUpload('Error del servidor (código ' + xhr.status + '). Verifica que el código exista.', 'danger');
+                }
+            };
+
+            xhr.onerror = function () {
+                document.getElementById('loading-upload').style.display = 'none';
+                mostrarMensajeUpload('Error de conexión con el servidor. Verifica tu conexión a internet.', 'danger');
+            };
+
+            xhr.ontimeout = function () {
+                document.getElementById('loading-upload').style.display = 'none';
+                mostrarMensajeUpload('La solicitud ha tardado demasiado. Intenta con menos imágenes o imágenes más pequeñas.', 'warning');
+            };
+
+            xhr.timeout = 60000; // 60 segundos
+
+            xhr.send(formData);
+        });
+
+        // Función para mostrar mensajes
+        function mostrarMensajeUpload(texto, tipo) {
+            var mensajeDiv = document.getElementById('mensaje-upload');
+
+            var icono = '';
+            switch (tipo) {
+                case 'success':
+                    icono = 'fa-check-circle';
+                    break;
+                case 'danger':
+                    icono = 'fa-exclamation-circle';
+                    break;
+                case 'warning':
+                    icono = 'fa-exclamation-triangle';
+                    break;
+                default:
+                    icono = 'fa-info-circle';
+            }
+
+            mensajeDiv.innerHTML = '<div class="alert alert-' + tipo + '">' +
+                '<i class="fas ' + icono + ' me-2"></i>' +
+                texto +
+                '</div>';
+
+            // Auto-ocultar después de 10 segundos
+            setTimeout(function () {
+                mensajeDiv.innerHTML = '';
+            }, 10000);
+        }
+
+        // Función para limpiar formulario
+        function limpiarFormularioImagenes() {
+            document.getElementById('formSubirImagenes').reset();
+            document.getElementById('mensaje-upload').innerHTML = '';
+            document.getElementById('loading-upload').style.display = 'none';
+        }
+
+        // Mostrar info de archivos seleccionados
+        document.getElementById('archivos').addEventListener('change', function (e) {
+            var archivos = e.target.files;
+            if (archivos.length > 0) {
+                console.log('Archivos seleccionados: ' + archivos.length);
+                var totalSize = 0;
+                for (var i = 0; i < archivos.length; i++) {
+                    totalSize += archivos[i].size;
+                }
+                console.log('Tamaño total: ' + (totalSize / 1024 / 1024).toFixed(2) + ' MB');
+            }
+        });
+    </script>
+
+    <!-- ========================================== -->
+    <!-- SCRIPT ORIGINAL DE FILTROS Y MAPA -->
+    <!-- ========================================== -->
+    <script>
+    $(function () {
+        // Crear elementos ocultos para mantener funcionalidad
+        $('body').append('<select id="municipioFilter" style="display:none;"><option value="">Municipio (todos)</option></select>');
+        $('body').append('<select id="codigoFilter" style="display:none;"><option value="">Todos</option></select>');
+        $('body').append('<select id="sortOrder" style="display:none;"><option value="code-asc">Código ↑</option></select>');
+
+        // Datos de sesión del controlador
+        var esAdminLocal = @((ViewBag.EsAdminLocal ?? false).ToString().ToLower());
+        var muniSesion   = '@(ViewBag.MunicipioSesion ?? "")';
+        var initLat  = parseFloat('@((ViewBag.MapaLat ?? 4.732).ToString().Replace(",", "."))');
+        var initLng  = parseFloat('@((ViewBag.MapaLng ?? -74.264).ToString().Replace(",", "."))');
+        var initZoom = parseInt('@(ViewBag.MapaZoom ?? 14)');
+
+        // MAPA
+        var map = L.map('map').setView([initLat, initLng], initZoom);
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+        function clearMarkers(){
+            map.eachLayer(function (l) {
+                if (l instanceof L.Marker || l instanceof L.CircleMarker) map.removeLayer(l);
+            });
+        }
+        function addMarker(lat, lng, text, color){
+            if (isNaN(lat) || isNaN(lng)) return;
+            L.circleMarker([lat, lng], {
+                radius:8, fillColor:color, color:"#0b1324", weight:1, opacity:1, fillOpacity:.9
+            }).addTo(map).bindPopup(text);
+        }
+
+        // Utils
+        function normalize(t){ return (t||'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,''); }
+        function codeHasMA(code){ return /^MA/i.test((code||'').trim()); }
+
+        var municipiosCoords = { "chia":[4.85876,-74.0586], "madrid":[4.732,-74.264] };
+
+        var CHIA_BOUNDS = { latMin:4.80, latMax:4.92, lngMin:-74.12, lngMax:-73.99 };
+        function inChiaBounds(lat, lng){
+            return !isNaN(lat) && !isNaN(lng) &&
+                   lat >= CHIA_BOUNDS.latMin && lat <= CHIA_BOUNDS.latMax &&
+                   lng >= CHIA_BOUNDS.lngMin && lng <= CHIA_BOUNDS.lngMax;
+        }
+
+        function rowBelongsToMunicipio($tr, selNorm){
+            var muni = normalize($tr.data('muni') || '');
+            var idm  = ($tr.data('idm') || '').toString();
+            if (selNorm === 'madrid') return (muni === 'madrid');
+
+            if (selNorm === 'chia' || selNorm === 'chía') {
+                if (idm === '2') return true;
+                var lat = parseFloat(($tr.data('lat')||'').toString());
+                var lng = parseFloat(($tr.data('lng')||'').toString());
+                return inChiaBounds(lat, lng);
+            }
+            return true;
+        }
+
+        function sortByCode(order){
+            var rows = $('#infraestructuraTable tr:visible').get();
+            rows.sort(function(a,b){
+                var A = $(a).children('td').eq(0).text().trim();
+                var B = $(b).children('td').eq(0).text().trim();
+                var numA = parseInt(A.replace(/\D+/g,''),10);
+                var numB = parseInt(B.replace(/\D+/g,''),10);
+                var cmp = (!isNaN(numA) && !isNaN(numB)) ? (numA - numB) : A.localeCompare(B,'es',{numeric:true,sensitivity:'base'});
+                return (order === 'code-asc') ? cmp : -cmp;
+            });
+            $.each(rows, function(_,r){ $('#infraestructuraTable').append(r); });
+        }
+
+        function applyFilters(){
+            var type = normalize($('#typeFilter').val());
+            var codeMode = $('#codigoFilter').val();
+            var q = normalize($('#searchInput').val());
+
+            $('#infraestructuraTable tr').each(function(){
+                var $tr   = $(this);
+                var code  = ($tr.data('code') || '').toString();
+                var tipo  = normalize($tr.data('tipo') || $tr.find('td').eq(4).text());
+                var rowT  = normalize($tr.text());
+
+                var passType  = (type==='') || (tipo.indexOf(type)>-1);
+                var passCode  = (codeMode==='') || (codeMode==='ma' && codeHasMA(code)) || (codeMode==='no-ma' && !codeHasMA(code));
+                var passQuery = (q==='') || (rowT.indexOf(q)>-1);
+
+                var selNorm = normalize($('#municipioFilter').val());
+                var belongs = rowBelongsToMunicipio($tr, selNorm);
+
+                $tr.toggle(belongs && passType && passCode && passQuery);
+            });
+
+            sortByCode($('#sortOrder').val());
+        }
+
+        function filterByMunicipio(){
+            var selNorm = normalize($('#municipioFilter').val());
+
+            $('#infraestructuraTable tr').each(function(){
+                var $tr = $(this);
+                var show = rowBelongsToMunicipio($tr, selNorm);
+                $tr.toggle(show);
+            });
+
+            if (municipiosCoords[selNorm]) map.setView(municipiosCoords[selNorm], 14);
+
+            updateButtonVisibility();
+            applyFilters();
+        }
+
+        function addAllMarkersByMunicipio(){
+            clearMarkers();
+            var selNorm = normalize($('#municipioFilter').val());
+
+            $('#infraestructuraTable tr').each(function(){
+                var $tr = $(this);
+                if (!rowBelongsToMunicipio($tr, selNorm)) return;
+
+                var tipoRaw = (($tr.data('tipo') || $tr.find('td').eq(4).text())+'').toUpperCase();
+                var lat = parseFloat(($tr.data('lat')||'').toString());
+                var lng = parseFloat(($tr.data('lng')||'').toString());
+                var code = ($tr.data('code') || '').toString();
+
+                if (isNaN(lat) || isNaN(lng)) return;
+
+                var color = '#cccccc';
+                var isLED = tipoRaw.indexOf('LED') > -1 && tipoRaw.indexOf('LED-SOLAR') === -1 && tipoRaw.indexOf('PROYECTOR') === -1;
+                var isSODIO = tipoRaw.indexOf('SODIO') > -1;
+                var isLedSolar = tipoRaw.indexOf('LED-SOLAR') > -1 || tipoRaw.indexOf('LED SOLAR') > -1;
+                var isProy = tipoRaw.indexOf('PROYECTOR') > -1 || tipoRaw.indexOf('PROYECTOR_LED') > -1 || tipoRaw.indexOf('PROYECTOR LED') > -1;
+
+                if (isLED) color = '#F59E56';
+                if (isSODIO) color = '#4AF0B7';
+                if (isLedSolar) color = '#FFD700';
+                if (isProy) color = '#87CEEB';
+
+                addMarker(lat, lng, code + ' (' + tipoRaw + ')', color);
+            });
+        }
+
+        function addMarkersByMunicipioAndTipo(tipoObjetivo){
+            clearMarkers();
+            var selNorm = normalize($('#municipioFilter').val());
+
+            $('#infraestructuraTable tr').each(function(){
+                var $tr = $(this);
+                if (!rowBelongsToMunicipio($tr, selNorm)) return;
+
+                var tipoRaw = (($tr.data('tipo') || $tr.find('td').eq(4).text())+'').toUpperCase();
+                var isLED   = tipoRaw.indexOf('LED')   > -1 && tipoRaw.indexOf('LED-SOLAR') === -1 && tipoRaw.indexOf('PROYECTOR') === -1;
+                var isSODIO = tipoRaw.indexOf('SODIO') > -1;
+                var isLedSolar = tipoRaw.indexOf('LED-SOLAR') > -1 || tipoRaw.indexOf('LED SOLAR') > -1;
+                var isProy = tipoRaw.indexOf('PROYECTOR') > -1 || tipoRaw.indexOf('PROYECTOR_LED') > -1 || tipoRaw.indexOf('PROYECTOR LED') > -1;
+
+                if ((tipoObjetivo==='LED'   && !isLED) ||
+                    (tipoObjetivo==='SODIO' && !isSODIO) ||
+                    (tipoObjetivo==='LED-SOLAR' && !isLedSolar) ||
+                    (tipoObjetivo==='PROYECTOR_LED' && !isProy)) return;
+
+                var lat = parseFloat(($tr.data('lat')||'').toString());
+                var lng = parseFloat(($tr.data('lng')||'').toString());
+                var code = ($tr.data('code') || '').toString();
+                if (!isNaN(lat) && !isNaN(lng)) {
+                    var color = '#cccccc';
+                    if (isLED) color = '#F59E56';
+                    if (isSODIO) color = '#4AF0B7';
+                    if (isLedSolar) color = '#FFD700';
+                    if (isProy) color = '#87CEEB';
+                    addMarker(lat, lng, code + ' (' + tipoRaw + ')', color);
+                }
+            });
+        }
+
+        $('#loadSodio').on('click', function(){ addMarkersByMunicipioAndTipo('SODIO'); });
+        $('#loadLed').on('click',   function(){ addMarkersByMunicipioAndTipo('LED');   });
+        $('#loadLedSolar').on('click', function(){ addMarkersByMunicipioAndTipo('LED-SOLAR'); });
+        $('#loadProy').on('click', function(){ addMarkersByMunicipioAndTipo('PROYECTOR_LED'); });
+
+        // ========================================
+        // BOTÓN VER TODO - Muestra todos los marcadores
+        // ========================================
+        $('#loadVerTodo').on('click', function(){
+            addAllMarkersByMunicipio();
+        });
+
+        function updateButtonVisibility(){
+            var selNorm = normalize($('#municipioFilter').val());
+            var effective = selNorm || normalize(muniSesion || '');
+            if (effective === 'madrid') {
+                $('#loadLedSolar').show();
+                $('#loadProy').show();
+            } else {
+                $('#loadLedSolar').hide();
+                $('#loadProy').hide();
+            }
+        }
+
+        $('#municipioFilter').on('change', function(){ filterByMunicipio(); });
+        $('#searchButton').on('click', applyFilters);
+        $('#searchInput').on('keyup', function(e){ if(e.key==='Enter') applyFilters(); });
+        $('#typeFilter').on('change', applyFilters);
+
+        @foreach (var m in ViewBag.Municipios as List<string>)
+        {
+            @:$('#municipioFilter').append('<option value="@m">@m</option>');
+        }
+
+        if (muniSesion){
+            var done = false;
+            $('#municipioFilter option').each(function(){
+                if (normalize($(this).val()) === normalize(muniSesion)) {
+                    $('#municipioFilter').val($(this).val()); done = true; return false;
+                }
+            });
+            if (!done){
+                $('#municipioFilter').append('<option selected value="'+muniSesion+'">'+muniSesion+'</option>');
+            }
+        }
+
+        var p = new URLSearchParams(window.location.search);
+        var tipoQS = (p.get('tipo') || '').toUpperCase();
+        if (tipoQS === 'LED' || tipoQS === 'SODIO' || tipoQS === 'LED-SOLAR' || tipoQS === 'PROYECTOR_LED'){ $('#typeFilter').val(tipoQS); }
+
+        updateButtonVisibility();
+        filterByMunicipio();
+        addAllMarkersByMunicipio();
+
+        // ========================================
+        // FUNCIÓN EXPORTAR - Preparar datos para enviar al servidor
+        // ========================================
+        $('#formExportar').on('submit', function(e) {
+            e.preventDefault();
+
+            // Recopilar solo las filas visibles
+            var datos = [];
+
+            $('#infraestructuraTable tr:visible').each(function() {
+                var $tr = $(this);
+                datos.push({
+                    Codigo: $tr.find('td').eq(0).text().trim(),
+                    Latitud: $tr.find('td').eq(1).text().trim(),
+                    Longitud: $tr.find('td').eq(2).text().trim(),
+                    Linea: $tr.find('td').eq(3).text().trim(),
+                    Tipo: $tr.find('td').eq(4).text().trim()
+                });
+            });
+
+            if (datos.length === 0) {
+                alert('No hay datos para exportar');
+                return false;
+            }
+
+            // Convertir a JSON y colocar en campo oculto
+            $('#datosExportar').val(JSON.stringify(datos));
+
+            // Permitir que el formulario se envíe
+            this.submit();
+        });
+    });
+    </script>
+</body>
+</html>

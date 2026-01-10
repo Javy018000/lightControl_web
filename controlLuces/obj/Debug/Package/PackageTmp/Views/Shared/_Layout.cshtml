@@ -1,0 +1,329 @@
+﻿@using controlLuces.Models
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Light Control</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f8f9fa;
+            padding-top: 20px;
+        }
+
+        .sidebar {
+            height: 100vh;
+            width: 210px;
+            position: fixed;
+            top: 0;
+            left: 0;
+            background-color: #111010;
+            padding-top: 60px;
+            color: white;
+            transition: all 0.3s ease;
+            z-index: 1000;
+            overflow-y: auto;
+        }
+
+            .sidebar a {
+                padding: 10px;
+                text-decoration: none;
+                color: white;
+                display: block;
+                transition: all 0.3s ease;
+            }
+
+                .sidebar a:hover {
+                    color: #fff;
+                    text-decoration: none;
+                    background-color: #555;
+                }
+
+                .sidebar a i {
+                    margin-right: 10px;
+                }
+
+        .collapse.show {
+            display: block !important;
+        }
+
+        .container.body-content {
+            margin-left: 220px;
+            margin-top: 20px;
+        }
+
+        .user-name {
+            text-align: center;
+            font-size: 16px;
+            margin-bottom: 20px;
+        }
+
+        /* Banner de municipio (inferior derecha) */
+        .municipio-banner {
+            position: fixed;
+            right: 24px;
+            bottom: 24px;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 14px 18px;
+            border-radius: 18px;
+            color: #fff;
+            box-shadow: 0 10px 30px rgba(0,0,0,.25);
+            z-index: 2000;
+            backdrop-filter: blur(4px);
+        }
+
+            .municipio-banner .city-icon {
+                width: 48px;
+                height: 48px;
+                border-radius: 12px;
+                display: grid;
+                place-items: center;
+                background: rgba(255,255,255,.18);
+            }
+
+                .municipio-banner .city-icon i {
+                    font-size: 24px;
+                }
+
+            .municipio-banner .text .caption {
+                font-size: 12px;
+                opacity: .9;
+                letter-spacing: .6px;
+                text-transform: uppercase;
+            }
+
+            .municipio-banner .text .name {
+                margin-top: 2px;
+                font-size: 20px;
+                font-weight: 800;
+                line-height: 1.1;
+            }
+
+            .municipio-banner.muni-chia {
+                background: linear-gradient(135deg,#22c55e,#16a34a);
+            }
+
+            .municipio-banner.muni-madrid {
+                background: linear-gradient(135deg,#0ea5e9,#2563eb);
+            }
+
+            .municipio-banner.muni-default {
+                background: linear-gradient(135deg,#8b5cf6,#6d28d9);
+            }
+    </style>
+</head>
+<body>
+
+    @{
+        // Usuario en sesión
+        var usuario = Session["Usuario"] as UsuarioModel;
+
+        // 1) Municipio desde sesión (o usuario)
+        var muni = Session["Municipio"] as string;
+        if (string.IsNullOrWhiteSpace(muni)) { muni = usuario?.Municipio; }
+
+        // 2) Clase por municipio
+        var key = (muni ?? "").Trim().ToLower().Replace("í", "i");
+        var muniClass = key == "chia" ? "muni-chia" : key == "madrid" ? "muni-madrid" : "muni-default";
+
+        // 3) Ruta de inicio dinámica por rol
+        var inicioAction = (usuario?.IdRol == Rol.Administrador_Local) ? "InicioLocal" : "inicio";
+    }
+
+    @if (!string.IsNullOrWhiteSpace(muni))
+    {
+        <div class="municipio-banner @muniClass">
+            <div class="city-icon"><i class="fas fa-city"></i></div>
+            <div class="text">
+                <div class="caption">Municipio actual</div>
+                <div class="name">@muni</div>
+            </div>
+        </div>
+    }
+
+<div class="sidebar">
+    @if (usuario != null)
+    {
+        <div class="user-name">
+            <p>@usuario.Nombre @usuario.Apellido</p>
+            <p>@usuario.IdRol</p>
+        </div>
+    }
+
+    <div class="navbar-brand">
+        <a href="@Url.Action(inicioAction, "Login", new { area = "" })">Light Control</a>
+    </div>
+
+    @* ------------------- ADMIN / TÉCNICO ------------------- *@
+    @if (usuario != null && (usuario.IdRol == Rol.Administrador || usuario.IdRol == Rol.Tecnico))
+    {
+        <a href="#infraestructura" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-building"></i> Infraestructura
+        </a>
+        <ul class="collapse list-unstyled" id="infraestructura">
+            <li>
+                <a href="#luminarias" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">Elementos</a>
+                <ul class="collapse list-unstyled" id="luminarias">
+                    <li>
+                        <a href="@Url.Action("vertodainfraestructura", "infraestructura", new { area = "", tipo = "LED" })">Luminarias</a>
+                        <a href="@Url.Action("vertodapostes", "Postes", new { area = "" })">Estructuras de Soporte o Poste</a>
+                        <a href="@Url.Action("verTodasCajas", "Cajas", new { area = "" })">Cajas</a>
+                        <a href="">Red de Alimentación</a>
+                        <a href="">Canalizaciones</a>
+                        <a href="@Url.Action("Transformadores", "infraestructura", new { area = "" })">Transformadores</a>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+
+        <a href="#usuarios" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-user"></i> Usuarios
+        </a>
+        <ul class="collapse list-unstyled" id="usuarios">
+            <li><a href="@Url.Action("usuarios", "Login", new { area = "" })">Usuarios</a></li>
+        </ul>
+
+        <a href="#ordenesAdm" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-clipboard-list"></i> Órdenes de servicio
+        </a>
+        <ul class="collapse list-unstyled" id="ordenesAdm">
+            <li><a href="@Url.Action("ListarCuadrillas", "Ordenes", new { area = "" })">Cuadrillas</a></li>
+            <li><a href="@Url.Action("verOrdenes", "Ordenes", new { area = "" })">Ver todas las Órdenes</a></li>
+            <li><a href="@Url.Action("monitorear", "Ordenes", new { area = "" })">Historial</a></li>
+            <li><a href="@Url.Action("VerTrabajosRealizados", "Ordenes", new { area = "" })">Trabajos Realizados</a></li>
+        </ul>
+
+        @* PQRS solo para ADMIN (no técnico) *@
+        if (usuario.IdRol == Rol.Administrador)
+        {
+            <a href="#pqrsAdm" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                <i class="fas fa-comments"></i> PQRS
+            </a>
+            <ul class="collapse list-unstyled" id="pqrsAdm">
+                <li><a href='@Url.Action("pqrs", "pqrs", new { area = "" })'>Nueva Solicitud</a></li>
+                <li><a href='@Url.Action("MostrarPqrs", "pqrs", new { area = "" })'>Listado PQRS</a></li>
+                @* NUEVO: búsqueda avanzada / archivo *@
+                <li><a href='@Url.Action("ArchivoPqrs", "pqrs", new { area = "" })'>Buscar PQRS</a></li>
+                @* NUEVO: gráficos PQRS para Admin *@
+                <li><a href='@Url.Action("GraficoPqrs", "pqrs", new { area = "" })'>Gráficos PQRS</a></li>
+            </ul>
+        }
+    }
+
+    @* ------------------- USUARIO ------------------- *@
+    @if (usuario != null && usuario.IdRol == Rol.Usuario)
+    {
+        <a href="#pqrs" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-comments"></i>PQRS
+        </a>
+        <ul class="collapse list-unstyled" id="pqrs">
+            <li><a href="@Url.Action("pqrssinasignar_usuario", "pqrs", new { area = "" })">listado pqrs</a></li>
+            <li><a href="@Url.Action("pqrs", "pqrs", new { area = "" })">Nueva Solicitud</a></li>
+        </ul>
+
+        <a href="#ordenes" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-clipboard-list"></i> Órdenes de servicio
+        </a>
+        <ul class="collapse list-unstyled" id="ordenes">
+            <li><a href="@Url.Action("verOrdenes", "Ordenes", new { area = "" })">Ver todas las Órdenes</a></li>
+            <li><a href="@Url.Action("monitorear", "Ordenes", new { area = "" })">Historial</a></li>
+        </ul>
+    }
+
+    @* ------------------- ADMIN_LOCAL ------------------- *@
+    @if (usuario != null && usuario.IdRol == Rol.Administrador_Local)
+    {
+        <a href="#infraestructuraLocal" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-building"></i> Infraestructura
+        </a>
+        <ul class="collapse list-unstyled" id="infraestructuraLocal">
+            <li>
+                <a href='@Url.Action("vertodainfraestructura", "infraestructura", new { area = "", tipo = "LED" })'>
+                    Luminarias
+                </a>
+            </li>
+            @if (!string.IsNullOrWhiteSpace(muni) && muni.Trim().ToLower().Contains("madrid"))
+            {
+                <li><a href='@Url.Action("vertodapostes", "Postes", new { area = "" })'>Estructuras de Soporte o Poste</a></li>
+                <li><a href='@Url.Action("verTodasCajas", "Cajas", new { area = "" })'>Cajas</a></li>
+                <li><a href='@Url.Action("Transformadores", "infraestructura", new { area = "" })'>Transformadores</a></li>
+            }
+        </ul>
+   
+        {
+            <a href="#usuariosLocal" data-toggle="collapse" class="dropdown-toggle">
+                <i class="fas fa-user"></i> Usuarios
+            </a>
+            <ul class="collapse list-unstyled" id="usuariosLocal">
+                <li>
+                    <a href="@Url.Action("usuarios", "Login")">Usuarios</a>
+                </li>
+            </ul>
+        }
+
+        <a href="#pqrsLocal" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-comments"></i> PQRS
+        </a>
+        <ul class="collapse list-unstyled" id="pqrsLocal">
+            <li><a href='@Url.Action("pqrs", "pqrs", new { area = "" })'>Nueva Solicitud</a></li>
+            <li><a href='@Url.Action("MostrarPqrs", "pqrs", new { area = "" })'>Listado PQRS</a></li>
+            @* NUEVO: acceso a archivo/búsqueda para Admin Local *@
+            <li><a href='@Url.Action("ArchivoPqrs", "pqrs", new { area = "" })'>Buscar PQRS</a></li>
+            @* NUEVO: gráficos PQRS para Admin Local *@
+            <li><a href='@Url.Action("GraficoPqrs", "pqrs", new { area = "" })'>Gráficos PQRS</a></li>
+        </ul>
+
+        <a href="#ordenesLocal" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-clipboard-list"></i> Órdenes de servicio
+        </a>
+        <ul class="collapse list-unstyled" id="ordenesLocal">
+            <li><a href='@Url.Action("ListarCuadrillas", "Ordenes", new { area = "" })'>Cuadrillas</a></li>
+            <li><a href='@Url.Action("verOrdenes", "Ordenes", new { area = "" })'>Ver todas las Órdenes</a></li>
+            <li><a href='@Url.Action("monitorear", "Ordenes", new { area = "" })'>Historial</a></li>
+        </ul>
+
+        <a href="#inventariosLocal" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-warehouse"></i> Inventarios
+        </a>
+        <ul class="collapse list-unstyled" id="inventariosLocal">
+            <li><a href='@Url.Action("verElementos", "Inventario", new { area = "" })'>Ver Items</a></li>
+        </ul>
+    }
+
+    @if (usuario != null)
+    {
+        <a href="#archivo" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-file"></i> Archivo
+        </a>
+        <ul class="collapse list-unstyled" id="archivo">
+            <li><a href="@Url.Action("verArchivo", "Archivo", new { area = "" })">Ver Archivo</a></li>
+            <li><a href="@Url.Action("nuevoArchivo", "Archivo", new { area = "" })">Nuevo Archivo</a></li>
+        </ul>
+    }
+
+    <a href="@Url.Action("CerrarSesion", "Login", new { area = "" })">Cerrar Sesión</a>
+</div>
+
+    <div class="container body-content">
+        <hr />
+        @RenderBody()
+        <hr />
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $('.sidebar a[href^="#"]').on('click', function (e) {
+            e.preventDefault();
+            $(this).toggleClass('active');
+            $(this).next('ul').slideToggle();
+        });
+    </script>
+    @RenderSection("scripts", required: false)
+</body>
+</html>

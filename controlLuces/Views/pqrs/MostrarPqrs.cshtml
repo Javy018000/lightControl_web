@@ -1,0 +1,258 @@
+﻿@model IEnumerable<controlLuces.Models.PqrsModel>
+@using controlLuces.Models
+
+@{
+    ViewBag.Title = "Mostrar PQRS";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var usuario = Session["Usuario"] as UsuarioModel;
+    var municipioSesion = (Session["Municipio"] as string)
+                          ?? usuario?.Municipio
+                          ?? "";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewBag.Title</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+          rel="stylesheet" />
+
+    <style>
+        :root {
+            --c1: #0ea5e9;
+            --c2: #3b82f6;
+            --bg: #f4f8fb;
+            --text: #0f172a;
+            --muted: #64748b;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+
+        .pqrs-page {
+            max-width: 1200px;
+            margin: 22px auto 40px auto;
+            padding: 0 15px 40px 15px;
+        }
+
+        .pqrs-main-header {
+            background: linear-gradient(135deg, var(--c1), var(--c2));
+            color: #fff;
+            border-radius: 18px;
+            padding: 18px 24px;
+            text-align: center;
+            font-weight: 800;
+            letter-spacing: .4px;
+            box-shadow: 0 12px 28px rgba(2, 8, 23, .15);
+            text-transform: uppercase;
+            font-size: 30px;
+            margin-bottom: 18px;
+        }
+
+            .pqrs-main-header i {
+                margin-right: 8px;
+            }
+
+        .pqrs-top-bar {
+            display: flex;
+            justify-content: flex-end;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+
+            .pqrs-top-bar span {
+                font-size: 13px;
+                color: var(--muted);
+                background: #ffffff;
+                padding: 6px 12px;
+                border-radius: 999px;
+                box-shadow: 0 4px 12px rgba(15, 23, 42, .12);
+            }
+
+            .pqrs-top-bar i {
+                margin-right: 6px;
+                color: var(--c2);
+            }
+
+        .pqrs-grid {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 24px;
+        }
+
+        .pqrs-card {
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .12);
+            overflow: hidden;
+            width: 340px; /* tarjeta un poco más grande */
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .pqrs-card-header {
+            background: linear-gradient(135deg, var(--c1), var(--c2));
+            color: #fff;
+            padding: 14px 18px;
+            font-weight: 700;
+            font-size: 19px;
+            text-align: center;
+        }
+
+        .pqrs-card-body {
+            padding: 14px 18px 10px 18px;
+            font-size: 14px;
+        }
+
+            .pqrs-card-body p {
+                margin-bottom: 4px;
+            }
+
+        .pqrs-label {
+            font-weight: 600;
+        }
+
+        .pqrs-card-footer {
+            padding: 10px 18px 16px 18px;
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+        }
+
+        .btn-pqrs {
+            border-radius: 999px;
+            padding: 8px 22px; /* botones más grandes */
+            font-size: 14px;
+            font-weight: 700;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, .18);
+        }
+
+        .btn-pqrs-info {
+            background: linear-gradient(135deg, var(--c2), var(--c1));
+            border: none;
+            color: #fff;
+        }
+
+        .btn-pqrs-orden {
+            background: #22c55e;
+            border: none;
+            color: #052e16;
+        }
+
+        .pqrs-actions {
+            margin-top: 26px;
+            text-align: center;
+        }
+
+            .pqrs-actions .btn-lg {
+                border-radius: 999px;
+                padding: 10px 28px;
+                font-weight: 700;
+                font-size: 15px;
+                box-shadow: 0 10px 22px rgba(15, 23, 42, .18);
+            }
+
+            .pqrs-actions .btn-success {
+                background: #22c55e;
+                border: none;
+            }
+
+            .pqrs-actions .btn-danger {
+                background: #ef4444;
+                border: none;
+            }
+
+        @@media (max-width: 768px) {
+            .pqrs-card {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pqrs-page">
+        <!-- Cabecera principal -->
+        <div class="pqrs-main-header">
+            <i class="fas fa-comments"></i> PQRS
+        </div>
+
+        <!-- Municipio arriba a la derecha -->
+        <div class="pqrs-top-bar">
+            @if (!string.IsNullOrWhiteSpace(municipioSesion))
+            {
+                <span>
+                    <i class="fas fa-city"></i>Municipio: @municipioSesion
+                </span>
+            }
+        </div>
+
+        @if (Model == null || !Model.Any())
+        {
+            <div class="alert alert-info mt-2">
+                No hay PQRS para mostrar.
+            </div>
+        }
+        else
+        {
+            <div class="pqrs-grid">
+                @foreach (var pqrs in Model)
+                {
+                    <div class="pqrs-card">
+                        <div class="pqrs-card-header">
+                            @pqrs.Consecutivo
+                        </div>
+                        <div class="pqrs-card-body">
+                            <p><span class="pqrs-label">Fecha:</span> @pqrs.FechaRegistro</p>
+                            <p><span class="pqrs-label">Tipo:</span> @pqrs.Tipopqrs</p>
+                            <p><span class="pqrs-label">Canal:</span> @pqrs.Canal</p>
+                            <p><span class="pqrs-label">Dirección:</span> @pqrs.DireccionAfectacion</p>
+                            <p><span class="pqrs-label">Descripción:</span> @pqrs.DescripcionAfectacion</p>
+                        </div>
+                        <div class="pqrs-card-footer">
+                            <a href="@Url.Action("VerInfo", "pqrs", new { id = pqrs.Idpqrs })"
+                               class="btn btn-pqrs btn-pqrs-info">
+                                <i class="fas fa-info-circle"></i> Info
+                            </a>
+
+                            <a href="@Url.Action(
+                                        "CrearOrdenDeServicio",
+                                        "Ordenes",
+                                        new { idPqrs = pqrs.Idpqrs, descripcionAfectacion = pqrs.DescripcionAfectacion })"
+                               class="btn btn-pqrs btn-pqrs-orden">
+                                <i class="fas fa-plus"></i> Orden
+                            </a>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+
+        <!-- Botones inferiores centrados -->
+        <div class="pqrs-actions">
+            <a href="@Url.Action("GenerarPDF", "pqrs")"
+               class="btn btn-success btn-lg me-3">
+                <i class="fas fa-file-pdf"></i> Generar PDF
+            </a>
+
+            <a href="@Url.Action("inicio", "Login")"
+               class="btn btn-danger btn-lg">
+                <i class="fas fa-arrow-left"></i> Atrás
+            </a>
+        </div>
+    </div>
+</body>
+</html>

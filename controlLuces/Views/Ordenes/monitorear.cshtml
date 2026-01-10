@@ -1,0 +1,342 @@
+﻿@model List<controlLuces.Models.OrdenModel>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@(ViewBag.Title ?? "Historial de Órdenes")</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
+
+    <style>
+        body {
+            font-family: 'Product Sans',system-ui,Segoe UI,Arial,sans-serif;
+            background: #f4f8fb;
+            padding: 20px;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg,#0ea5e9,#3b82f6);
+            color: #fff;
+            border-radius: 14px;
+            padding: 18px 25px;
+            box-shadow: 0 10px 24px rgba(2,8,23,.12);
+            font-size: 28px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+        .control-bar {
+            display: flex;
+            justify-content: flex-start;
+            align-items: center;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 18px;
+        }
+
+            .control-bar select, .control-bar input {
+                padding: 10px 12px;
+                border-radius: 12px;
+                border: 1px solid #dbe6f5;
+                background: #fff;
+                box-shadow: 0 2px 6px rgba(2,8,23,.05) inset;
+                transition: .2s;
+            }
+
+                .control-bar select:focus, .control-bar input:focus {
+                    outline: none;
+                    border-color: #3b82f6;
+                    box-shadow: 0 0 0 3px rgba(59,130,246,.15);
+                }
+
+            .control-bar button {
+                background: linear-gradient(135deg,#3b82f6,#0ea5e9);
+                border: none;
+                color: #fff;
+                font-weight: 700;
+                padding: 10px 16px;
+                border-radius: 12px;
+                cursor: pointer;
+                transition: .15s;
+                box-shadow: 0 10px 18px rgba(59,130,246,.22);
+            }
+
+                .control-bar button:hover {
+                    transform: translateY(-1px);
+                    box-shadow: 0 14px 22px rgba(59,130,246,.28);
+                }
+
+        .table-card {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 8px 22px rgba(2,8,23,.08);
+            padding: 16px;
+            max-height: 64vh;
+            overflow: auto;
+        }
+
+            .table-card::-webkit-scrollbar {
+                width: 10px;
+            }
+
+            .table-card::-webkit-scrollbar-thumb {
+                background: #dbe6f5;
+                border-radius: 10px;
+            }
+
+            .table-card::-webkit-scrollbar-track {
+                background: transparent;
+            }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14.5px;
+            margin: 0;
+        }
+
+        thead {
+            background: #f3f7fc;
+            color: #334155;
+        }
+
+            thead th {
+                position: sticky;
+                top: 0;
+                z-index: 1;
+                border-bottom: 1px solid #e6edf5;
+            }
+
+        th, td {
+            padding: 10px 8px;
+            text-align: center;
+            vertical-align: middle;
+            border-bottom: 1px solid #f1f5fb;
+        }
+
+        tbody tr:nth-child(even) {
+            background-color: #fcfdff;
+        }
+
+        tbody tr:hover {
+            background-color: #f3f9ff;
+            transition: .2s;
+        }
+
+        .btn-export {
+            background: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            box-shadow: 0 10px 18px rgba(16,185,129,.22);
+        }
+
+            .btn-export:hover {
+                filter: brightness(1.03);
+                transform: translateY(-1px);
+            }
+
+        .footer-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        .btn-back {
+            background: #dc3545;
+            border: none;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+
+            .btn-back:hover {
+                filter: brightness(0.95);
+            }
+
+        .help-text {
+            font-size: 12px;
+            color: #6b7280;
+            margin-top: 2px;
+        }
+    </style>
+</head>
+<body>
+    @{
+        // Recuperamos lo que se envió en el POST para mantenerlo en pantalla
+        var tipoBusqueda = Request["tipoBusqueda"] ?? "";
+        var desde = Request["desde"];
+        var hasta = Request["hasta"];
+        var idOrden = Request["IdOrden"];
+    }
+
+    <div class="main-header">
+        <i class="fas fa-history me-2"></i> Historial de Órdenes de Servicio
+    </div>
+
+    <!-- Barra de búsqueda -->
+    <form method="post" action="@Url.Action("BuscarOrden", "Ordenes")" class="control-bar" id="buscarForm">
+        <select id="tipoBusqueda" name="tipoBusqueda">
+            <option value="">Seleccionar</option>
+            <option value="consecutivo" @(tipoBusqueda == "consecutivo" ? "selected" : "")>Por Consecutivo</option>
+            <option value="fecha" @(tipoBusqueda == "fecha" ? "selected" : "")>Por Fecha</option>
+        </select>
+
+        <div id="rangoFecha" style="display:none; gap:8px; align-items:center;">
+            <input type="date" id="desde" name="desde" value="@desde" />
+            <span>—</span>
+            <input type="date" id="hasta" name="hasta" value="@hasta" />
+        </div>
+
+        <div id="campoConsecutivo" style="display:none; flex-direction:column;">
+            <input type="text"
+                   id="IdOrden"
+                   name="IdOrden"
+                   placeholder="N° Consecutivo / Código"
+                   value="@idOrden" />
+            <span class="help-text">
+                Puedes escribir el ID, el código completo (CH2025-8) o solo el número final (8).
+            </span>
+        </div>
+
+        <button type="submit" title="Buscar">
+            <i class="fas fa-search me-1"></i> Buscar
+        </button>
+    </form>
+
+    <div class="table-card">
+        <div class="table-responsive">
+            <table class="table" id="ordersTable">
+                <thead>
+                    <tr>
+                        <th>Consecutivo</th>
+                        <th>Código del Elemento</th>
+                        <th>Tipo de Elemento</th>
+                        <th>Elemento Relacionado</th>
+                        <th>Problema Relacionado</th>
+                        <th>Problema Validado</th>
+                        <th>Orden Prioridad</th>
+                        <th>Prioridad de Ruta</th>
+                        <th>Fecha a Realizar</th>
+                        <th>Cuadrilla</th>
+                        <th>Tipo de Orden</th>
+                        <th>Tipo de Solución</th>
+                        <th>Clase de Orden</th>
+                        <th>Obra Relacionada</th>
+                        <th>Estado Nombre</th>
+                        <th>Descripción</th>
+                        <th>Acciones</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var ordenes in Model)
+                        {
+                            var consecutivoMostrar = !string.IsNullOrWhiteSpace(ordenes.CodigoOrden)
+                                ? ordenes.CodigoOrden.Replace(":", "-")
+                                : ordenes.IdOrden.ToString();
+
+                            <tr>
+                                <td>@consecutivoMostrar</td>
+                                <td>@ordenes.CodigoDeElemento</td>
+                                <td>@ordenes.TipoDeElemento</td>
+                                <td>@ordenes.ElementoRelacionado</td>
+                                <td>@ordenes.ProblemaRelacionado</td>
+                                <td>@ordenes.ProblemaValidado</td>
+                                <td>@ordenes.OrdenPrioridad</td>
+                                <td>@ordenes.PrioridadDeRuta</td>
+                                <td>@ordenes.FechaARealizar.ToString("dd/MM/yyyy")</td>
+                                <td>@ordenes.Cuadrilla</td>
+                                <td>@ordenes.TipoDeOrden</td>
+                                <td>@ordenes.TipoDeSolucion</td>
+                                <td>@ordenes.ClaseDeOrden</td>
+                                <td>@ordenes.ObraRelacionada</td>
+                                <td>@ordenes.EstadoNombre</td>
+                                <td>@ordenes.Descripcion</td>
+                                <td>
+                                    <a href="@Url.Action("VerInfo", "Ordenes", new { id = ordenes.IdOrden })" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-eye"></i> Ver Info
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="17">No se encontraron órdenes de servicio.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Acciones -->
+    <div class="footer-actions">
+        <button class="btn-export" onclick="exportToExcel()">
+            <i class="fas fa-file-excel me-1"></i> Exportar a Excel
+        </button>
+
+        <a href="@Url.Action("inicio", "login")" class="btn-back">
+            <i class="fas fa-arrow-left me-1"></i> Atrás
+        </a>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        $(function () {
+            $("#tipoBusqueda").on("change", function () {
+                var v = $(this).val();
+                if (v === "fecha") {
+                    $("#rangoFecha").css("display", "flex");
+                    $("#campoConsecutivo").hide();
+                } else if (v === "consecutivo") {
+                    $("#rangoFecha").hide();
+                    $("#campoConsecutivo").css("display", "flex");
+                } else {
+                    $("#rangoFecha").hide();
+                    $("#campoConsecutivo").hide();
+                }
+            });
+
+            // Para que al recargar, según lo seleccionado, se muestre el bloque correcto
+            $("#tipoBusqueda").trigger("change");
+        });
+
+        function exportToExcel() {
+            var workbook = XLSX.utils.book_new();
+            var worksheet_data = [[
+                "Consecutivo", "Código del Elemento", "Tipo de Elemento", "Elemento Relacionado",
+                "Problema Relacionado", "Problema Validado", "Orden Prioridad", "Prioridad de Ruta",
+                "Fecha a Realizar", "Cuadrilla", "Tipo de Orden", "Tipo de Solución", "Clase de Orden",
+                "Obra Relacionada", "Estado Nombre", "Descripción"
+            ]];
+
+            var rows = document.querySelectorAll("#ordersTable tbody tr");
+            rows.forEach(function (row) {
+                var cells = row.querySelectorAll("td:not(:last-child)");
+                var row_data = [];
+                cells.forEach(function (cell) { row_data.push(cell.innerText); });
+                worksheet_data.push(row_data);
+            });
+
+            var worksheet = XLSX.utils.aoa_to_sheet(worksheet_data);
+            XLSX.utils.book_append_sheet(workbook, worksheet, "Órdenes de Servicio");
+            XLSX.writeFile(workbook, "ordenes_de_servicio.xlsx");
+        }
+    </script>
+</body>
+</html>

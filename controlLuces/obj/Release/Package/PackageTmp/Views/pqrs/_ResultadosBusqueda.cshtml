@@ -1,0 +1,174 @@
+﻿@{
+    ViewBag.Title = "Archivo PQRS";
+}
+
+@model List<controlLuces.Models.PqrsModel>
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    <link href="https://fonts.googleapis.com/css2?family=Kumbh+Sans:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
+    <style>
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            background: linear-gradient(to bottom, #87CEEB, #007bff) no-repeat;
+            background-size: cover;
+            font-family: 'Product Sans', sans-serif;
+            color: #333;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container-body-content {
+            background-color: transparent;
+            padding: 90%;
+            border-radius: 10px;
+            max-width: 800px;
+            width: 100%; 
+            margin: auto; 
+            transition: background-color 0.3s ease;
+        }
+
+        .card {
+            border-collapse: collapse;
+            border-spacing: 0;
+            background-color: #fff;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 20px;
+            height: 100%;
+            transition: transform 0.2s ease-in-out;
+        }
+
+            .card:hover {
+                transform: scale(1.05);
+            }
+
+        .card-header {
+            background-color: #17a2b8;
+            color: #fff;
+            border-bottom: none;
+        }
+
+            .card-header h5 {
+                margin-bottom: 0;
+            }
+
+        .card-body {
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            height: 100%;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            line-height: 1.5;
+            white-space: nowrap;
+            cursor: pointer;
+            border-radius: 5px;
+            transition: all 0.3s ease;
+            margin: 4px;
+            font-family: Arial, sans-serif;
+        }
+
+            .btn i {
+                margin-right: 5px;
+            }
+
+        .btn-primary {
+            background-color: #007bff;
+            border: 1px solid transparent;
+            color: #fff;
+        }
+
+            .btn-primary:hover {
+                background-color: #0056b3;
+            }
+
+        .btn-danger {
+            background-color: #dc3545;
+            border-color: #dc3545;
+            color: #fff;
+        }
+
+            .btn-danger:hover {
+                background-color: #c82333;
+                border-color: #bd2130;
+            }
+
+        .btn-success {
+            background-color: #28a745;
+            border-color: #28a745;
+            color: #fff;
+        }
+
+            .btn-success:hover {
+                background-color: #218838;
+                border-color: #1e7e34;
+            }
+
+        .tuclase {
+            background-color: #17a2b8;
+            color: #fff;
+            border-radius: 10px;
+            padding: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.15);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-body-content">
+        <h1 class="mb-4 tuclase">Archivo PQRS</h1>
+        <div class="row justify-content-around">
+            @foreach (var pqrs in Model)
+            {
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="card-title mb-0">Consecutivo: @pqrs.Idpqrs</h5>
+                        </div>
+                        <div class="card-body">
+                            <p><strong>Fecha:</strong> @pqrs.FechaRegistro</p>
+                            <p><strong>Tipo:</strong> @pqrs.Tipopqrs</p>
+                            <p><strong>Canal:</strong> @pqrs.Canal</p>
+                            <p><strong>Direccion:</strong> @pqrs.DireccionAfectacion</p>
+                            <p><strong>Descripción:</strong> @pqrs.DescripcionAfectacion</p>
+                        </div>
+                        <div class="card-footer text-center">
+                            <a href="@Url.Action("VerInfo", "pqrs", new { id = pqrs.Idpqrs })" class="btn btn-primary btn-sm"><i class="fas fa-eye"></i> Ver PQRS</a>
+                            <a href="@Url.Action("EliminarPqrs", "pqrs", new { id = pqrs.Idpqrs })" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i> Eliminar</a>
+                            <a href="@Url.Action("CrearOrdenDeServicio", "Ordenes", new { idPqrs = pqrs.Idpqrs, descripcionAfectacion = pqrs.DescripcionAfectacion })" class="btn btn-success btn-sm"><i class="fas fa-plus"></i> Crear Orden</a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="text-center">
+            <a href="@Url.Action("MostrarPqrs", "pqrs")" class="btn btn-primary"><i class="fas fa-list"></i> Ver todas las PQRS</a>
+        </div>
+    </div>
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+</body>
+</html>

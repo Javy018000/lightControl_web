@@ -1,0 +1,197 @@
+﻿﻿@{
+    ViewBag.Title = "Registro";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+    <link href="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" id="bootstrap-css">
+    <script src="//maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"></script>
+    <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@300;400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(to bottom, #87CEEB, #007bff);
+            font-family: 'Product Sans', sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        .container-form {
+            background: rgba(255, 255, 255, 0.8);
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+            width: 90%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            margin-top: 40px;
+            margin-bottom: 40px;
+        }
+
+        .card {
+            box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.1);
+            border: none;
+        }
+
+        .card-header {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 10px 10px 0 0;
+        }
+
+            .card-header h4 {
+                margin-bottom: 0;
+                text-align: center;
+            }
+
+        .card-body {
+            padding: 30px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            box-shadow: 0px 0px 20px 0px rgba(0,0,0,0.1);
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #555;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 15px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+            transition: border-color 0.3s, box-shadow 0.3s;
+            appearance: none;
+            -webkit-appearance: none;
+            -moz-appearance: none;
+        }
+
+        select.form-control {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            box-sizing: border-box;
+        }
+
+        .btn-primary {
+            background-color: #007bff;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 15px;
+            cursor: pointer;
+            transition: background-color 0.3s, box-shadow 0.3s;
+            display: block;
+            margin: 0 auto;
+            text-align: center;
+            width: 150px;
+        }
+
+            .btn-primary:hover {
+                background-color: #004080;
+                box-shadow: 0 4px 8px 0 rgba(0,0,0,0.2), 0 6px 20px 0 rgba(0,0,0,0.19);
+            }
+    </style>
+</head>
+<body>
+
+    <div class="container-form">
+        <div class="card border-dark">
+            <header class="card-header">
+                <h4 class="card-title">Registro</h4>
+            </header>
+            <article class="card-body">
+                <form action="@Url.Action("Registrar", "Login")" method="post" id="registroForm">
+
+                    <div class="form-row">
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="Nombre"><i class="fas fa-user"></i> Nombre</label>
+                                <input type="text" class="form-control" id="Nombre" placeholder="Ingrese su nombre" name="Nombre" required>
+                            </div>
+                        </div>
+                        <div class="col">
+                            <div class="form-group">
+                                <label for="Apellido"><i class="fas fa-user"></i> Apellido</label>
+                                <input type="text" class="form-control" id="Apellido" placeholder="Ingrese su apellido" name="Apellido" required>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Correo"><i class="fas fa-envelope"></i> Correo electrónico</label>
+                        <input type="email" class="form-control" id="Correo" placeholder="Ingrese su correo electrónico" name="Correo" required>
+                        <small class="form-text text-muted">Nunca compartiremos su correo electrónico con nadie más.</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="IdUsuario"><i class="fas fa-id-card"></i> Cédula</label>
+                        <input type="text" class="form-control" id="IdUsuario" placeholder="Ingrese su número de cédula" name="IdUsuario" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Clave"><i class="fas fa-lock"></i> Contraseña</label>
+                        <input type="password" class="form-control" id="Clave" placeholder="Ingrese su contraseña" name="Clave" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="IdRol"><i class="fas fa-user-tag"></i> Rol</label>
+                        <select class="form-control" id="IdRol" name="IdRol" required>
+                            <option value="">Seleccionar</option>
+                            <option value="1">Administrador</option>
+                            <option value="2">Técnico</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="Municipio"><i class="fas fa-city"></i> Municipio</label>
+                        <select class="form-control" id="Municipio" name="Municipio" required>
+                            <option value="">Seleccionar</option>
+                            <option value="Chía">Chía</option>
+                            <option value="Madrid">Madrid</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group text-center">
+                        <button type="submit" class="btn btn-primary btn-block"><i class="fas fa-user-plus"></i> Registrar</button>
+                    </div>
+
+                    <small class="text-muted">Al hacer clic en el botón 'Registrar', usted acepta nuestros <br> Términos de uso y Política de privacidad.</small>
+                </form>
+            </article>
+        </div>
+    </div>
+
+    <script>
+        function encryptPassword() {
+            var password = document.getElementById("Clave").value;
+            var shaObj = new jsSHA("SHA-256", "TEXT");
+            shaObj.update(password);
+            var hashedPassword = shaObj.getHash("HEX");
+
+            document.getElementById("Clave").value = hashedPassword;
+
+            return true;
+        }
+    </script>
+
+</body>
+</html>

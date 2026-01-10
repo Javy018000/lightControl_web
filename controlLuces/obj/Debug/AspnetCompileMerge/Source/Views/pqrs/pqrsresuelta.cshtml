@@ -1,0 +1,198 @@
+﻿@model List<controlLuces.Models.PqrsModel>
+@using controlLuces.Models
+
+@{
+    ViewBag.Title = "PQRS Resuelta";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Prefijo por municipio (por si algún registro viejo no tiene CodigoPqrs / Consecutivo)
+    Func<string, string> PrefijoMunicipio = (mun) =>
+    {
+        var y = DateTime.Now.Year;
+        var k = (mun ?? "").Trim().ToLowerInvariant();
+        if (k.Contains("madrid")) return $"MA{y}";
+        if (k.Contains("chía") || k.Contains("chia")) return $"CH{y}";
+        return $"LC{y}";
+    };
+
+    var muniSesion = (Session["Municipio"] as string)
+                     ?? (Session["Usuario"] as UsuarioModel)?.Municipio;
+    var prefijoSesion = PrefijoMunicipio(muniSesion);
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PQRS Resuelta</title>
+
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --c1: #0ea5e9;
+            --c2: #3b82f6;
+            --bg: #f4f8fb;
+            --text: #0f172a;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Product Sans',sans-serif;
+            margin: 0;
+            padding-top: 24px;
+        }
+
+        .container {
+            width: 95%;
+            margin: 0 auto;
+            text-align: center;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg,var(--c1),var(--c2));
+            color: #fff;
+            border-radius: 14px;
+            padding: 16px 22px;
+            font-size: 28px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: .4px;
+            box-shadow: 0 12px 26px rgba(2,8,23,.15);
+            margin-bottom: 20px;
+        }
+
+        .card {
+            background: #fff;
+            border: none;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 24px rgba(2,8,23,.08);
+            transition: transform .18s, box-shadow .18s;
+            height: 100%;
+        }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 16px 30px rgba(2,8,23,.12);
+            }
+
+        .card-header {
+            background: linear-gradient(135deg,var(--c2),var(--c1));
+            color: #fff;
+            border: none;
+            font-size: 18px;
+            font-weight: 800;
+        }
+
+        .card-body p {
+            margin-bottom: .4rem;
+            text-align: left;
+        }
+
+        .card-footer {
+            background: #fff;
+            border-top: 1px solid #eef2f8;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg,var(--c2),var(--c1));
+            border: none;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 8px 14px;
+            box-shadow: 0 10px 22px rgba(59,130,246,.25);
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg,#ef4444,#dc2626);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            padding: 12px 24px;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: .15s;
+            box-shadow: 0 10px 18px rgba(239,68,68,.22);
+            text-decoration: none;
+            display: inline-block;
+        }
+
+            .btn-back:hover {
+                transform: translateY(-1px);
+                box-shadow: 0 14px 22px rgba(239,68,68,.28);
+                color: #fff;
+                text-decoration: none;
+            }
+
+        .tuclase {
+            text-align: center;
+            font-weight: bold;
+            font-size: 30px;
+            color: #17202A;
+            text-shadow: 0 1px 0 #ddd,0 2px 0 #ccc,0 3px 0 #bbb,0 4px 0 #aaa,0 5px 0 #acacac,0 6px 1px rgba(0,0,0,.1),0 0 5px rgba(0,0,0,.1),0 1px 3px rgba(0,0,0,.3),0 3px 5px rgba(0,0,0,.2),0 5px 10px rgba(0,0,0,.25),0 10px 10px rgba(0,0,0,.2),0 20px 20px rgba(0,0,0,.15);
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="main-header">
+            <i class="fas fa-check-circle"></i> PQRS Resuelta
+        </div>
+
+        <div class="row justify-content-around">
+            @foreach (var pqrs in Model)
+            {
+                // Radicado: usa el Consecutivo calculado en el controlador
+                var radicado = !string.IsNullOrWhiteSpace(pqrs.Consecutivo)
+                    ? pqrs.Consecutivo
+                    : (prefijoSesion + ":" + pqrs.Idpqrs);
+
+                <div class="col-md-4 mb-4">
+                    <div class="card">
+                        <div class="card-header">
+                            @radicado
+                        </div>
+
+                        <div class="card-body">
+                            <p><strong>Fecha:</strong> @pqrs.FechaRegistro</p>
+                            <p><strong>Tipo:</strong> @pqrs.Tipopqrs</p>
+                            <p><strong>Canal:</strong> @pqrs.Canal</p>
+                            <p><strong>Dirección:</strong> @pqrs.DireccionAfectacion</p>
+                            <p><strong>Descripción:</strong> @pqrs.DescripcionAfectacion</p>
+                            @if (!string.IsNullOrWhiteSpace(pqrs.Cuadrilla))
+                            {
+                                <p><strong>Cuadrilla:</strong> @pqrs.Cuadrilla</p>
+                            }
+                            @if (pqrs.FechaARealizar.HasValue)
+                            {
+                                <p><strong>Fecha del trabajo:</strong> @pqrs.FechaARealizar.Value.ToString("dd/MM/yyyy")</p>
+                            }
+                        </div>
+
+                        <div class="card-footer">
+                            <a href="@Url.Action("VerInfoCompleto", "pqrs", new { id = pqrs.Idpqrs })" class="btn btn-primary btn-sm">
+                                <i class="fas fa-info-circle"></i> Ver Info
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="text-center mt-4 mb-4">
+            <a href="@Url.Action("inicio", "login")" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Atrás
+            </a>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</body>
+</html>

@@ -1,0 +1,364 @@
+﻿@model controlLuces.Models.PqrsModel
+
+@{
+    ViewBag.Title = "Detalle PQRS";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <title>@ViewBag.Title</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+    <style>
+        :root {
+            --c1: #0ea5e9;
+            --c2: #3b82f6;
+            --bg: #f4f8fb;
+            --text: #0f172a;
+            --muted: #64748b;
+            --card: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+            color: var(--text);
+        }
+
+        .pqrs-wrapper {
+            max-width: 1100px;
+            margin: 24px auto 40px auto;
+            padding: 0 16px 32px 16px;
+        }
+
+        .pqrs-header-main {
+            background: linear-gradient(135deg, var(--c1), var(--c2));
+            color: #fff;
+            border-radius: 18px;
+            padding: 18px 26px;
+            box-shadow: 0 18px 35px rgba(15, 23, 42, 0.25);
+            font-size: 24px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 22px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+            .pqrs-header-main i {
+                font-size: 24px;
+            }
+
+        .pqrs-card {
+            background: var(--card);
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            box-shadow: 0 12px 26px rgba(15, 23, 42, .14);
+            padding: 20px 22px;
+        }
+
+        .pqrs-code-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+            .pqrs-code-chip i {
+                color: #1d4ed8;
+            }
+
+        .pqrs-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .pqrs-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+        }
+
+            .pqrs-meta-item i {
+                font-size: 13px;
+                color: var(--c2);
+            }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin: 16px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0f172a;
+        }
+
+            .section-title i {
+                color: var(--c1);
+            }
+
+        .field-label {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1f2937;
+        }
+
+        .field-value {
+            font-size: 14px;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .badge-estado {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+            .badge-estado i {
+                color: #0284c7;
+            }
+
+        .pqrs-img-wrapper {
+            margin-top: 16px;
+            text-align: center;
+        }
+
+            .pqrs-img-wrapper img {
+                max-width: 100%;
+                max-height: 320px;
+                border-radius: 14px;
+                border: 1px solid var(--border);
+                box-shadow: 0 10px 24px rgba(15, 23, 42, .18);
+                object-fit: contain;
+            }
+
+        .pqrs-actions {
+            margin-top: 22px;
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            border-radius: 999px;
+            padding: 8px 24px;
+            font-weight: 700;
+            border: none;
+            background: linear-gradient(135deg, #fb7185, #ef4444);
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(248,113,113,.35);
+        }
+
+            .btn-back:hover {
+                color: #fff;
+                filter: brightness(1.05);
+                transform: translateY(-1px);
+            }
+
+        @@media (max-width: 768px) {
+            .pqrs-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pqrs-wrapper">
+
+        <!-- HEADER PRINCIPAL -->
+        <div class="pqrs-header-main">
+            <i class="fas fa-info-circle"></i>
+            DETALLE PQRS
+        </div>
+
+        <!-- CARD PRINCIPAL -->
+        <div class="pqrs-card">
+
+            <!-- CÓDIGO / RADICADO -->
+            @if (Model != null)
+            {
+                <div class="pqrs-code-chip">
+                    <i class="fas fa-hashtag"></i>
+                    @(!string.IsNullOrWhiteSpace(Model.Consecutivo) ? Model.Consecutivo : ("ID:" + Model.Idpqrs))
+                </div>
+            }
+
+            <!-- META: fecha, tipo, canal, estado -->
+            <div class="pqrs-meta">
+                @if (!string.IsNullOrWhiteSpace(Model?.FechaRegistro))
+                {
+                    <div class="pqrs-meta-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        @Model.FechaRegistro
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model?.Tipopqrs))
+                {
+                    <div class="pqrs-meta-item">
+                        <i class="fas fa-tags"></i>
+                        @Model.Tipopqrs
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model?.Canal))
+                {
+                    <div class="pqrs-meta-item">
+                        <i class="fas fa-envelope-open-text"></i>
+                        @Model.Canal
+                    </div>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model?.EstadoNombre))
+                {
+                    <div class="pqrs-meta-item badge-estado">
+                        <i class="fas fa-circle"></i>
+                        @Model.EstadoNombre
+                    </div>
+                }
+            </div>
+
+            <!-- DATOS DEL USUARIO -->
+            <h2 class="section-title">
+                <i class="fas fa-user"></i> Datos del usuario
+            </h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="field-label">Nombre</div>
+                    <div class="field-value">@($"{Model.Nombre} {Model.Apellido}")</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="field-label">Documento</div>
+                    <div class="field-value">
+                        @Model.TipoDoc @(" ") @Model.Documento
+                    </div>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <div class="field-label">Teléfono</div>
+                    <div class="field-value">@Model.Telefono</div>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <div class="field-label">Correo</div>
+                    <div class="field-value">@Model.Correo</div>
+                </div>
+            </div>
+
+            <!-- DATOS DE AFECTACIÓN -->
+            <h2 class="section-title">
+                <i class="fas fa-map-marker-alt"></i> Datos de afectación
+            </h2>
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="field-label">Código del elemento</div>
+                    <div class="field-value">@Model.Referencia</div>
+                </div>
+                <div class="col-md-6">
+                    <div class="field-label">Tipo de alumbrado</div>
+                    <div class="field-value">@Model.TipoAlumbrado</div>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <div class="field-label">Dirección de afectación</div>
+                    <div class="field-value">@Model.DireccionAfectacion</div>
+                </div>
+                <div class="col-md-6 mt-2">
+                    <div class="field-label">Barrio de afectación</div>
+                    <div class="field-value">@Model.BarrioAfectacion</div>
+                </div>
+            </div>
+
+            <!-- DESCRIPCIÓN -->
+            <h2 class="section-title">
+                <i class="fas fa-info"></i> Descripción
+            </h2>
+            <div class="field-value">
+                @Model.DescripcionAfectacion
+            </div>
+
+            <!-- DATOS RELACIONADOS -->
+            @if (!string.IsNullOrWhiteSpace(Model.DatosRelacionados))
+            {
+                <h2 class="section-title">
+                    <i class="fas fa-link"></i> Datos relacionados
+                </h2>
+                <div class="field-value">
+                    @Model.DatosRelacionados
+                </div>
+            }
+
+            <!-- ====== NUEVA SECCIÓN: INFORMACIÓN DE LA ORDEN ====== -->
+            @if (!string.IsNullOrWhiteSpace(Model.Cuadrilla) || Model.FechaARealizar.HasValue)
+            {
+                <h2 class="section-title">
+                    <i class="fas fa-tools"></i> Información de la orden
+                </h2>
+                <div class="row">
+                    @if (!string.IsNullOrWhiteSpace(Model.Cuadrilla))
+                    {
+                        <div class="col-md-6">
+                            <div class="field-label">Cuadrilla asignada</div>
+                            <div class="field-value">@Model.Cuadrilla</div>
+                        </div>
+                    }
+                    @if (Model.FechaARealizar.HasValue)
+                    {
+                        <div class="col-md-6">
+                            <div class="field-label">Fecha a realizar</div>
+                            <div class="field-value">@Model.FechaARealizar.Value.ToString("dd/MM/yyyy")</div>
+                        </div>
+                    }
+                </div>
+            }
+            <!-- ====== FIN NUEVA SECCIÓN ====== -->
+            <!-- IMAGEN (SI EXISTE) -->
+            @if (ViewBag.ImagenDataUrl != null)
+            {
+                <h2 class="section-title">
+                    <i class="fas fa-image"></i> Evidencia
+                </h2>
+                <div class="pqrs-img-wrapper">
+                    <img src="@ViewBag.ImagenDataUrl" alt="Imagen PQRS" />
+                </div>
+            }
+        </div>
+
+        <!-- BOTONES -->
+        <div class="pqrs-actions">
+            <a href="@Url.Action("MostrarPqrs", "pqrs")" class="btn btn-back">
+                <i class="fas fa-arrow-left me-1"></i> Atrás
+            </a>
+        </div>
+    </div>
+</body>
+</html>

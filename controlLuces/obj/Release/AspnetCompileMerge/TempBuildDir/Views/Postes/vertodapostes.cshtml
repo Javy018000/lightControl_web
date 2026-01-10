@@ -1,0 +1,276 @@
+﻿﻿@model List<controlLuces.Models.PosteModel>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Ver Todos los Postes</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css" />
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+    <style>
+        body {
+            font-family: 'Product Sans', Arial, sans-serif;
+            background: linear-gradient(to bottom, #87CEEB, #007bff);
+            padding: 20px;
+        }
+
+        .main-header {
+            background: #17a2b8;
+            color: #fff;
+            border-radius: 10px;
+            padding: 20px;
+            box-shadow: 0 0 20px rgba(0,0,0,.15);
+            margin-bottom: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 32px;
+        }
+
+        .filter-container {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+            .filter-container select {
+                padding: 10px 20px;
+                font-size: 16px;
+                border-radius: 5px;
+                border: 1px solid #007bff;
+                background: #f8f9fa;
+                transition: .3s;
+                box-shadow: 0 0 10px rgba(0,0,0,.1);
+                max-width: 250px;
+                margin: 0 auto;
+            }
+
+        .search-container {
+            text-align: center;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+            .search-container input {
+                padding: 10px 20px;
+                font-size: 16px;
+                border-radius: 5px;
+                border: 1px solid #007bff;
+                background: #f8f9fa;
+                transition: .3s;
+                box-shadow: 0 0 10px rgba(0,0,0,.1);
+                width: 100%;
+                max-width: 500px;
+                margin-right: 10px;
+            }
+
+            .search-container button {
+                padding: 10px 20px;
+                font-size: 16px;
+                border-radius: 5px;
+                border: 1px solid #007bff;
+                background: #007bff;
+                color: #fff;
+                transition: .3s;
+                box-shadow: 0 0 10px rgba(0,0,0,.1);
+                cursor: pointer;
+            }
+
+        .content {
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .table-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,.15);
+            padding: 20px;
+            flex: 0 0 55%;
+            max-height: 650px;
+            overflow-y: auto;
+            margin-bottom: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: center;
+            word-wrap: break-word;
+        }
+
+        th {
+            background: #007bff;
+            color: #fff;
+        }
+
+        td {
+            background: #f8f9fa;
+            transition: background-color .3s;
+        }
+
+            td:hover {
+                background: #e9ecef;
+            }
+
+        .map-card {
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0,0,0,.15);
+            padding: 20px;
+            flex: 0 0 43%;
+            height: 650px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            position: relative;
+        }
+
+        .map {
+            width: 100%;
+            height: 100%;
+            border-radius: 10px;
+        }
+
+        .btn-info {
+            background: #17a2b8;
+            border-color: #17a2b8;
+        }
+
+            .btn-info:hover {
+                background: #138496;
+                border-color: #117a8b;
+            }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="mt-5 mb-4 text-center main-header"><i class="fas fa-map-marker-alt"></i> Postes</h1>
+
+        <div class="filter-container">
+            <label for="barrioFilter">Filtrar por barrio: </label>
+            <select id="barrioFilter">
+                <option value="">Todos</option>
+                @foreach (var b in ViewBag.Barrios as List<string>)
+                {
+                    <option value="@b">@b</option>
+                }
+            </select>
+        </div>
+
+        <div class="search-container">
+            <input type="text" id="searchInput" placeholder="Buscar en la tabla...">
+            <button id="searchButton"><i class="fas fa-search"></i></button>
+        </div>
+
+        <div class="content">
+            <div class="table-card">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>Código</th>
+                            <th>Latitud</th>
+                            <th>Longitud</th>
+                            <th>Poste</th>
+                            <th>Tipo red</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="postesTable">
+                        @foreach (var p in Model)
+                        {
+                            <tr>
+                                <td>@p.codigo</td>
+                                <td>@p.latitud.ToString().Replace(',', '.')</td>
+                                <td>@p.longitud.ToString().Replace(',', '.')</td>
+                                <td>@p.poste</td>
+                                <td>@p.tipo_red</td>
+                                <td class="text-center">
+                                    <a href="@Url.Action("VerInfoDetallada", "Postes", new { id = p.codigo })" class="btn btn-info">Ver info</a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="map-card">
+                <div id="map" class="map"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        $(function () {
+            var map = L.map('map').setView([4.732, -74.264], 14);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19 }).addTo(map);
+
+            function clearMarkers() {
+                map.eachLayer(function (l) {
+                    if (l instanceof L.Marker || l instanceof L.CircleMarker) map.removeLayer(l);
+                });
+            }
+
+            function addMarker(lat, lng, popupText) {
+                var m = L.circleMarker([lat, lng], {
+                    radius: 8, fillColor: "#4AF0B7", color: "#000", weight: 1, opacity: 1, fillOpacity: 0.8
+                }).addTo(map);
+                m.bindPopup(popupText);
+            }
+
+            // pintar todos al cargar
+            clearMarkers();
+            @foreach (var p in Model)
+            {
+                <text>
+                    addMarker(@p.latitud.ToString().Replace(',', '.'), @p.longitud.ToString().Replace(',', '.'), '@p.codigo - @p.poste');
+                </text>
+            }
+
+            // filtro por barrio (tabla + mapa)
+            $('#barrioFilter').on('change', function () {
+                var b = $(this).val().toLowerCase();
+                $('#postesTable tr').each(function () {
+                    var rowText = $(this).text().toLowerCase();
+                    $(this).toggle((b === "") || rowText.indexOf(b) > -1);
+                });
+                clearMarkers();
+                $('#postesTable tr:visible').each(function () {
+                    var lat = parseFloat($(this).find('td').eq(1).text().trim().replace(',', '.'));
+                    var lng = parseFloat($(this).find('td').eq(2).text().trim().replace(',', '.'));
+                    var code = $(this).find('td').eq(0).text().trim();
+                    if (!isNaN(lat) && !isNaN(lng)) addMarker(lat, lng, code);
+                });
+            });
+
+            // buscador
+            $('#searchButton').on('click', function () {
+                var q = $('#searchInput').val().toLowerCase();
+                $('#postesTable tr').each(function () {
+                    $(this).toggle($(this).text().toLowerCase().indexOf(q) > -1);
+                });
+                clearMarkers();
+                $('#postesTable tr:visible').each(function () {
+                    var lat = parseFloat($(this).find('td').eq(1).text().trim().replace(',', '.'));
+                    var lng = parseFloat($(this).find('td').eq(2).text().trim().replace(',', '.'));
+                    var code = $(this).find('td').eq(0).text().trim();
+                    if (!isNaN(lat) && !isNaN(lng)) addMarker(lat, lng, code);
+                });
+            });
+        });
+    </script>
+</body>
+</html>

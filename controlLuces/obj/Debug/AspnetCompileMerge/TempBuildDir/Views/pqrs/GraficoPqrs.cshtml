@@ -1,0 +1,423 @@
+﻿@{
+    ViewBag.Title = "Gráficos de PQRS";
+    var esAdminLocal = (ViewBag.EsAdminLocal as bool?) ?? false;
+    var municipioSesion = (string)(ViewBag.MunicipioSesion ?? "");
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@ViewBag.Title</title>
+
+    <link rel="stylesheet"
+          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link rel="stylesheet"
+          href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@400;700&display=swap"
+          rel="stylesheet" />
+
+    <style>
+        :root {
+            --c1: #0ea5e9;
+            --c2: #3b82f6;
+            --bg: #f4f8fb;
+            --text: #0f172a;
+
+            --success: #22c55e;
+            --warning: #f97316;
+            --danger: #e11d48;
+            --slate: #64748b;
+        }
+
+        body {
+            background: radial-gradient(circle at top, #e0f2fe 0, #f4f8fb 55%);
+            font-family: 'Product Sans', sans-serif;
+            color: var(--text);
+            padding: 22px;
+            font-size: 16px;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, var(--c1), var(--c2));
+            color: #fff;
+            border-radius: 16px;
+            padding: 20px 26px;
+            text-align: center;
+            font-weight: 800;
+            box-shadow: 0 16px 34px rgba(15,23,42,.25);
+            text-transform: uppercase;
+            font-size: 30px;
+            letter-spacing: 0.08em;
+        }
+
+        .main-header i {
+            margin-right: 10px;
+        }
+
+        .control-bar {
+            display: flex;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .chip {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #fff;
+            border-radius: 999px;
+            padding: 9px 18px;
+            box-shadow: 0 3px 10px rgba(15,23,42,0.12);
+            font-size: 15px;
+            border: 1px solid rgba(148,163,184,0.35);
+            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
+        }
+
+        .chip:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 18px rgba(15,23,42,0.18);
+            border-color: rgba(59,130,246,0.7);
+        }
+
+        .chip select {
+            border: none;
+            outline: none;
+            font-size: 15px;
+            background: transparent;
+        }
+
+        .chip strong {
+            font-weight: 700;
+            color: var(--c2);
+        }
+
+        .charts-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 20px;
+        }
+
+        .chart-card {
+            background: #fff;
+            border-radius: 16px;
+            box-shadow: 0 12px 26px rgba(15,23,42,.14);
+            padding: 18px 18px 20px 18px;
+            position: relative;
+            min-height: 260px;
+            border: 1px solid rgba(148,163,184,0.35);
+            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+        }
+
+        .chart-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 18px 32px rgba(15,23,42,.2);
+            border-color: rgba(59,130,246,0.8);
+        }
+
+        .chart-card h3 {
+            font-size: 19px;
+            font-weight: 700;
+            margin-bottom: 4px;
+            color: #0f172a;
+        }
+
+        .chart-subtitle {
+            font-size: 13px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .chart-tag {
+            position: absolute;
+            top: 14px;
+            right: 18px;
+            font-size: 12px;
+            padding: 3px 9px;
+            border-radius: 999px;
+            background: rgba(14,165,233,0.08);
+            color: #0369a1;
+            border: 1px solid rgba(14,165,233,0.2);
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 210px !important;
+        }
+
+       @@media (max-width: 576.98px) {
+            .main-header {
+                font-size: 24px;
+                padding: 14px 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-header">
+            <i class="fa-solid fa-chart-pie"></i> ESTADÍSTICAS DE PQRS
+        </div>
+
+        <div class="control-bar">
+            <div class="chip">
+                <i class="fa-solid fa-chart-column text-primary"></i>
+                <select id="chartType">
+                    <option value="bar">Gráfico de barras</option>
+                    <option value="pie">Gráfico circular</option>
+                </select>
+            </div>
+
+            @if (esAdminLocal && !string.IsNullOrEmpty(municipioSesion))
+            {
+                <div class="chip">
+                    <i class="fa-solid fa-city text-primary"></i>
+                    <span>Municipio actual: <strong>@municipioSesion</strong></span>
+                </div>
+            }
+        </div>
+
+        <div class="charts-grid">
+            <div class="chart-card">
+                <span class="chart-tag">
+                    <i class="fa-solid fa-list-ul"></i> Tipo
+                </span>
+                <h3>Por Tipo de PQRS</h3>
+                <div class="chart-subtitle">Distribución por clasificación de solicitud</div>
+                <canvas id="chartTipoPqrs"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <span class="chart-tag">
+                    <i class="fa-solid fa-location-dot"></i> Barrio
+                </span>
+                <h3>Por Barrio de Afectación</h3>
+                <div class="chart-subtitle">Zonas con mayor número de reportes</div>
+                <canvas id="chartBarrioAfectacion"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <span class="chart-tag">
+                    <i class="fa-solid fa-circle-dot"></i> Estado
+                </span>
+                <h3>Por Estado de la PQRS</h3>
+                <div class="chart-subtitle">Sin asignar, en proceso, cerradas, etc.</div>
+                <canvas id="chartEstadoPqrs"></canvas>
+            </div>
+
+            <div class="chart-card">
+                <span class="chart-tag">
+                    <i class="fa-solid fa-calendar-day"></i> Fecha
+                </span>
+                <h3>Por Fecha de Registro</h3>
+                <div class="chart-subtitle">Evolución de PQRS en el tiempo</div>
+                <canvas id="chartFechaRegistro"></canvas>
+            </div>
+        </div>
+    </div>
+
+    @section scripts {
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js"></script>
+        <script>
+            // Fuente global un poco más grande
+            Chart.defaults.global.defaultFontFamily = "'Product Sans','Segoe UI',sans-serif";
+            Chart.defaults.global.defaultFontSize = 13;
+            Chart.defaults.global.defaultFontColor = '#0f172a';
+
+            // Datos desde el controlador
+            const tipos = @Html.Raw(ViewBag.TiposPqrs ?? "[]");
+            const barrios = @Html.Raw(ViewBag.BarriosAfectacion ?? "[]");
+            const estados = @Html.Raw(ViewBag.EstadosPqrs ?? "[]");
+            const fechas = @Html.Raw(ViewBag.FechasRegistro ?? "[]");
+
+            const charts = {};
+
+            // 🎨 Paletas coherentes por gráfico
+
+            // Tipo de PQRS → azules
+            const paletteTipo = [
+                '#0ea5e9', // sky-500
+                '#38bdf8', // sky-400
+                '#3b82f6', // blue-500
+                '#2563eb', // blue-600
+                '#1d4ed8'  // blue-700
+            ];
+
+            // Barrio → verdes
+            const paletteBarrio = [
+                '#22c55e', // green-500
+                '#4ade80', // green-400
+                '#16a34a', // green-600
+                '#15803d', // green-700
+                '#65a30d'  // lime-600
+            ];
+
+            // Fecha → turquesa / azul / verde (timeline fresca)
+            const paletteFecha = [
+                '#06b6d4', // cyan-500
+                '#0ea5e9', // sky-500
+                '#22c55e', // green-500
+                '#14b8a6', // teal-500
+                '#3b82f6'  // blue-500
+            ];
+
+            // Colores fijos por estado (semántico)
+            const estadoColors = {
+                "Sin asignar": "#64748b", // gris
+                "En proceso": "#f97316",  // naranja
+                "Cerrada": "#22c55e",     // verde
+                "Cerrado": "#22c55e",
+                "Cancelada": "#e11d48",   // rojo
+                "Cancelado": "#e11d48"
+            };
+
+            function getColorsForChart(id, labels) {
+                if (id === 'chartEstadoPqrs') {
+                    // Estados: usamos el mapa semántico
+                    return labels.map(l => estadoColors[l] || '#64748b');
+                }
+
+                let sourcePalette = paletteTipo;
+
+                if (id === 'chartTipoPqrs') {
+                    sourcePalette = paletteTipo;
+                } else if (id === 'chartBarrioAfectacion') {
+                    sourcePalette = paletteBarrio;
+                } else if (id === 'chartFechaRegistro') {
+                    sourcePalette = paletteFecha;
+                }
+
+                const res = [];
+                for (let i = 0; i < labels.length; i++) {
+                    res.push(sourcePalette[i % sourcePalette.length]);
+                }
+                return res;
+            }
+
+            function drawChart(id, data, labels, type) {
+                if (charts[id]) charts[id].destroy();
+
+                const ctx = document.getElementById(id).getContext('2d');
+                const colors = getColorsForChart(id, labels);
+
+                const optionsBase = {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            usePointStyle: true,
+                            padding: 18,
+                            fontSize: 12
+                        }
+                    },
+                    animation: {
+                        duration: 900,
+                        easing: 'easeOutQuart'
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function (tooltipItem, data) {
+                                const dataset = data.datasets[tooltipItem.datasetIndex];
+                                const total = dataset.data.reduce(function (sum, value) {
+                                    return sum + value;
+                                }, 0);
+                                const currentValue = dataset.data[tooltipItem.index] || 0;
+                                const percentage = total > 0
+                                    ? ((currentValue / total) * 100).toFixed(1)
+                                    : 0;
+                                const label = data.labels[tooltipItem.index] || '';
+                                return label + ': ' + currentValue + ' (' + percentage + '%)';
+                            }
+                        }
+                    }
+                };
+
+                if (type === 'bar') {
+                    optionsBase.scales = {
+                        xAxes: [{
+                            ticks: {
+                                autoSkip: false,
+                                maxRotation: 45,
+                                minRotation: 0
+                            },
+                            gridLines: {
+                                display: false
+                            }
+                        }],
+                        yAxes: [{
+                            ticks: {
+                                beginAtZero: true,
+                                stepSize: 1
+                            },
+                            gridLines: {
+                                color: 'rgba(148,163,184,0.25)'
+                            }
+                        }]
+                    };
+                } else {
+                    optionsBase.scales = {};
+                }
+
+                charts[id] = new Chart(ctx, {
+                    type: type === 'pie' ? 'pie' : 'bar',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: data,
+                            backgroundColor: colors,
+                            borderColor: type === 'bar' ? colors : '#ffffff',
+                            borderWidth: type === 'bar' ? 1 : 2,
+                            hoverBorderWidth: 2,
+                            hoverBorderColor: '#0f172a'
+                        }]
+                    },
+                    options: optionsBase
+                });
+            }
+
+            function renderAll(type) {
+                drawChart(
+                    'chartTipoPqrs',
+                    tipos.map(x => x.Total),
+                    tipos.map(x => x.TipoPqrs),
+                    type
+                );
+
+                drawChart(
+                    'chartBarrioAfectacion',
+                    barrios.map(x => x.Total),
+                    barrios.map(x => x.BarrioAfectacion),
+                    type
+                );
+
+                drawChart(
+                    'chartEstadoPqrs',
+                    estados.map(x => x.Total),
+                    estados.map(x => x.Estado),
+                    type
+                );
+
+                drawChart(
+                    'chartFechaRegistro',
+                    fechas.map(x => x.Total),
+                    fechas.map(x => x.Fecha),
+                    type
+                );
+            }
+
+            document.addEventListener('DOMContentLoaded', function () {
+                renderAll('bar');
+
+                document.getElementById('chartType')
+                    .addEventListener('change', function () {
+                        renderAll(this.value);
+                    });
+            });
+        </script>
+    }
+</body>
+</html>

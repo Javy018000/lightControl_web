@@ -1,0 +1,228 @@
+﻿@model List<controlLuces.Models.OrdenModel>
+
+@{
+    ViewBag.Title = "verOrdenes";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var usuario = Session["Usuario"] as controlLuces.Models.UsuarioModel;
+    var muni = (Session["Municipio"] as string) ?? usuario?.Municipio;
+    var k = (muni ?? "").Trim().ToLower().Replace("í", "i");
+    var prefijo = k == "madrid" ? "MA" : k == "chia" ? "CH" : "CH";
+    var year = DateTime.Now.Year;
+
+    bool esAdminLocal = ViewBag.EsAdminLocal != null && (bool)ViewBag.EsAdminLocal;
+
+    var urlAtras = esAdminLocal
+        ? Url.Action("inicio_local", "Home")
+        : Url.Action("inicio", "Home");
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ver todas las órdenes de servicio</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            --c1: #0ea5e9;
+            --c2: #3b82f6;
+            --bg: #f4f8fb;
+            --ink: #0f172a;
+        }
+
+        body {
+            font-family: 'Product Sans',system-ui,Segoe UI,Arial,sans-serif;
+            background: var(--bg);
+            padding: 20px;
+            color: var(--ink);
+        }
+
+        .main-header {
+            background: linear-gradient(135deg,var(--c1),var(--c2));
+            color: #fff;
+            border-radius: 14px;
+            padding: 18px 25px;
+            box-shadow: 0 10px 24px rgba(2,8,23,.12);
+            font-size: 28px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            letter-spacing: .6px;
+        }
+
+        .cards-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill,minmax(260px,1fr));
+            gap: 18px;
+        }
+
+        .card {
+            background: #fff;
+            border: none;
+            border-radius: 14px;
+            overflow: hidden;
+            box-shadow: 0 10px 22px rgba(2,8,23,.08);
+            transition: transform .18s ease, box-shadow .18s ease;
+        }
+
+            .card:hover {
+                transform: translateY(-3px);
+                box-shadow: 0 16px 30px rgba(2,8,23,.12);
+            }
+
+        .card-header {
+            background: linear-gradient(135deg,var(--c2),var(--c1));
+            color: #fff;
+            border: none;
+            font-weight: 800;
+            font-size: 18px;
+        }
+
+        .card-body p {
+            margin-bottom: .45rem;
+            text-align: left;
+        }
+
+        .card-footer {
+            background: #fff;
+            border-top: 1px solid #eef2f8;
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg,var(--c2),var(--c1));
+            border: none;
+            font-weight: 700;
+            border-radius: 10px;
+            padding: 8px 14px;
+            box-shadow: 0 8px 18px rgba(59,130,246,.25);
+        }
+
+        .btn-danger {
+            border-radius: 10px;
+            padding: 8px 14px;
+            font-weight: 700;
+        }
+
+        .footer-actions {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 14px;
+            margin-top: 22px;
+            flex-wrap: wrap;
+        }
+
+        .btn-export {
+            background: #28a745;
+            color: #fff;
+            border: none;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            box-shadow: 0 10px 18px rgba(16,185,129,.22);
+        }
+
+        .btn-back {
+            background: #dc3545;
+            border: none;
+            color: #fff;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid px-2 px-md-3">
+        <div class="main-header">
+            <i class="fas fa-hard-hat me-2"></i> Órdenes de Servicio
+        </div>
+
+        <div class="cards-grid">
+            @foreach (var Orden in Model.OrderBy(o => o.FechaARealizar))
+            {
+                <div class="card">
+                    <div class="card-header">
+                        @(
+                            string.IsNullOrWhiteSpace(Orden.CodigoOrden)
+                                ? (prefijo + year + "-" + Orden.IdOrden)
+                                : Orden.CodigoOrden
+                        )
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Fecha:</strong> @Orden.FechaARealizar.ToString("dd/MM/yyyy")</p>
+                        <p><strong>Descripción:</strong> @Orden.ProblemaRelacionado</p>
+                        <p><strong>PQRS Relacionada:</strong> @Orden.ElementoRelacionado</p>
+                        <p><strong>Cuadrilla:</strong> @Orden.Cuadrilla</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="@Url.Action("verinfo", "Ordenes", new { id = Orden.IdOrden })"
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-info-circle"></i> Ver info
+                        </a>
+                        <button class="btn btn-danger btn-sm delete-orden"
+                                data-id="@Orden.IdOrden"
+                                data-idpqrs="@Orden.Idpqrs">
+                            <i class="fas fa-trash-alt"></i> Eliminar
+                        </button>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <div class="footer-actions">
+            <a href="@Url.Action("DescargarOrdenesPDF", "Ordenes")" class="btn-export">
+                <i class="fas fa-file-pdf me-1"></i> Descargar PDF
+            </a>
+            <div class="footer-actions">
+                <a href="@Url.Action("inicio","login")" class="btn-back">
+                    <i class="fas fa-arrow-left me-1"></i> Atrás
+                </a>
+            </div>
+        </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(function () {
+            $('.delete-orden').on('click', function () {
+                var ordenId = $(this).data('id');
+                var idpqrs = $(this).data('idpqrs');
+
+                Swal.fire({
+                    title: '¿Estás seguro?',
+                    text: '¡No podrás revertir esto!',
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#3085d6',
+                    confirmButtonText: 'Sí, eliminarlo!'
+                }).then((result) => {
+                    if (!result.isConfirmed) return;
+
+                    $.ajax({
+                        url: '@Url.Action("eliminarOrden", "Ordenes")',
+                        type: 'POST',
+                        data: { id: ordenId, idpqrs: idpqrs },
+                        success: function () {
+                            window.location.reload();
+                        }
+                    });
+                });
+            });
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,119 @@
+﻿@model IEnumerable<controlLuces.Models.TrabajoRealizadoModel>
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    var ordenes = Model?.Select(m => m.IdOrdenCerrada).Distinct().OrderBy(x => x).ToList() ?? new List<int>();
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Trabajos Realizados - Light Control</title>
+    <style>
+        body{font-family:'Segoe UI',Arial,sans-serif;background-color:#f4f8fb;padding:20px}
+        .main-header{background:linear-gradient(135deg,#0ea5e9,#3b82f6);color:#fff;border-radius:14px;padding:18px 25px;box-shadow:0 10px 24px rgba(2,8,23,.12);font-size:28px;font-weight:800;text-align:center;margin-bottom:25px;text-transform:uppercase;letter-spacing:.6px}
+        .control-bar{display:flex;justify-content:center;align-items:center;gap:12px;flex-wrap:wrap;margin-bottom:25px}
+        .control-bar input,.control-bar select{padding:12px 14px;border-radius:12px;border:1px solid #dbe6f5;background:#fff;box-shadow:0 2px 6px rgba(2,8,23,.05) inset;transition:.2s}
+        .control-bar input:focus,.control-bar select:focus{outline:none;border-color:#3b82f6;box-shadow:0 0 0 3px rgba(59,130,246,.15)}
+        .control-bar input{width:min(560px,85vw)}
+        .control-bar button{background:linear-gradient(135deg,#3b82f6,#0ea5e9);border:none;color:#fff;font-weight:700;padding:12px 20px;border-radius:12px;cursor:pointer;transition:.15s;box-shadow:0 10px 18px rgba(59,130,246,.22)}
+        .control-bar button:hover{transform:translateY(-1px);box-shadow:0 14px 22px rgba(59,130,246,.28)}
+        .content{display:flex;flex-wrap:wrap;justify-content:center;gap:25px}
+        .table-card{background:#fff;border-radius:14px;box-shadow:0 8px 22px rgba(2,8,23,.08);padding:16px;flex:1 1 980px;max-width:980px;max-height:640px;overflow:auto}
+        .table-card::-webkit-scrollbar{width:10px}.table-card::-webkit-scrollbar-thumb{background:#dbe6f5;border-radius:10px}.table-card::-webkit-scrollbar-track{background:transparent}
+        table{width:100%;border-collapse:collapse;font-size:15px;margin:0}
+        thead{background:#f3f7fc;color:#334155} thead th{position:sticky;top:0;z-index:2;border-bottom:1px solid #e6edf5}
+        th,td{padding:10px 8px;text-align:center;vertical-align:middle;border-bottom:1px solid #f1f5fb}
+        tbody tr:nth-child(even){background:#fcfdff} tbody tr:hover{background:#f3f9ff;transition:.2s}
+        .btn-back{display:inline-block;margin-top:16px;background:linear-gradient(135deg,#3b82f6,#0ea5e9);color:#fff;border:0;border-radius:10px;padding:10px 16px;font-weight:700;text-decoration:none;box-shadow:0 8px 18px rgba(59,130,246,.25)}
+        .btn-back:hover{filter:brightness(1.03);transform:translateY(-1px)}
+        @@media(max-width:992px){.table-card{flex:1 1 100%;max-height:520px}}
+        .btn-mini{padding:6px 10px;border-radius:8px;text-decoration:none;background:linear-gradient(135deg,#0ea5e9,#3b82f6);color:#fff;font-weight:700}
+    </style>
+</head>
+<body>
+    <div class="container-fluid">
+        <div class="main-header"><i class="fas fa-tools"></i> Trabajos Realizados</div>
+
+        <div class="control-bar">
+            <select id="ordenFilter">
+                <option value="">Todas las órdenes cerradas</option>
+                @foreach (var oc in ordenes)
+                {
+                    <option value="@oc" @(ViewBag.IdOrdenCerradaSeleccionada == oc ? "selected" : "")>@oc</option>
+                }
+            </select>
+            <input type="text" id="searchInput" placeholder="Buscar por descripción o detalle...">
+            <button id="searchButton"><i class="fas fa-search"></i> Buscar</button>
+        </div>
+
+        <div class="content">
+            <div class="table-card">
+                <table class="table table-hover">
+                    <thead>
+                        <tr>
+                            <th>ID Trabajo</th>
+                            <th>Orden Cerrada</th>
+                            <th>Descripción</th>
+                            <th>Detalle</th>
+                            <th>Cantidad</th>
+                            <th>Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody id="trabajosTable">
+                        @if (Model != null && Model.Any())
+                        {
+                            foreach (var t in Model)
+                            {
+                                <tr>
+                                    <td>@t.IdTrabajoRealizado</td>
+                                    <td>@t.IdOrdenCerrada</td>
+                                    <td class="text-left">@t.Descripcion</td>
+                                    <td class="text-left">@t.Detalle</td>
+                                    <td>@(t.Cantidad.HasValue ? t.Cantidad.Value.ToString("0.####") : "-")</td>
+                                    <td>
+                                        <a class="btn-mini" href="@Url.Action("DetalleOrdenCerrada","Ordenes", new { id = t.IdOrdenCerrada })">
+                                            Ver detalle
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        else
+                        {
+                            <tr><td colspan="6" class="text-center text-muted">Sin registros</td></tr>
+                        }
+                    </tbody>
+                </table>
+
+                <a class="btn-back" href="@(Request?.UrlReferrer != null ? Request.UrlReferrer.ToString() : Url.Action("monitorear","Ordenes"))">
+                    <i class="fas fa-arrow-left"></i> Volver
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            function applyFilters() {
+                var q = ($('#searchInput').val() || '').toLowerCase();
+                var oc = ($('#ordenFilter').val() || '').toString();
+
+                $('#trabajosTable tr').each(function () {
+                    var $tds = $(this).children('td');
+                    var idOc = $tds.eq(1).text().trim();
+                    var rowText = $(this).text().toLowerCase();
+
+                    var passOc = (oc === '') || (idOc === oc);
+                    var passQ = (q === '') || (rowText.indexOf(q) > -1);
+
+                    $(this).toggle(passOc && passQ);
+                });
+            }
+            $('#searchButton').on('click', applyFilters);
+            $('#searchInput').on('keypress', function (e) { if (e.which === 13) applyFilters(); });
+            $('#ordenFilter').on('change', applyFilters);
+            applyFilters();
+        })();
+    </script>
+</body>
+</html>

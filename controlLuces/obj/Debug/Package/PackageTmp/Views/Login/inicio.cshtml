@@ -1,0 +1,164 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8" />
+    <title>Panel PQRS - Light Control</title>
+
+    <!-- Bootstrap y FontAwesome -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+    <style>
+        body {
+            font-family: 'Segoe UI', Arial, sans-serif;
+            background-color: #f4f8fb;
+            padding: 20px;
+            margin: 0;
+        }
+
+        /* --- ENCABEZADO --- */
+        .main-header {
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            color: #fff;
+            border-radius: 14px;
+            padding: 20px 25px;
+            box-shadow: 0 10px 24px rgba(2, 8, 23, 0.12);
+            font-size: 28px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 35px;
+            text-transform: uppercase;
+            letter-spacing: .5px;
+        }
+
+        /* --- CONTENEDOR PRINCIPAL --- */
+        .card-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 25px;
+        }
+
+        /* --- TARJETAS --- */
+        .card {
+            border: none;
+            border-radius: 16px;
+            color: #fff;
+            box-shadow: 0 8px 22px rgba(2, 8, 23, 0.1);
+            flex: 1 1 260px;
+            max-width: 320px;
+            padding: 25px;
+            text-align: center;
+            transition: transform .25s ease, box-shadow .25s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 14px 28px rgba(2, 8, 23, 0.18);
+        }
+
+        .card i {
+            font-size: 52px;
+            margin-bottom: 18px;
+            opacity: 0.9;
+        }
+
+        .card h5 {
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .card p {
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 20px;
+        }
+
+        /* --- BOTÓN --- */
+        .btn-primary {
+            background: linear-gradient(135deg, #3b82f6, #0ea5e9);
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            padding: 10px 20px;
+            border-radius: 10px;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(59,130,246,.25);
+            transition: transform .15s, box-shadow .15s;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 24px rgba(59,130,246,.3);
+        }
+
+        /* --- COLORES DE CADA TARJETA --- */
+        .card-blue {
+            background: linear-gradient(135deg, #3b82f6, #0ea5e9);
+        }
+
+        .card-orange {
+            background: linear-gradient(135deg, #f59e0b, #f97316);
+        }
+
+        .card-red {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+        }
+
+        .card-green {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        @@media (max-width: 768px) {
+            .card-container {
+                flex-direction: column;
+                align-items: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Título principal -->
+    <div class="main-header">
+        <i class="fas fa-chart-line"></i> Panel General de PQRS y Órdenes
+    </div>
+
+    <!-- Tarjetas -->
+    <div class="card-container">
+
+        <div class="card card-blue">
+            <i class="fas fa-exclamation-circle"></i>
+            <h5>PQRS SIN ASIGNAR</h5>
+            <p>@ViewBag.CantidadPqrsEstado1</p>
+            <a href="@Url.Action("pqrssinasignar", "pqrs")" class="btn btn-primary">Ver más</a>
+        </div>
+
+        <div class="card card-orange">
+            <i class="fas fa-spinner"></i>
+            <h5>PQRS EN PROCESO</h5>
+            <p>@ViewBag.CantidadPqrsEstado2</p>
+            <a href="@Url.Action("pqrsasignada", "pqrs")" class="btn btn-primary">Ver más</a>
+        </div>
+
+        <div class="card card-red">
+            <i class="fas fa-check-circle"></i>
+            <h5>PQRS CERRADAS</h5>
+            <p>@ViewBag.CantidadPqrsEstado3</p>
+            <a href="@Url.Action("pqrsresuelta", "pqrs")" class="btn btn-primary">Ver más</a>
+        </div>
+
+        <div class="card card-green">
+            <i class="fas fa-cogs"></i>
+            <h5>ORDENES DE SERVICIO ACTIVAS</h5>
+            <p>@ViewBag.CantidadOrdenesEstado2</p>
+            <a href="@Url.Action("verOrdenes", "Ordenes")" class="btn btn-primary">Ver más</a>
+        </div>
+     
+
+</body>
+</html>

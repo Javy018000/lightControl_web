@@ -1,0 +1,381 @@
+﻿@model controlLuces.Models.OrdenModel
+@{
+    ViewBag.Title = "Ver Información - Orden";
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <title>@ViewBag.Title</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+    <style>
+        :root {
+            --c1: #0ea5e9;
+            --c2: #3b82f6;
+            --bg: #f4f8fb;
+            --text: #0f172a;
+            --muted: #64748b;
+            --card: #ffffff;
+            --border: #e2e8f0;
+        }
+
+        body {
+            background: var(--bg);
+            font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+            color: var(--text);
+            margin: 0;
+            padding: 0;
+        }
+
+        .pqrs-wrapper {
+            max-width: 1100px;
+            margin: 24px auto 40px auto;
+            padding: 0 16px 32px 16px;
+        }
+
+        .pqrs-header-main {
+            background: linear-gradient(135deg, var(--c1), var(--c2));
+            color: #fff;
+            border-radius: 18px;
+            padding: 18px 26px;
+            box-shadow: 0 18px 35px rgba(15, 23, 42, 0.25);
+            font-size: 24px;
+            font-weight: 800;
+            text-align: center;
+            margin-bottom: 22px;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+        }
+
+        .pqrs-card {
+            background: var(--card);
+            border-radius: 18px;
+            border: 1px solid var(--border);
+            box-shadow: 0 12px 26px rgba(15, 23, 42, .14);
+            padding: 20px 22px;
+        }
+
+        .pqrs-code-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 14px;
+            border-radius: 999px;
+            background: #eff6ff;
+            color: #1d4ed8;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 12px;
+        }
+
+        .pqrs-meta {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin-bottom: 12px;
+            font-size: 14px;
+            color: var(--muted);
+        }
+
+        .pqrs-meta-item {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            border-radius: 999px;
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            font-size: 13px;
+        }
+
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin: 16px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0f172a;
+        }
+
+        .field-label {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1f2937;
+        }
+
+        .field-value {
+            font-size: 14px;
+            color: #111827;
+            margin-bottom: 8px;
+        }
+
+        .badge-estado {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 13px;
+            font-weight: 700;
+            background: #e0f2fe;
+            color: #075985;
+        }
+
+        .pqrs-img-wrapper {
+            margin-top: 16px;
+            text-align: center;
+        }
+
+        .pqrs-img-wrapper img {
+            max-width: 100%;
+            max-height: 320px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 24px rgba(15, 23, 42, .18);
+            object-fit: contain;
+        }
+
+        .pqrs-actions {
+            margin-top: 22px;
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+        }
+
+        .btn-back {
+            border-radius: 999px;
+            padding: 8px 24px;
+            font-weight: 700;
+            border: none;
+            background: linear-gradient(135deg, #fb7185, #ef4444);
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(248,113,113,.35);
+        }
+
+        .btn-back:hover {
+            color: #fff;
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+        }
+
+        .form-control[readonly] {
+            background-color: transparent;
+            border: 1px solid transparent;
+            padding-left: 0;
+            padding-right: 0;
+        }
+
+        .image-grid {
+            display:flex;
+            flex-wrap:wrap;
+            gap:12px;
+            justify-content:center;
+            margin-top:8px;
+        }
+
+        .image-grid .thumb {
+            width: 150px;
+            height: 110px;
+            overflow:hidden;
+            border-radius:10px;
+            border:1px solid var(--border);
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            background:#fff;
+        }
+
+        .image-grid .thumb img {
+            max-width:100%;
+            max-height:100%;
+            object-fit:cover;
+        }
+
+        @@media (max-width: 768px) {
+            .pqrs-card {
+                padding: 16px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="pqrs-wrapper">
+        <div class="pqrs-header-main">
+            <i class="fa-solid fa-info-circle"></i>
+            Ver Información - Orden
+        </div>
+
+        <div class="pqrs-card">
+            <!-- Mantengo el IdOrden oculto para no alterar datos -->
+            <form action="" method="post">
+                <input type="hidden" name="IdOrden" value="@Model.IdOrden" />
+
+                <div class="d-flex justify-content-between align-items-start mb-3 flex-wrap">
+                    <div>
+                        <div class="pqrs-code-chip">
+                            <i class="fa-solid fa-hashtag"></i>
+                            @* Muestra el código PQRS si existe (se dejó tal como en tu vista original) *@
+                            @if (ViewBag.CodigoPqrs != null)
+                            {
+                                <span>@ViewBag.CodigoPqrs</span>
+                            }
+                            else
+                            {
+                                <span>Código: @Model.CodigoDeElemento</span>
+                            }
+                        </div>
+
+                        <div class="pqrs-meta">
+                            <div class="pqrs-meta-item"><i class="fa-regular fa-calendar"></i> @Model.FechaARealizar.ToString("dd/MM/yyyy")</div>
+                            <div class="pqrs-meta-item"><i class="fa-solid fa-users"></i> @Model.Cuadrilla</div>
+                            <div class="pqrs-meta-item"><i class="fa-solid fa-list-check"></i> @Model.TipoDeOrden</div>
+                            <div class="pqrs-meta-item"><i class="fa-solid fa-bolt"></i> Prioridad: @Model.OrdenPrioridad</div>
+                        </div>
+                    </div>
+
+                    <div class="text-end">
+                        <div class="badge-estado"><i class="fa-solid fa-circle-check"></i> @Model.EstadoNombre</div>
+                    </div>
+                </div>
+
+                <hr />
+
+                <div class="row">
+                    <!-- Columna izquierda: campos originales (mantenidos) -->
+                    <div class="col-lg-6 col-md-12">
+                        <div class="mb-3">
+                            <label class="field-label">Tipo de Elemento</label>
+                            <input type="text" name="TipoDeElemento" class="form-control" value="@Model.TipoDeElemento" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Código de Elemento</label>
+                            <input type="text" name="CodigoDeElemento" class="form-control" value="@Model.CodigoDeElemento" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">PQRS Relacionada (Código)</label>
+                            <input type="text" class="form-control" value="@ViewBag.CodigoPqrs" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Problema Relacionado</label>
+                            <input type="text" name="ProblemaRelacionado" class="form-control" value="@Model.ProblemaRelacionado" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Problema Validado</label>
+                            <input type="text" name="ProblemaValidado" class="form-control" value="@Model.ProblemaValidado" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Orden Prioridad</label>
+                            <input type="text" name="OrdenPrioridad" class="form-control" value="@Model.OrdenPrioridad" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Prioridad de Ruta</label>
+                            <input type="text" name="PrioridadDeRuta" class="form-control" value="@Model.PrioridadDeRuta" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Descripción</label>
+                            <input type="text" name="Descripcion" class="form-control" value="@Model.Descripcion" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Observaciones</label>
+                            <input type="text" name="observaciones" class="form-control" value="@Model.observaciones" readonly />
+                        </div>
+                    </div>
+
+                    <!-- Columna derecha: más campos originales (mantenidos) -->
+                    <div class="col-lg-6 col-md-12">
+                        <div class="mb-3">
+                            <label class="field-label">Fecha a Realizar</label>
+                            <input type="text" name="FechaARealizar" class="form-control" value="@Model.FechaARealizar.ToString("dd/MM/yyyy")" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Cuadrilla</label>
+                            <input type="text" name="Cuadrilla" class="form-control" value="@Model.Cuadrilla" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Tipo de Orden</label>
+                            <input type="text" name="TipoDeOrden" class="form-control" value="@Model.TipoDeOrden" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Tipo de Solución</label>
+                            <input type="text" name="TipoDeSolucion" class="form-control" value="@Model.TipoDeSolucion" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Clase de Orden</label>
+                            <input type="text" name="ClaseDeOrden" class="form-control" value="@Model.ClaseDeOrden" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Obra Relacionada</label>
+                            <input type="text" name="ObraRelacionada" class="form-control" value="@Model.ObraRelacionada" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Id de Estado</label>
+                            <input type="text" name="IdEstado" class="form-control" value="@Model.IdEstado" readonly />
+                        </div>
+
+                        <div class="mb-3">
+                            <label class="field-label">Trabajos</label>
+                            <input type="text" name="Trabajos" class="form-control" value="@Model.Trabajos" readonly />
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recursos / Imágenes (se conserva la lógica original) -->
+                <div class="section-title"><i class="fa-regular fa-images"></i> Recursos</div>
+                <div>
+                    <div class="pqrs-img-wrapper">
+                        @if (Model.Imagenes != null && Model.Imagenes.Count > 0)
+                        {
+                            <div class="image-grid">
+                                @foreach (var imagen in Model.Imagenes)
+                                {
+                                    var base64Image = Convert.ToBase64String(imagen.Imagen);
+                                    var imgSrc = $"data:image/jpeg;base64,{base64Image}";
+                                    <div class="thumb" title="Imagen @imagen.IdImagen">
+                                        <img src="@imgSrc" alt="Imagen @imagen.IdImagen" />
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <p class="text-muted">No hay imágenes disponibles.</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="pqrs-actions">
+                    <button type="button" class="btn-back" onclick="history.back();"><i class="fa-solid fa-arrow-left"></i> Atrás</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

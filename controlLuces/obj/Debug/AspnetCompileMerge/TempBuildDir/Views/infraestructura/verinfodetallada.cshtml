@@ -1,0 +1,430 @@
+﻿@model controlLuces.Models.infraestructuraModel
+@{
+    var codigo = Model?.codigo ?? "N/A";
+    var latitud = Model?.latitud.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0.000000";
+    var longitud = Model?.longitud.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0.000000";
+    var direccion = Model?.direccion ?? "N/A";
+    var configuracion = Model?.configuracion ?? "N/A";
+    var fabricante = Model?.fabricante ?? "N/A";
+    var linea = Model?.linea ?? "N/A";
+    var barrio = Model?.barrio ?? "N/A";
+    var potencia = Model?.potencia ?? "N/A";
+    var tipo = Model?.tipo ?? "N/A";
+    var municipio = Model?.municipio ?? "N/A";
+
+    var imagenes = ViewBag.Imagenes as List<controlLuces.Models.ImagenElementoModel> ?? new List<controlLuces.Models.ImagenElementoModel>();
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detalle de Infraestructura - @codigo</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --c1: #0ea5e9;
+            --c2: #3b82f6;
+            --bg: #f4f8fb;
+            --text: #0f172a;
+            --muted: #64748b;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 22px;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, var(--c1), var(--c2));
+            color: #fff;
+            border-radius: 14px;
+            padding: 18px 24px;
+            text-align: center;
+            font-weight: 800;
+            letter-spacing: .4px;
+            box-shadow: 0 12px 28px rgba(2,8,23,.15);
+            text-transform: uppercase;
+            margin-bottom: 18px;
+            font-size: 32px;
+        }
+
+        .content {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 22px;
+            justify-content: space-between;
+        }
+
+        .card-modern {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 10px 24px rgba(2,8,23,.08);
+            padding: 20px;
+        }
+
+        .card-details {
+            flex: 1 1 56%;
+        }
+
+        .card-map {
+            flex: 1 1 42%;
+            height: 640px;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: #0b1324;
+            margin-bottom: 6px;
+        }
+
+        .form-control {
+            border: 1px solid #e6edf5;
+            border-radius: 12px;
+            background: #fff;
+            box-shadow: 0 2px 6px rgba(2,8,23,.05) inset;
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, var(--c2), var(--c1));
+            border: none;
+            color: #fff;
+            font-weight: 700;
+            border-radius: 12px;
+            padding: 10px 16px;
+            box-shadow: 0 12px 26px rgba(59,130,246,.25);
+            transition: all 0.3s ease;
+        }
+
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 14px 30px rgba(59,130,246,.35);
+        }
+
+        /* Estilos para la galería de imágenes */
+        .card-images {
+            flex: 1 1 100%;
+            margin-top: 22px;
+        }
+
+        .images-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 18px;
+            margin-top: 20px;
+        }
+
+        .image-item {
+            position: relative;
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 4px 12px rgba(2,8,23,.1);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            background: #fff;
+        }
+
+        .image-item:hover {
+            transform: translateY(-4px) scale(1.02);
+            box-shadow: 0 8px 24px rgba(2,8,23,.2);
+        }
+
+        .image-item img {
+            width: 100%;
+            height: 220px;
+            object-fit: cover;
+            display: block;
+            cursor: pointer;
+        }
+
+        .image-info {
+            padding: 12px;
+            background: #fff;
+            font-size: 12px;
+            color: var(--muted);
+            border-top: 1px solid #e6edf5;
+        }
+
+        .no-images {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 12px;
+            margin-top: 20px;
+        }
+
+        .no-images i {
+            font-size: 64px;
+            color: #cbd5e1;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        /* Modal para vista ampliada */
+        .modal-image {
+            display: none;
+            position: fixed;
+            z-index: 9999;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.9);
+            cursor: zoom-out;
+        }
+
+        .modal-image img {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 8px;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 20px;
+            right: 35px;
+            color: #fff;
+            font-size: 40px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .image-counter {
+            display: inline-block;
+            background: linear-gradient(135deg, var(--c1), var(--c2));
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-left: 10px;
+        }
+
+        @@media(max-width:992px) {
+            .card-details,
+            .card-map,
+            .card-images {
+                flex: 1 1 100%;
+                height: auto;
+            }
+
+            .card-map {
+                height: 400px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="main-header">
+            <i class="fas fa-circle-info me-2"></i> DETALLE DE INFRAESTRUCTURA
+        </div>
+
+        <div class="content">
+            <!-- Detalles del Elemento -->
+            <div class="card-modern card-details">
+                <h5 style="color:var(--c2); font-weight:700; margin-bottom:20px;">
+                    <i class="fas fa-info-circle me-2"></i>Información del Elemento
+                </h5>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label class="form-label">Código</label>
+                        <input type="text" class="form-control" value="@codigo" readonly>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Latitud</label>
+                        <input type="text" class="form-control" value="@latitud" readonly>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Longitud</label>
+                        <input type="text" class="form-control" value="@longitud" readonly>
+                    </div>
+
+                    <div class="col-md-6">
+                        <label class="form-label">Dirección</label>
+                        <input type="text" class="form-control" value="@direccion" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Barrio</label>
+                        <input type="text" class="form-control" value="@barrio" readonly>
+                    </div>
+
+                    <div class="col-md-4">
+                        <label class="form-label">Línea</label>
+                        <input type="text" class="form-control" value="@linea" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Configuración</label>
+                        <input type="text" class="form-control" value="@configuracion" readonly>
+                    </div>
+                    <div class="col-md-4">
+                        <label class="form-label">Fabricante</label>
+                        <input type="text" class="form-control" value="@fabricante" readonly>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Potencia</label>
+                        <input type="text" class="form-control" value="@potencia" readonly>
+                    </div>
+                    <div class="col-md-3">
+                        <label class="form-label">Tipo</label>
+                        <input type="text" class="form-control" value="@tipo" readonly>
+                    </div>
+                    <div class="col-md-6">
+                        <label class="form-label">Municipio</label>
+                        <input type="text" class="form-control" value="@municipio" readonly>
+                    </div>
+
+                    <div class="col-12 d-flex justify-content-center mt-3">
+                        <a href="@Url.Action("vertodainfraestructura","infraestructura")" class="btn btn-back">
+                            <i class="fa-solid fa-arrow-left-long me-2"></i> Volver al Listado
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Mapa -->
+            <div class="card-modern card-map">
+                <h5 style="color:var(--c2); font-weight:700; margin-bottom:12px;">
+                    <i class="fas fa-map-marked-alt me-2"></i>Ubicación
+                </h5>
+                <div id="map"></div>
+            </div>
+
+            <!-- Galería de Imágenes -->
+            <div class="card-modern card-images">
+                <div class="d-flex align-items-center justify-content-between mb-3">
+                    <h4 style="color:var(--c2); font-weight:700; margin:0;">
+                        <i class="fas fa-images me-2"></i>Galería de Imágenes
+                        @if (imagenes.Any())
+                        {
+                            <span class="image-counter">@imagenes.Count</span>
+                        }
+                    </h4>
+                </div>
+
+                @if (imagenes.Any())
+                {
+                    <div class="images-grid">
+                        @foreach (var img in imagenes)
+                        {
+                            <div class="image-item">
+                                <img src="@img.RutaArchivo"
+                                     alt="Imagen @img.IdImagen"
+                                     onclick="abrirModal('@img.RutaArchivo')"
+                                     title="Click para ampliar" />
+                                <div class="image-info">
+                                    <div>
+                                        <i class="far fa-calendar me-1"></i>
+                                        <strong>Fecha:</strong> @img.FechaRegistro.ToString("dd/MM/yyyy")
+                                    </div>
+                                    <div class="mt-1">
+                                        <i class="far fa-clock me-1"></i>
+                                        <strong>Hora:</strong> @img.FechaRegistro.ToString("HH:mm:ss")
+                                    </div>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+                else
+                {
+                    <div class="no-images">
+                        <i class="far fa-image"></i>
+                        <h5 style="color:var(--muted); margin-bottom:8px;">No hay imágenes disponibles</h5>
+                        <p style="margin:0;">Este elemento aún no tiene imágenes asociadas.</p>
+                        <p style="margin-top:8px; font-size:14px;">
+                            Puedes subir imágenes desde el
+                            <a href="@Url.Action("vertodainfraestructura","infraestructura")" style="color:var(--c2); font-weight:600;">
+                                listado principal
+                            </a>
+                        </p>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal para vista ampliada -->
+    <div id="modalImagen" class="modal-image" onclick="cerrarModal()">
+        <span class="close-modal">&times;</span>
+        <img id="imagenAmpliada" src="" alt="Imagen ampliada">
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Inicializar mapa
+            var lat = parseFloat("@latitud");
+            var lng = parseFloat("@longitud");
+
+            if (!isNaN(lat) && !isNaN(lng)) {
+                var map = L.map('map').setView([lat, lng], 16);
+
+                L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                    maxZoom: 19,
+                    attribution: '© OpenStreetMap contributors'
+                }).addTo(map);
+
+                var popupContent = `
+                    <div style="font-family: 'Segoe UI', sans-serif;">
+                        <h6 style="color: var(--c2); font-weight: 700; margin-bottom: 8px;">@codigo</h6>
+                        <p style="margin: 4px 0;"><strong>Tipo:</strong> @tipo</p>
+                        <p style="margin: 4px 0;"><strong>Línea:</strong> @linea</p>
+                        <p style="margin: 4px 0;"><strong>Dirección:</strong> @direccion</p>
+                    </div>
+                `;
+
+                L.circleMarker([lat, lng], {
+                    radius: 10,
+                    fillColor: "#ff7a00",
+                    color: "#b45309",
+                    weight: 3,
+                    opacity: 1,
+                    fillOpacity: 0.9
+                }).addTo(map).bindPopup(popupContent).openPopup();
+            }
+        });
+
+        // Función para abrir modal de imagen
+        function abrirModal(rutaImagen) {
+            var modal = document.getElementById('modalImagen');
+            var img = document.getElementById('imagenAmpliada');
+            img.src = rutaImagen;
+            modal.style.display = 'block';
+        }
+
+        // Función para cerrar modal
+        function cerrarModal() {
+            var modal = document.getElementById('modalImagen');
+            modal.style.display = 'none';
+        }
+
+        // Cerrar modal con tecla ESC
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                cerrarModal();
+            }
+        });
+    </script>
+</body>
+</html>
