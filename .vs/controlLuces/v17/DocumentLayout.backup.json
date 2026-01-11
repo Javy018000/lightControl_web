@@ -1,12 +1,54 @@
 {
   "Version": 1,
-  "WorkspaceRootPath": "C:\\Users\\santi\\Desktop\\Luces\\",
-  "Documents": [],
+  "WorkspaceRootPath": "C:\\Users\\santi\\source\\repos\\lightControl_web\\",
+  "Documents": [
+    {
+      "AbsoluteMoniker": "D:0:0:{FC592187-70D4-4A18-97D8-0761B2C0A209}|controlLuces\\controlLuces.csproj|c:\\users\\santi\\source\\repos\\lightcontrol_web\\controlluces\\views\\pqrs\\pqrs.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}",
+      "RelativeMoniker": "D:0:0:{FC592187-70D4-4A18-97D8-0761B2C0A209}|controlLuces\\controlLuces.csproj|solutionrelative:controlluces\\views\\pqrs\\pqrs.cshtml||{40D31677-CBC0-4297-A9EF-89D907823A98}"
+    },
+    {
+      "AbsoluteMoniker": "D:0:0:{FC592187-70D4-4A18-97D8-0761B2C0A209}|controlLuces\\controlLuces.csproj|c:\\users\\santi\\source\\repos\\lightcontrol_web\\controlluces\\controllers\\pqrscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}",
+      "RelativeMoniker": "D:0:0:{FC592187-70D4-4A18-97D8-0761B2C0A209}|controlLuces\\controlLuces.csproj|solutionrelative:controlluces\\controllers\\pqrscontroller.cs||{A6C744A8-0E4A-4FC6-886A-064283054674}"
+    }
+  ],
   "DocumentGroupContainers": [
     {
       "Orientation": 0,
       "VerticalTabListWidth": 256,
-      "DocumentGroups": []
+      "DocumentGroups": [
+        {
+          "DockedWidth": 200,
+          "SelectedChildIndex": 1,
+          "Children": [
+            {
+              "$type": "Document",
+              "DocumentIndex": 1,
+              "Title": "pqrsController.cs",
+              "DocumentMoniker": "C:\\Users\\santi\\source\\repos\\lightControl_web\\controlLuces\\Controllers\\pqrsController.cs",
+              "RelativeDocumentMoniker": "controlLuces\\Controllers\\pqrsController.cs",
+              "ToolTip": "C:\\Users\\santi\\source\\repos\\lightControl_web\\controlLuces\\Controllers\\pqrsController.cs",
+              "RelativeToolTip": "controlLuces\\Controllers\\pqrsController.cs",
+              "ViewState": "AgIAAAAAAAAAAAAAAAAAAAUAAAAWAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000738|",
+              "WhenOpened": "2026-01-11T00:01:24.782Z",
+              "EditorCaption": ""
+            },
+            {
+              "$type": "Document",
+              "DocumentIndex": 0,
+              "Title": "pqrs.cshtml",
+              "DocumentMoniker": "C:\\Users\\santi\\source\\repos\\lightControl_web\\controlLuces\\Views\\pqrs\\pqrs.cshtml",
+              "RelativeDocumentMoniker": "controlLuces\\Views\\pqrs\\pqrs.cshtml",
+              "ToolTip": "C:\\Users\\santi\\source\\repos\\lightControl_web\\controlLuces\\Views\\pqrs\\pqrs.cshtml",
+              "RelativeToolTip": "controlLuces\\Views\\pqrs\\pqrs.cshtml",
+              "ViewState": "AgIAALQAAAAAAAAAAAAAALoAAAAcAAAAAAAAAA==",
+              "Icon": "ae27a6b0-e345-4288-96df-5eaf394ee369.000759|",
+              "WhenOpened": "2026-01-10T23:49:39.334Z",
+              "EditorCaption": ""
+            }
+          ]
+        }
+      ]
     }
   ]
 }

@@ -1,14 +1,12 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Crear PQRS</title>
-    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
-    <link href="~/Content/css/pqrs.css" rel="stylesheet" />
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@10/dist/sweetalert2.min.css">
-    <link href="https://fonts.googleapis.com/css2?family=Product+Sans&display=swap" rel="stylesheet">
 
     <style>
         :root {
@@ -18,574 +16,413 @@
             --text: #0f172a;
             --muted: #64748b;
             --card: #ffffff;
-            --border: #e6edf5;
-            --shade: 0 10px 24px rgba(2,8,23,.08);
-        }
-
-        * {
-            box-sizing: border-box;
+            --border: #e2e8f0;
         }
 
         body {
-            margin: 0;
-            padding: 30px 0 40px 0;
             background: var(--bg);
+            font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
             color: var(--text);
-            font-family: 'Product Sans','Segoe UI',system-ui,-apple-system,Arial,sans-serif;
-            overflow-x: hidden;
-            min-height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: flex-start;
         }
 
-        .main-container {
-            max-width: 1200px;
-            width: 90%;
-            margin: 0 auto;
-            padding: 30px;
+        .pqrs-wrapper {
+            max-width: 1100px;
+            margin: 24px auto 40px auto;
+            padding: 0 16px 32px 16px;
         }
 
-        @@media (min-width: 1400px) {
-            .main-container {
-                max-width: 1300px;
-                width: 85%;
-            }
-        }
-
-        @@media (min-width: 992px) and (max-width: 1399px) {
-            .main-container {
-                max-width: 1100px;
-                width: 88%;
-                padding: 25px;
-            }
-        }
-
-        .main-header {
-            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+        .pqrs-header-main {
+            background: linear-gradient(135deg, var(--c1), var(--c2));
             color: #fff;
             border-radius: 18px;
-            padding: 24px 30px;
-            box-shadow: 0 18px 35px rgba(15, 23, 42, 0.23);
-            font-size: 32px;
+            padding: 18px 26px;
+            box-shadow: 0 18px 35px rgba(15, 23, 42, 0.25);
+            font-size: 24px;
             font-weight: 800;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 22px;
             text-transform: uppercase;
             letter-spacing: .08em;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            gap: 12px;
-        }
-
-            .main-header i {
-                font-size: 30px;
-            }
-
-        .card-form {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 18px;
-            box-shadow: var(--shade);
-            padding: 32px 36px;
-            animation: fadeIn .35s ease-out both;
-        }
-
-        @@keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: translateY(6px);
-            }
-
-            to {
-                opacity: 1;
-                transform: translateY(0);
-            }
-        }
-
-        .section {
-            margin-bottom: 28px;
-            padding: 24px 28px;
-            border-radius: 16px;
-            background: #f9fbff;
-            box-shadow: 0 10px 24px rgba(148, 163, 184, 0.20);
-            border: 1px solid var(--border);
-        }
-
-        h2.section-title {
-            font-size: 22px;
-            font-weight: 700;
-            text-transform: uppercase;
-            color: #0f172a;
-            margin: 0 0 20px;
             display: flex;
             align-items: center;
             justify-content: center;
             gap: 10px;
-            text-align: center;
-            width: 100%;
-            letter-spacing: .08em;
         }
 
-            h2.section-title i {
-                color: #0ea5e9;
-                font-size: 22px;
-            }
-
-        label {
-            font-weight: 700;
-            color: #334155;
-            font-size: 15px;
+        .pqrs-header-main i {
+            font-size: 24px;
         }
 
-        .required:after {
-            content: "*";
-            color: #ef4444;
-            margin-left: 4px;
-            font-weight: 900;
-        }
-
-        input, select, textarea {
-            width: 100%;
-            padding: 12px 14px;
-            margin-bottom: 16px;
+        .pqrs-card {
+            background: var(--card);
+            border-radius: 18px;
             border: 1px solid var(--border);
-            border-radius: 12px;
-            background: #f9fbff;
-            transition: border-color .2s, box-shadow .2s, background-color .2s;
-            font-size: 16px;
+            box-shadow: 0 12px 26px rgba(15, 23, 42, .14);
+            padding: 20px 22px;
         }
 
-            input:focus, select:focus, textarea:focus {
-                border-color: var(--c2);
-                box-shadow: 0 0 0 4px rgba(59,130,246,.15);
-                outline: none;
-                background: #fff;
-            }
+        .section-title {
+            font-size: 16px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .08em;
+            margin: 16px 0 10px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #0f172a;
+        }
 
-        textarea {
+        .section-title i {
+            color: var(--c1);
+        }
+
+        .field-label {
+            font-weight: 700;
+            font-size: 14px;
+            color: #1f2937;
+            margin-bottom: 6px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .field-label i {
+            color: var(--c2);
+            font-size: 13px;
+        }
+
+        .required-mark {
+            color: #ef4444;
+            font-weight: 700;
+            margin-left: 2px;
+        }
+
+        .form-control {
+            border: 1.5px solid var(--border);
+            border-radius: 10px;
+            padding: 8px 12px;
+            font-size: 14px;
+            color: var(--text);
+            background: #f8fafc;
+            transition: all 0.2s ease;
+        }
+
+        .form-control:focus {
+            background: white;
+            border-color: var(--c2);
+            box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+        }
+
+        .form-control::placeholder {
+            color: var(--muted);
+        }
+
+        select.form-control {
+            cursor: pointer;
+        }
+
+        textarea.form-control {
             min-height: 100px;
             resize: vertical;
         }
 
-        input[type="submit"] {
-            background: linear-gradient(135deg,var(--c2),var(--c1));
-            color: #fff;
-            border: none;
-            border-radius: 14px;
-            padding: 14px 24px;
-            width: 260px;
-            font-weight: 800;
-            letter-spacing: .2px;
-            font-size: 16px;
-            box-shadow: 0 12px 26px rgba(59,130,246,.25);
-            display: block;
-            margin: 20px auto 0;
-            transition: transform .06s ease, box-shadow .2s ease;
-            text-transform: uppercase;
-            cursor: pointer;
+        .form-control[readonly] {
+            background: #f1f5f9;
+            cursor: not-allowed;
+            color: var(--muted);
         }
 
-            input[type="submit"]:hover {
-                transform: translateY(-1px);
-                box-shadow: 0 16px 34px rgba(59,130,246,.30);
-            }
-
-        @@media (max-width: 768px) {
-            body {
-                padding: 20px 0 30px 0;
-            }
-
-            .main-container {
-                width: 94%;
-                padding: 20px;
-            }
-
-            .main-header {
-                font-size: 24px;
-                padding: 18px 22px;
-            }
-
-            .main-header i {
-                font-size: 22px;
-            }
-
-            .card-form {
-                padding: 24px 20px;
-            }
-
-            .section {
-                padding: 18px 20px;
-                margin-bottom: 22px;
-            }
-
-            h2.section-title {
-                font-size: 18px;
-            }
-
-            h2.section-title i {
-                font-size: 18px;
-            }
-
-            label {
-                font-size: 14px;
-            }
-
-            input, select, textarea {
-                font-size: 15px;
-                padding: 11px 13px;
-            }
-
-            input[type="submit"] {
-                width: 100%;
-                font-size: 15px;
-            }
+        .form-help {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 4px;
         }
 
-        @@media (max-width: 576px) {
-            body {
-                padding: 15px 0 25px 0;
-            }
-
-            .main-container {
-                width: 96%;
-                padding: 15px;
-            }
-
-            .main-header {
-                font-size: 20px;
-                padding: 16px 18px;
-                flex-direction: row;
-                gap: 8px;
-            }
-
-            .main-header i {
-                font-size: 18px;
-            }
-
-            .card-form {
-                padding: 20px 16px;
-            }
-
-            .section {
-                padding: 16px 18px;
-            }
-
-            h2.section-title {
-                font-size: 17px;
-                flex-direction: row;
-                gap: 8px;
-            }
-
-            h2.section-title i {
-                font-size: 17px;
-            }
-
-            label {
-                font-size: 13px;
-            }
-
-            input, select, textarea {
-                font-size: 14px;
-                padding: 10px 12px;
-                margin-bottom: 14px;
-            }
-
-            textarea {
-                min-height: 80px;
-            }
-
-            .row {
-                margin-left: 0;
-                margin-right: 0;
-            }
-
-            .col-md-6, .col-md-12 {
-                padding-left: 0;
-                padding-right: 0;
-            }
-
-            input[type="submit"] {
-                font-size: 14px;
-                padding: 12px 20px;
-            }
-        }
-
-        /* Mejoras adicionales para responsive */
-        .row {
+        .pqrs-actions {
+            margin-top: 22px;
             display: flex;
-            flex-wrap: wrap;
-            margin-left: -15px;
-            margin-right: -15px;
+            justify-content: center;
+            gap: 14px;
+            flex-direction: column;
+            align-items: center;
         }
 
-        .col-md-6 {
-            flex: 0 0 50%;
-            max-width: 50%;
-            padding-left: 15px;
-            padding-right: 15px;
+        .btn-submit {
+            border-radius: 999px;
+            padding: 10px 32px;
+            font-weight: 700;
+            border: none;
+            background: linear-gradient(135deg, var(--c1), var(--c2));
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(59, 130, 246, .35);
+            font-size: 15px;
+            text-transform: uppercase;
+            letter-spacing: .05em;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            transition: all 0.2s ease;
         }
 
-        .col-md-12 {
-            flex: 0 0 100%;
-            max-width: 100%;
-            padding-left: 15px;
-            padding-right: 15px;
+        .btn-submit:hover {
+            color: #fff;
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            box-shadow: 0 12px 28px rgba(59, 130, 246, .45);
         }
 
-        @@media (min-width: 769px) and (max-width: 991px) {
-            .main-container {
-                width: 92%;
-                padding: 24px;
-            }
+        .btn-back {
+            border-radius: 999px;
+            padding: 8px 24px;
+            font-weight: 700;
+            border: none;
+            background: linear-gradient(135deg, #fb7185, #ef4444);
+            color: #fff;
+            box-shadow: 0 10px 24px rgba(248, 113, 113, .35);
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            font-size: 14px;
+            transition: all 0.2s ease;
+        }
 
-            .main-header {
-                font-size: 26px;
-                padding: 20px 26px;
-            }
-
-            .main-header i {
-                font-size: 24px;
-            }
-
-            .section {
-                padding: 20px 24px;
-            }
-
-            h2.section-title {
-                font-size: 20px;
-            }
-
-            h2.section-title i {
-                font-size: 20px;
-            }
+        .btn-back:hover {
+            color: #fff;
+            filter: brightness(1.05);
+            transform: translateY(-1px);
         }
 
         @@media (max-width: 768px) {
-            .col-md-6 {
-                flex: 0 0 100%;
-                max-width: 100%;
+            .pqrs-card {
+                padding: 16px;
             }
-        }
 
-        .form-group {
-            margin-bottom: 0;
+            .pqrs-header-main {
+                font-size: 20px;
+                padding: 14px 20px;
+            }
         }
     </style>
 </head>
 <body>
+    <div class="pqrs-wrapper">
 
-    <div class="main-container">
-        <div class="main-header">
+        <!-- HEADER PRINCIPAL -->
+        <div class="pqrs-header-main">
             <i class="fas fa-comment-alt"></i>
             CREAR PQRS
         </div>
 
-        <div class="card-form">
-            <form id="pqrsForm"
-                  action="@Url.Action("Enviarpqrs", "Pqrs")"
-                  method="post"
-                  enctype="multipart/form-data">
+        <!-- CARD PRINCIPAL -->
+        <div class="pqrs-card">
+            <form id="pqrsForm" action="@Url.Action("Enviarpqrs", "Pqrs")" method="post" enctype="multipart/form-data">
 
-                <div class="section">
-                    <h2 class="section-title">
-                        <i class="fas fa-info-circle"></i> Datos Generales
-                    </h2>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="FechaRegistro" class="required">
-                                    <i class="fas fa-calendar-alt"></i> Fecha de Registro:
-                                </label>
-                                <input type="text" id="FechaRegistro" name="FechaRegistro" readonly class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="Canal" class="required">
-                                    <i class="fas fa-envelope"></i> Canal:
-                                </label>
-                                <select id="Canal" name="Canal" required class="form-control">
-                                    <option value="">Seleccione un canal</option>
-                                    <option value="Carta">Carta</option>
-                                    <option value="Correo">Correo</option>
-                                    <option value="Presencial">Presencial</option>
-                                    <option value="Sistema">Sistema</option>
-                                    <option value="Telefono">Telefono</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="Tipopqrs" class="required">
-                                    <i class="fas fa-tags"></i> Tipo de PQRS:
-                                </label>
-                                <!-- IMPORTANTE: name="Tipopqrs" para que se llene la propiedad -->
-                                <select id="Tipopqrs" name="Tipopqrs" required class="form-control">
-                                    <option value="">Seleccione un tipo</option>
-                                    <option value="Queja">Queja</option>
-                                    <option value="Petición">Petición</option>
-                                    <option value="Reclamo">Reclamo</option>
-                                    <option value="Sugerencia">Sugerencia</option>
-                                    <option value="Felicitación">Felicitación</option>
-                                    <option value="Otro">Otro</option>
-                                </select>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <h2 class="section-title">
-                        <i class="fas fa-user"></i> Datos Usuario
-                    </h2>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="Nombre" class="required">
-                                    <i class="fas fa-user"></i> Nombre:
-                                </label>
-                                <input type="text" id="Nombre" name="Nombre" placeholder="Nombre" required class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="Apellido" class="required">
-                                    <i class="fas fa-user"></i> Apellido:
-                                </label>
-                                <input type="text" id="Apellido" name="Apellido" placeholder="Apellido" required class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="TipoDoc" class="required">
-                                    <i class="fas fa-id-card"></i> Tipo de Documento:
-                                </label>
-                                <select id="TipoDoc" name="TipoDoc" required class="form-control">
-                                    <option value="">Seleccione un tipo</option>
-                                    <option value="Sin Datos">Sin Datos</option>
-                                    <option value="Cedula De Ciudadania">Cedula De Ciudadania</option>
-                                    <option value="Cedula De Extranjeria">Cedula De Extranjeria</option>
-                                    <option value="Pasaporte">Pasaporte</option>
-                                    <option value="Tarjeta De Identidad">Tarjeta De Identidad</option>
-                                    <option value="NIT">NIT</option>
-                                    <option value="Otro">Otro</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="Documento" class="required">
-                                    <i class="fas fa-file-alt"></i> Documento:
-                                </label>
-                                <input type="text" id="Documento" name="Documento" placeholder="Documento" required class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="Telefono" class="required">
-                                    <i class="fas fa-phone"></i> Teléfono:
-                                </label>
-                                <input type="text" id="Telefono" name="Telefono" placeholder="Teléfono" required class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="Correo" class="required">
-                                    <i class="fas fa-envelope"></i> Correo:
-                                </label>
-                                <input type="email" id="Correo" name="Correo" placeholder="Correo" required class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="section">
-                    <h2 class="section-title">
-                        <i class="fas fa-map-marker-alt"></i> Datos Afectación
-                    </h2>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="Referencia" class="required">
-                                    <i class="fas fa-map-pin"></i> Código del elemento:
-                                </label>
-                                <input type="text" id="Referencia" name="Referencia" class="form-control" required>
-                                <small class="text-muted">Ej: MA2000, CH0105, etc.</small>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="DireccionAfectacion" class="required">
-                                    <i class="fas fa-map-marker"></i> Dirección de Afectación:
-                                </label>
-                                <input type="text" id="DireccionAfectacion" name="DireccionAfectacion" required class="form-control">
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="BarrioAfectacion" class="required">
-                                    <i class="fas fa-map-marker-alt"></i> Barrio de Afectación:
-                                </label>
-                                <input type="text" id="BarrioAfectacion" name="BarrioAfectacion" required class="form-control">
-                            </div>
-                        </div>
-                    </div>
-                    <div class="row">
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="DescripcionAfectacion" class="required">
-                                    <i class="fas fa-info-circle"></i> Descripción de la Afectación:
-                                </label>
-                                <textarea id="DescripcionAfectacion" name="DescripcionAfectacion" required class="form-control"></textarea>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="TipoAlumbrado" class="required">
-                                    <i class="fas fa-lightbulb"></i> Tipo de Alumbrado:
-                                </label>
-                                <select id="TipoAlumbrado" name="TipoAlumbrado" required class="form-control">
-                                    <option value="Urbano">Urbano</option>
-                                    <option value="Rural">Rural</option>
-                                </select>
-                            </div>
-                        </div>
-                        <div class="col-md-6">
-                            <div class="form-group">
-                                <label for="DatosRelacionados">
-                                    <i class="fas fa-link"></i> Datos Relacionados:
-                                </label>
-                                <input type="text" id="DatosRelacionados" name="DatosRelacionados" placeholder="Datos relacionados" class="form-control">
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="form-group">
-                        <label>
-                            <i class="fas fa-image"></i> Imagen:
+                <!-- SECCIÓN: DATOS GENERALES -->
+                <h2 class="section-title">
+                    <i class="fas fa-info-circle"></i> Datos Generales
+                </h2>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="FechaRegistro">
+                            <i class="fas fa-calendar-alt"></i>
+                            Fecha de Registro
+                            <span class="required-mark">*</span>
                         </label>
-                        <input name="Imagen" type="file" class="form-control">
+                        <input type="text" id="FechaRegistro" name="FechaRegistro" readonly class="form-control">
                     </div>
 
-                    <div class="row">
-                        <div class="col-md-12">
-                            <input type="submit" value="Enviar" class="btn btn-primary">
-                        </div>
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="Canal">
+                            <i class="fas fa-envelope"></i>
+                            Canal
+                            <span class="required-mark">*</span>
+                        </label>
+                        <select id="Canal" name="Canal" required class="form-control">
+                            <option value="">Seleccione un canal</option>
+                            <option value="Carta">Carta</option>
+                            <option value="Correo">Correo</option>
+                            <option value="Presencial">Presencial</option>
+                            <option value="Sistema">Sistema</option>
+                            <option value="Telefono">Teléfono</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="Tipopqrs">
+                            <i class="fas fa-tags"></i>
+                            Tipo de PQRS
+                            <span class="required-mark">*</span>
+                        </label>
+                        <select id="Tipopqrs" name="Tipopqrs" required class="form-control">
+                            <option value="">Seleccione un tipo</option>
+                            <option value="Queja">Queja</option>
+                            <option value="Petición">Petición</option>
+                            <option value="Reclamo">Reclamo</option>
+                            <option value="Sugerencia">Sugerencia</option>
+                            <option value="Felicitación">Felicitación</option>
+                            <option value="Otro">Otro</option>
+                        </select>
                     </div>
                 </div>
+
+                <!-- SECCIÓN: DATOS DEL USUARIO -->
+                <h2 class="section-title">
+                    <i class="fas fa-user"></i> Datos del Usuario
+                </h2>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="Nombre">
+                            <i class="fas fa-user"></i>
+                            Nombre
+                            <span class="required-mark">*</span>
+                        </label>
+                        <input type="text" id="Nombre" name="Nombre" placeholder="Ingrese su nombre" required class="form-control">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="Apellido">
+                            <i class="fas fa-user"></i>
+                            Apellido
+                            <span class="required-mark">*</span>
+                        </label>
+                        <input type="text" id="Apellido" name="Apellido" placeholder="Ingrese su apellido" required class="form-control">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="TipoDoc">
+                            <i class="fas fa-id-card"></i>
+                            Tipo de Documento
+                            <span class="required-mark">*</span>
+                        </label>
+                        <select id="TipoDoc" name="TipoDoc" required class="form-control">
+                            <option value="">Seleccione un tipo</option>
+                            <option value="Sin Datos">Sin Datos</option>
+                            <option value="Cedula De Ciudadania">Cédula de Ciudadanía</option>
+                            <option value="Cedula De Extranjeria">Cédula de Extranjería</option>
+                            <option value="Pasaporte">Pasaporte</option>
+                            <option value="Tarjeta De Identidad">Tarjeta de Identidad</option>
+                            <option value="NIT">NIT</option>
+                            <option value="Otro">Otro</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="Documento">
+                            <i class="fas fa-file-alt"></i>
+                            Número de Documento
+                            <span class="required-mark">*</span>
+                        </label>
+                        <input type="text" id="Documento" name="Documento" placeholder="Ingrese el número de documento" required class="form-control">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="Telefono">
+                            <i class="fas fa-phone"></i>
+                            Teléfono
+                            <span class="required-mark">*</span>
+                        </label>
+                        <input type="tel" id="Telefono" name="Telefono" placeholder="Ej: 3001234567" required class="form-control">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="Correo">
+                            <i class="fas fa-envelope"></i>
+                            Correo Electrónico
+                            <span class="required-mark">*</span>
+                        </label>
+                        <input type="email" id="Correo" name="Correo" placeholder="correo@ejemplo.com" required class="form-control">
+                    </div>
+                </div>
+
+                <!-- SECCIÓN: DATOS DE AFECTACIÓN -->
+                <h2 class="section-title">
+                    <i class="fas fa-map-marker-alt"></i> Datos de Afectación
+                </h2>
+                <div class="row">
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="Referencia">
+                            <i class="fas fa-map-pin"></i>
+                            Código del Elemento
+                            <span class="required-mark">*</span>
+                        </label>
+                        <input type="text" id="Referencia" name="Referencia" placeholder="Ej: MA2000, CH0105" required class="form-control">
+                        <small class="form-help">Código identificador del elemento afectado</small>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="TipoAlumbrado">
+                            <i class="fas fa-lightbulb"></i>
+                            Tipo de Alumbrado
+                            <span class="required-mark">*</span>
+                        </label>
+                        <select id="TipoAlumbrado" name="TipoAlumbrado" required class="form-control">
+                            <option value="Urbano">Urbano</option>
+                            <option value="Rural">Rural</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="DireccionAfectacion">
+                            <i class="fas fa-map-marker"></i>
+                            Dirección de Afectación
+                            <span class="required-mark">*</span>
+                        </label>
+                        <input type="text" id="DireccionAfectacion" name="DireccionAfectacion" placeholder="Ej: Calle 123 # 45-67" required class="form-control">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="BarrioAfectacion">
+                            <i class="fas fa-map"></i>
+                            Barrio de Afectación
+                            <span class="required-mark">*</span>
+                        </label>
+                        <input type="text" id="BarrioAfectacion" name="BarrioAfectacion" placeholder="Nombre del barrio" required class="form-control">
+                    </div>
+
+                    <div class="col-12 mb-3">
+                        <label class="field-label" for="DescripcionAfectacion">
+                            <i class="fas fa-align-left"></i>
+                            Descripción de la Afectación
+                            <span class="required-mark">*</span>
+                        </label>
+                        <textarea id="DescripcionAfectacion" name="DescripcionAfectacion" placeholder="Describa detalladamente el problema o situación..." required class="form-control"></textarea>
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="DatosRelacionados">
+                            <i class="fas fa-link"></i>
+                            Datos Relacionados
+                        </label>
+                        <input type="text" id="DatosRelacionados" name="DatosRelacionados" placeholder="Información adicional (opcional)" class="form-control">
+                    </div>
+
+                    <div class="col-md-6 mb-3">
+                        <label class="field-label" for="Imagen">
+                            <i class="fas fa-image"></i>
+                            Adjuntar Imagen
+                        </label>
+                        <input type="file" id="Imagen" name="Imagen" accept="image/*" class="form-control">
+                        <small class="form-help">Formatos permitidos: JPG, PNG (opcional)</small>
+                    </div>
+                </div>
+
             </form>
+        </div>
+
+        <!-- BOTONES -->
+        <div class="pqrs-actions">
+            <button type="submit" form="pqrsForm" class="btn-submit">
+                <i class="fas fa-paper-plane"></i> Enviar PQRS
+            </button>
+            <a href="@Url.Action("inicio", "Login")" class="btn-back">
+                <i class="fas fa-arrow-left"></i> Volver al Inicio
+            </a>
         </div>
     </div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/js/all.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/js/all.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@10"></script>
     <script>
         // Fecha local en el input
