@@ -20,12 +20,19 @@ namespace controlLuces.Controllers
         {
             var lista = new List<PosteModel>();
             using (var con = new SqlConnection(GetConnectionString()))
-            using (var com = new SqlCommand("SELECT * FROM postes", con))
+            using (var com = new SqlCommand())
             {
-                await con.OpenAsync();
-                using (var dr = await com.ExecuteReaderAsync())
+                com.Connection = con;
+                com.CommandTimeout = 120;
+                // Seleccionar solo columnas necesarias y ordenar en SQL
+                com.CommandText = @"SELECT codigo, rev_1, poste, interdistancia_pos, latitud, longitud,
+                                    barrio, direccion, tipo_red, archivo, observaciones
+                                    FROM postes ORDER BY codigo";
+
+                await con.OpenAsync().ConfigureAwait(false);
+                using (var dr = await com.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    while (await dr.ReadAsync())
+                    while (await dr.ReadAsync().ConfigureAwait(false))
                     {
                         lista.Add(new PosteModel
                         {
@@ -48,7 +55,7 @@ namespace controlLuces.Controllers
             ViewBag.Barrios = lista.Where(x => !string.IsNullOrWhiteSpace(x.barrio))
                                    .Select(x => x.barrio).Distinct().OrderBy(x => x).ToList();
 
-            return View(lista.OrderBy(x => x.codigo).ToList()); // Views/Postes/vertodapostes.cshtml
+            return View(lista);
         }
 
         // GET: /Postes/VerInfoDetallada/{id}
@@ -219,25 +226,29 @@ namespace controlLuces.Controllers
             using (var con = new SqlConnection(GetConnectionString()))
             using (var com = new SqlCommand() { Connection = con })
             {
+                com.CommandTimeout = 120;
+                // Seleccionar solo columnas necesarias
+                string baseSelect = "SELECT codigo, latitud, longitud, poste, barrio, direccion, tipo_red FROM postes";
+
                 switch ((tipoBusqueda ?? "").ToLower())
                 {
                     case "codigo":
-                        com.CommandText = "SELECT * FROM postes WHERE codigo = @codigo";
+                        com.CommandText = baseSelect + " WHERE codigo = @codigo ORDER BY codigo";
                         com.Parameters.AddWithValue("@codigo", codigo ?? "");
                         break;
                     case "barrio":
-                        com.CommandText = "SELECT * FROM postes WHERE barrio = @barrio";
+                        com.CommandText = baseSelect + " WHERE barrio = @barrio ORDER BY codigo";
                         com.Parameters.AddWithValue("@barrio", barrio ?? "");
                         break;
                     default:
-                        com.CommandText = "SELECT * FROM postes";
+                        com.CommandText = baseSelect + " ORDER BY codigo";
                         break;
                 }
 
-                await con.OpenAsync();
-                using (var dr = await com.ExecuteReaderAsync())
+                await con.OpenAsync().ConfigureAwait(false);
+                using (var dr = await com.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    while (await dr.ReadAsync())
+                    while (await dr.ReadAsync().ConfigureAwait(false))
                     {
                         lista.Add(new PosteModel
                         {
@@ -256,7 +267,7 @@ namespace controlLuces.Controllers
             ViewBag.Barrios = lista.Where(x => !string.IsNullOrWhiteSpace(x.barrio))
                                    .Select(x => x.barrio).Distinct().OrderBy(x => x).ToList();
 
-            return View("vertodapostes", lista.OrderBy(x => x.codigo).ToList());
+            return View("vertodapostes", lista);
         }
     }
 }

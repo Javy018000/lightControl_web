@@ -340,10 +340,14 @@
     <Compile Include="Controllers\LoginController.cs" />
     <Compile Include="Controllers\OrdenesController.cs" />
     <Compile Include="Controllers\PostesController.cs" />
-    <Compile Include="Controllers\pqrsController.cs" />
+    <Compile Include="Controllers\LicenciasController.cs" />
+    <Compile Include="Controllers\ConsumosController.cs" />
+    <Compile Include="Models\pqrsController.cs" />
     <Compile Include="Global.asax.cs">
       <DependentUpon>Global.asax</DependentUpon>
     </Compile>
+    <Compile Include="Models\ArchivoModel.cs" />
+    <Compile Include="Models\LicenciaModel.cs" />
     <Compile Include="Models\CajaModel.cs" />
     <Compile Include="Models\crearOrdenModel.cs" />
     <Compile Include="Models\CuadrillaModel.cs" />
@@ -515,6 +519,12 @@
     <Content Include="Views\Login\inicio_local.cshtml" />
     <Content Include="Views\Ordenes\Cuadrillas.cshtml" />
     <Content Include="Views\Archivo\VerArchivo.cshtml" />
+    <Content Include="Views\Archivo\VerConsumos.cshtml" />
+    <Content Include="Views\Archivo\NuevoConsumo.cshtml" />
+    <Content Include="Views\Licencias\Index.cshtml" />
+    <Content Include="Views\Licencias\Crear.cshtml" />
+    <Content Include="Views\Licencias\Editar.cshtml" />
+    <Content Include="Views\Licencias\Historial.cshtml" />
   </ItemGroup>
   <ItemGroup>
     <Folder Include="App_Data\" />

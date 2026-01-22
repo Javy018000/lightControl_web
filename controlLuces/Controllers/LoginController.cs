@@ -285,23 +285,125 @@ namespace controlLuces.Controllers
                     Correo = dr["Correo"].ToString(),
                     IdRol = (Rol)Convert.ToInt32(dr["IdRol"]),
                     Clave = dr["Clave"].ToString(),
-                    Municipio = dr["Municipio"] == DBNull.Value ? null : dr["Municipio"].ToString() // <- toma municipio
+                    Municipio = dr["Municipio"] == DBNull.Value ? null : dr["Municipio"].ToString()
                 };
 
-                // Persistencia de sesión (sin cambiar tu flujo)
+                dr.Close();
+
+                // ========== VALIDACIÓN DE LICENCIA ==========
+                var validacionLicencia = ValidarLicenciaMunicipio(usuario.Municipio, usuario.Correo);
+                if (!validacionLicencia.Valida)
+                {
+                    con.Close();
+                    ViewBag.ErrorMessage = validacionLicencia.Mensaje;
+                    ViewBag.LicenciaExpirada = true;
+                    return View("Login");
+                }
+
+                // Guardar info de licencia en sesión
+                Session["LicenciaValida"] = true;
+                Session["LicenciaExpiracion"] = validacionLicencia.FechaExpiracion;
+                Session["LicenciaCliente"] = validacionLicencia.NombreCliente;
+                Session["ModulosPermitidos"] = validacionLicencia.ModulosPermitidos;
+                // ============================================
+
+                // Persistencia de sesión
                 Session["Usuario"] = usuario;
                 Session["Municipio"] = usuario.Municipio;
-                Session["EsAdminLocal"] = (usuario.IdRol == Rol.Administrador_Local); // <- NUEVO
-                                                                                      // Redirige según rol
+                Session["EsAdminLocal"] = (usuario.IdRol == Rol.Administrador_Local);
+
+                con.Close();
+
+                // Redirige según rol
                 if (usuario.IdRol == Rol.Administrador_Local)
                     return RedirectToAction("InicioLocal", "Login");
-                con.Close();
                 return RedirectToAction("inicio", "Login");
             }
 
+            dr.Close();
             con.Close();
             ViewBag.ErrorMessage = "Credenciales inválidas. Inténtelo de nuevo.";
             return View("Login");
+        }
+
+        // ========== MÉTODOS DE VALIDACIÓN DE LICENCIA ==========
+        private ValidacionLicenciaResult ValidarLicenciaMunicipio(string municipio, string usuario)
+        {
+            var resultado = new ValidacionLicenciaResult();
+
+            if (string.IsNullOrEmpty(municipio))
+            {
+                // Si no tiene municipio asignado, permitir acceso (admin global)
+                resultado.Valida = true;
+                resultado.Mensaje = "Acceso sin restricción de municipio";
+                return resultado;
+            }
+
+            try
+            {
+                string ip = Request.UserHostAddress;
+
+                using (var cmd = new SqlCommand("lightcon_lumin.sp_ValidarLicencia", con))
+                {
+                    cmd.CommandType = System.Data.CommandType.StoredProcedure;
+                    cmd.Parameters.AddWithValue("@Municipio", municipio);
+                    cmd.Parameters.AddWithValue("@IP", ip ?? "");
+                    cmd.Parameters.AddWithValue("@Usuario", usuario ?? "");
+
+                    using (var reader = cmd.ExecuteReader())
+                    {
+                        if (reader.Read())
+                        {
+                            resultado.Valida = Convert.ToBoolean(reader["Valida"]);
+                            resultado.Resultado = reader["Resultado"].ToString();
+                            resultado.Mensaje = reader["Mensaje"].ToString();
+                            resultado.FechaExpiracion = reader["FechaExpiracion"] != DBNull.Value
+                                ? Convert.ToDateTime(reader["FechaExpiracion"])
+                                : (DateTime?)null;
+
+                            if (resultado.Valida)
+                            {
+                                resultado.NombreCliente = reader["NombreCliente"].ToString();
+                                resultado.ModulosPermitidos = reader["ModulosPermitidos"].ToString();
+                                resultado.MaxUsuarios = Convert.ToInt32(reader["MaxUsuarios"]);
+                            }
+                        }
+                        else
+                        {
+                            resultado.Valida = false;
+                            resultado.Mensaje = "No se pudo validar la licencia";
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                // Si el procedimiento no existe, permitir acceso (compatibilidad)
+                if (ex.Number == 2812 || ex.Message.Contains("Could not find stored procedure"))
+                {
+                    resultado.Valida = true;
+                    resultado.Mensaje = "Sistema de licencias no configurado";
+                }
+                else
+                {
+                    resultado.Valida = false;
+                    resultado.Mensaje = "Error al validar licencia: " + ex.Message;
+                }
+            }
+
+            return resultado;
+        }
+
+        // Clase para resultado de validación
+        public class ValidacionLicenciaResult
+        {
+            public bool Valida { get; set; }
+            public string Resultado { get; set; }
+            public string Mensaje { get; set; }
+            public DateTime? FechaExpiracion { get; set; }
+            public string NombreCliente { get; set; }
+            public string ModulosPermitidos { get; set; }
+            public int MaxUsuarios { get; set; }
         }
 
         public ActionResult CerrarSesion()

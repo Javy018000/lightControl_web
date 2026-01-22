@@ -23,12 +23,21 @@ namespace controlLuces.Controllers
         {
             var lista = new List<CajaModel>();
             using (var con = new SqlConnection(GetConnectionString()))
-            using (var com = new SqlCommand("SELECT * FROM Cajas", con))
+            using (var com = new SqlCommand())
             {
-                await con.OpenAsync();
-                using (var dr = await com.ExecuteReaderAsync())
+                com.Connection = con;
+                com.CommandTimeout = 120;
+                // Seleccionar solo columnas necesarias y ordenar en SQL
+                com.CommandText = @"SELECT Codigo_CajaID, ID_CAJA, Codigo_Poste, Codigo_Caja,
+                                    ID_Apoyo_Lum, ID_Tranformador_LUM, Latitud, Longitud,
+                                    Interdistancia, Conectado_Con, Ducteria, BARRIO,
+                                    DIRECCION, Archivo, Observaciones
+                                    FROM Cajas ORDER BY Codigo_CajaID";
+
+                await con.OpenAsync().ConfigureAwait(false);
+                using (var dr = await com.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    while (await dr.ReadAsync())
+                    while (await dr.ReadAsync().ConfigureAwait(false))
                     {
                         lista.Add(new CajaModel
                         {
@@ -55,15 +64,15 @@ namespace controlLuces.Controllers
             ViewBag.Barrios = lista.Where(x => !string.IsNullOrWhiteSpace(x.BARRIO))
                                    .Select(x => x.BARRIO).Distinct().OrderBy(x => x).ToList();
 
-            return View(lista.OrderBy(x => x.Codigo_CajaID).ToList());
+            return View(lista);
         }
 
-        public ActionResult VerInfoDetalladaCaja(string id)
+        public async Task<ActionResult> VerInfoDetalladaCaja(string id)
         {
             if (string.IsNullOrWhiteSpace(id))
                 return HttpNotFound();
 
-            var caja = ObtenerCajaPorCodigo(id);
+            var caja = await ObtenerCajaPorCodigoAsync(id).ConfigureAwait(false);
 
             if (caja == null)
                 return HttpNotFound();
@@ -71,16 +80,25 @@ namespace controlLuces.Controllers
             return View("VerInfoDetalladaCaja", caja);
         }
 
-        private CajaModel ObtenerCajaPorCodigo(string id)
+        private async Task<CajaModel> ObtenerCajaPorCodigoAsync(string id)
         {
             using (var con = new SqlConnection(GetConnectionString()))
-            using (var com = new SqlCommand("SELECT TOP 1 * FROM Cajas WHERE Codigo_CajaID = @id", con))
+            using (var com = new SqlCommand())
             {
+                com.Connection = con;
+                com.CommandTimeout = 60;
+                // Seleccionar solo columnas necesarias
+                com.CommandText = @"SELECT TOP 1 Codigo_CajaID, ID_CAJA, Codigo_Poste, Codigo_Caja,
+                                    ID_Apoyo_Lum, ID_Tranformador_LUM, Latitud, Longitud,
+                                    Interdistancia, Conectado_Con, Ducteria, BARRIO,
+                                    DIRECCION, Archivo, Observaciones
+                                    FROM Cajas WHERE Codigo_CajaID = @id";
                 com.Parameters.AddWithValue("@id", id);
-                con.Open();
-                using (var dr = com.ExecuteReader())
+
+                await con.OpenAsync().ConfigureAwait(false);
+                using (var dr = await com.ExecuteReaderAsync().ConfigureAwait(false))
                 {
-                    if (dr.Read())
+                    if (await dr.ReadAsync().ConfigureAwait(false))
                     {
                         return new CajaModel
                         {

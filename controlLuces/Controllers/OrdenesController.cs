@@ -13,6 +13,7 @@ using System.Linq;
 using System.Web;
 using System.Web.Mvc;
 using Font = iTextSharp.text.Font;
+using ClosedXML.Excel;
 
 namespace controlLuces.Controllers
 {
@@ -177,6 +178,7 @@ namespace controlLuces.Controllers
             string municipio = GetMunicipioSesion();
 
             var ordenesList = new List<OrdenModel>();
+            var pqrsList = new List<PqrsModel>();
 
             connectionString();
             using (var cn = new SqlConnection(con.ConnectionString))
@@ -185,26 +187,27 @@ namespace controlLuces.Controllers
                 cmd.Connection = cn;
                 cn.Open();
 
+                // ========== TRAER ÓRDENES ACTIVAS ==========
                 string sql = @"
-            SELECT 
+            SELECT
                 o.*,
                 e.Nombre AS EstadoNombre,
 
-                CASE 
+                CASE
                     WHEN o.codigo_orden IS NULL THEN ''
-                    WHEN CHARINDEX(':', o.codigo_orden) > 0 
+                    WHEN CHARINDEX(':', o.codigo_orden) > 0
                         THEN LEFT(o.codigo_orden, CHARINDEX(':', o.codigo_orden) - 1)
-                    WHEN CHARINDEX('-', o.codigo_orden) > 0 
+                    WHEN CHARINDEX('-', o.codigo_orden) > 0
                         THEN LEFT(o.codigo_orden, CHARINDEX('-', o.codigo_orden) - 1)
                     ELSE o.codigo_orden
                 END AS PrefijoCodigo,
 
                 TRY_CONVERT(int,
-                    CASE 
+                    CASE
                         WHEN o.codigo_orden IS NULL THEN '0'
-                        WHEN CHARINDEX(':', o.codigo_orden) > 0 
+                        WHEN CHARINDEX(':', o.codigo_orden) > 0
                             THEN RIGHT(o.codigo_orden, LEN(o.codigo_orden) - CHARINDEX(':', o.codigo_orden))
-                        WHEN CHARINDEX('-', o.codigo_orden) > 0 
+                        WHEN CHARINDEX('-', o.codigo_orden) > 0
                             THEN RIGHT(o.codigo_orden, LEN(o.codigo_orden) - CHARINDEX('-', o.codigo_orden))
                         ELSE '0'
                     END
@@ -221,7 +224,7 @@ namespace controlLuces.Controllers
                 }
 
                 sql += @"
-            ORDER BY 
+            ORDER BY
                 PrefijoCodigo,
                 SufijoCodigo";
 
@@ -234,9 +237,51 @@ namespace controlLuces.Controllers
                         ordenesList.Add(MapOrden(rd));
                     }
                 }
+
+                // ========== TRAER PQRS (ESTADO 1 Y 2) ==========
+                cmd.Parameters.Clear();
+                string sqlPqrs = "SELECT * FROM dbo.pqrs WHERE Estado IN (1, 2)";
+
+                if (esAdminLocal && !string.IsNullOrWhiteSpace(municipio))
+                {
+                    sqlPqrs += " AND Municipio = @M2";
+                    cmd.Parameters.AddWithValue("@M2", municipio);
+                }
+
+                sqlPqrs += " ORDER BY Idpqrs ASC";
+
+                cmd.CommandText = sqlPqrs;
+
+                using (var rd = cmd.ExecuteReader())
+                {
+                    while (rd.Read())
+                    {
+                        pqrsList.Add(new PqrsModel
+                        {
+                            Idpqrs = rd["Idpqrs"] != DBNull.Value ? Convert.ToInt32(rd["Idpqrs"]) : 0,
+                            FechaRegistro = rd["FechaRegistro"] == DBNull.Value ? "" : rd["FechaRegistro"].ToString(),
+                            Tipopqrs = rd["Tipopqrs"] == DBNull.Value ? "" : rd["Tipopqrs"].ToString(),
+                            Canal = rd["Canal"] == DBNull.Value ? "" : rd["Canal"].ToString(),
+                            Nombre = rd["Nombre"] == DBNull.Value ? "" : rd["Nombre"].ToString(),
+                            Apellido = rd["Apellido"] == DBNull.Value ? "" : rd["Apellido"].ToString(),
+                            TipoDoc = rd["TipoDoc"] == DBNull.Value ? "" : rd["TipoDoc"].ToString(),
+                            Documento = rd["Documento"] == DBNull.Value ? "" : rd["Documento"].ToString(),
+                            Correo = rd["Correo"] == DBNull.Value ? "" : rd["Correo"].ToString(),
+                            Referencia = rd["Referencia"] == DBNull.Value ? "" : rd["Referencia"].ToString(),
+                            DireccionAfectacion = rd["DireccionAfectacion"] == DBNull.Value ? "" : rd["DireccionAfectacion"].ToString(),
+                            BarrioAfectacion = rd["BarrioAfectacion"] == DBNull.Value ? "" : rd["BarrioAfectacion"].ToString(),
+                            TipoAlumbrado = rd["TipoAlumbrado"] == DBNull.Value ? "" : rd["TipoAlumbrado"].ToString(),
+                            DescripcionAfectacion = rd["DescripcionAfectacion"] == DBNull.Value ? "" : rd["DescripcionAfectacion"].ToString(),
+                            Estado = rd["Estado"] != DBNull.Value ? Convert.ToInt32(rd["Estado"]) : 0,
+                            EstadoNombre = rd["Estado"] != DBNull.Value && Convert.ToInt32(rd["Estado"]) == 1 ? "Sin asignar" :
+                                          rd["Estado"] != DBNull.Value && Convert.ToInt32(rd["Estado"]) == 2 ? "En proceso" : "Desconocido"
+                        });
+                    }
+                }
             }
 
-            ViewBag.EsAdminLocal = esAdminLocal; // ✅ clave para la vista
+            ViewBag.EsAdminLocal = esAdminLocal;
+            ViewBag.PqrsList = pqrsList; // ✅ Pasar las PQRS a la vista
             ViewBag.Title = "Órdenes de Servicio";
             return View(ordenesList);
         }
@@ -323,6 +368,206 @@ namespace controlLuces.Controllers
 
                 byte[] fileBytes = memoryStream.ToArray();
                 return File(fileBytes, "application/pdf", "OrdenesDeServicio.pdf");
+            }
+        }
+
+        // ================== EXCEL ==================
+        [PermisosRol(Rol.Administrador, Rol.Tecnico, Rol.Administrador_Local)]
+        public ActionResult DescargarOrdenesExcel()
+        {
+            bool esAdminLocal = EsAdminLocal();
+            string municipio = GetMunicipioSesion();
+            var usuario = Session["Usuario"] as UsuarioModel;
+            var muni = (Session["Municipio"] as string) ?? usuario?.Municipio;
+            var k = (muni ?? "").Trim().ToLower().Replace("í", "i");
+            var prefijo = k == "madrid" ? "MA" : k == "chia" ? "CH" : "CH";
+            var year = DateTime.Now.Year;
+
+            var ordenesList = new List<OrdenModel>();
+            var pqrsList = new List<PqrsModel>();
+
+            connectionString();
+            using (var cn = new SqlConnection(con.ConnectionString))
+            using (var cmd = new SqlCommand())
+            {
+                cmd.Connection = cn;
+                cn.Open();
+
+                // ========== TRAER ÓRDENES ==========
+                string sql = @"
+                SELECT o.*, e.Nombre AS EstadoNombre,
+                CASE
+                    WHEN o.codigo_orden IS NULL THEN NULL
+                    WHEN CHARINDEX(':', o.codigo_orden) > 0
+                        THEN LEFT(o.codigo_orden, CHARINDEX(':', o.codigo_orden) - 1)
+                    WHEN CHARINDEX('-', o.codigo_orden) > 0
+                        THEN LEFT(o.codigo_orden, CHARINDEX('-', o.codigo_orden) - 1)
+                    ELSE o.codigo_orden
+                END AS PrefijoCodigo,
+
+                TRY_CONVERT(int,
+                    CASE
+                        WHEN o.codigo_orden IS NULL THEN '0'
+                        WHEN CHARINDEX(':', o.codigo_orden) > 0
+                            THEN RIGHT(o.codigo_orden, LEN(o.codigo_orden) - CHARINDEX(':', o.codigo_orden))
+                        WHEN CHARINDEX('-', o.codigo_orden) > 0
+                            THEN RIGHT(o.codigo_orden, LEN(o.codigo_orden) - CHARINDEX('-', o.codigo_orden))
+                        ELSE '0'
+                    END
+                ) AS SufijoCodigo
+            FROM ordenes_de_servicio o
+            LEFT JOIN Estado e ON e.IdEstado = o.IdEstado
+            WHERE 1 = 1
+              AND e.Nombre IN ('ACTIVA', 'EN PROCESO')";
+
+                if (esAdminLocal && !string.IsNullOrWhiteSpace(municipio))
+                {
+                    sql += " AND o.Municipio = @M";
+                    cmd.Parameters.AddWithValue("@M", municipio);
+                }
+
+                sql += @"
+            ORDER BY
+                PrefijoCodigo,
+                SufijoCodigo";
+
+                cmd.CommandText = sql;
+
+                using (var rd = cmd.ExecuteReader())
+                {
+                    while (rd.Read())
+                    {
+                        ordenesList.Add(MapOrden(rd));
+                    }
+                }
+
+                // ========== TRAER PQRS (ESTADO 1 Y 2) ==========
+                cmd.Parameters.Clear();
+                string sqlPqrs = "SELECT * FROM dbo.pqrs WHERE Estado IN (1, 2)";
+
+                if (esAdminLocal && !string.IsNullOrWhiteSpace(municipio))
+                {
+                    sqlPqrs += " AND Municipio = @M2";
+                    cmd.Parameters.AddWithValue("@M2", municipio);
+                }
+
+                sqlPqrs += " ORDER BY Idpqrs ASC";
+
+                cmd.CommandText = sqlPqrs;
+
+                using (var rd = cmd.ExecuteReader())
+                {
+                    while (rd.Read())
+                    {
+                        pqrsList.Add(new PqrsModel
+                        {
+                            Idpqrs = rd["Idpqrs"] != DBNull.Value ? Convert.ToInt32(rd["Idpqrs"]) : 0,
+                            FechaRegistro = rd["FechaRegistro"] == DBNull.Value ? "" : rd["FechaRegistro"].ToString(),
+                            Tipopqrs = rd["Tipopqrs"] == DBNull.Value ? "" : rd["Tipopqrs"].ToString(),
+                            Canal = rd["Canal"] == DBNull.Value ? "" : rd["Canal"].ToString(),
+                            Nombre = rd["Nombre"] == DBNull.Value ? "" : rd["Nombre"].ToString(),
+                            Apellido = rd["Apellido"] == DBNull.Value ? "" : rd["Apellido"].ToString(),
+                            DireccionAfectacion = rd["DireccionAfectacion"] == DBNull.Value ? "" : rd["DireccionAfectacion"].ToString(),
+                            DescripcionAfectacion = rd["DescripcionAfectacion"] == DBNull.Value ? "" : rd["DescripcionAfectacion"].ToString(),
+                            Estado = rd["Estado"] != DBNull.Value ? Convert.ToInt32(rd["Estado"]) : 0,
+                            EstadoNombre = rd["Estado"] != DBNull.Value && Convert.ToInt32(rd["Estado"]) == 1 ? "Sin asignar" :
+                                          rd["Estado"] != DBNull.Value && Convert.ToInt32(rd["Estado"]) == 2 ? "En proceso" : "Desconocido"
+                        });
+                    }
+                }
+            }
+
+            // GENERAR EXCEL CON CLOSEDXML
+            using (var workbook = new XLWorkbook())
+            {
+                var worksheet = workbook.Worksheets.Add("Órdenes y PQRS");
+
+                // ENCABEZADOS
+                worksheet.Cell(1, 1).Value = "Tipo";
+                worksheet.Cell(1, 2).Value = "Código";
+                worksheet.Cell(1, 3).Value = "Estado";
+                worksheet.Cell(1, 4).Value = "Fecha";
+                worksheet.Cell(1, 5).Value = "Descripción";
+                worksheet.Cell(1, 6).Value = "PQRS/Problema Relacionado";
+                worksheet.Cell(1, 7).Value = "Cuadrilla/Canal";
+                worksheet.Cell(1, 8).Value = "Dirección";
+
+                // ESTILO ENCABEZADOS
+                var headerRange = worksheet.Range(1, 1, 1, 8);
+                headerRange.Style.Font.Bold = true;
+                headerRange.Style.Font.FontSize = 11;
+                headerRange.Style.Fill.BackgroundColor = XLColor.FromArgb(59, 130, 246);
+                headerRange.Style.Font.FontColor = XLColor.White;
+                headerRange.Style.Alignment.Horizontal = XLAlignmentHorizontalValues.Center;
+                headerRange.Style.Alignment.Vertical = XLAlignmentVerticalValues.Center;
+
+                // DATOS
+                int fila = 2;
+
+                // Agregar Órdenes
+                foreach (var orden in ordenesList)
+                {
+                    var codigoOrden = string.IsNullOrWhiteSpace(orden.CodigoOrden)
+                        ? (prefijo + year + "-" + orden.IdOrden)
+                        : orden.CodigoOrden;
+
+                    worksheet.Cell(fila, 1).Value = "Orden";
+                    worksheet.Cell(fila, 2).Value = codigoOrden;
+                    worksheet.Cell(fila, 3).Value = orden.EstadoNombre;
+                    worksheet.Cell(fila, 4).Value = orden.FechaARealizar.ToString("dd/MM/yyyy");
+                    worksheet.Cell(fila, 5).Value = orden.ProblemaRelacionado;
+                    worksheet.Cell(fila, 6).Value = orden.ElementoRelacionado;
+                    worksheet.Cell(fila, 7).Value = orden.Cuadrilla;
+                    worksheet.Cell(fila, 8).Value = "";
+
+                    // Alternar colores
+                    if (fila % 2 == 0)
+                    {
+                        worksheet.Range(fila, 1, fila, 8).Style.Fill.BackgroundColor = XLColor.FromArgb(242, 242, 242);
+                    }
+
+                    fila++;
+                }
+
+                // Agregar PQRS
+                foreach (var pqrs in pqrsList)
+                {
+                    var codigoPqrs = prefijo + year + ":" + pqrs.Idpqrs;
+
+                    worksheet.Cell(fila, 1).Value = "PQRS";
+                    worksheet.Cell(fila, 2).Value = codigoPqrs;
+                    worksheet.Cell(fila, 3).Value = pqrs.EstadoNombre;
+                    worksheet.Cell(fila, 4).Value = pqrs.FechaRegistro;
+                    worksheet.Cell(fila, 5).Value = pqrs.DescripcionAfectacion;
+                    worksheet.Cell(fila, 6).Value = pqrs.Tipopqrs;
+                    worksheet.Cell(fila, 7).Value = pqrs.Canal;
+                    worksheet.Cell(fila, 8).Value = pqrs.DireccionAfectacion;
+
+                    // Alternar colores
+                    if (fila % 2 == 0)
+                    {
+                        worksheet.Range(fila, 1, fila, 8).Style.Fill.BackgroundColor = XLColor.FromArgb(242, 242, 242);
+                    }
+
+                    fila++;
+                }
+
+                // Ajustar columnas
+                worksheet.Columns().AdjustToContents();
+
+                // Congelar primera fila
+                worksheet.SheetView.FreezeRows(1);
+
+                // GUARDAR Y DESCARGAR
+                using (var stream = new MemoryStream())
+                {
+                    workbook.SaveAs(stream);
+                    var bytes = stream.ToArray();
+                    var fecha = DateTime.Now;
+                    var nombreArchivo = $"Ordenes_PQRS_Activas_{fecha:yyyyMMdd_HHmmss}.xlsx";
+
+                    return File(bytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nombreArchivo);
+                }
             }
         }
 

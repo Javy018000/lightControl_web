@@ -1,423 +1,676 @@
-﻿@{
-    ViewBag.Title = "Gráficos de PQRS";
+@{
+    ViewBag.Title = "Estadisticas de PQRS";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     var esAdminLocal = (ViewBag.EsAdminLocal as bool?) ?? false;
     var municipioSesion = (string)(ViewBag.MunicipioSesion ?? "");
 }
 
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>@ViewBag.Title</title>
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
 
-    <link rel="stylesheet"
-          href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
-    <link rel="stylesheet"
-          href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
-    <link href="https://fonts.googleapis.com/css2?family=Product+Sans:wght@400;700&display=swap"
-          rel="stylesheet" />
+<style>
+    :root {
+        --c1: #0ea5e9;
+        --c2: #3b82f6;
+        --bg: #f4f8fb;
+        --text: #0f172a;
+        --muted: #64748b;
+    }
 
-    <style>
-        :root {
-            --c1: #0ea5e9;
-            --c2: #3b82f6;
-            --bg: #f4f8fb;
-            --text: #0f172a;
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
+    }
 
-            --success: #22c55e;
-            --warning: #f97316;
-            --danger: #e11d48;
-            --slate: #64748b;
-        }
+    .grafico-page {
+        width: 100%;
+        margin: 22px auto 40px auto;
+        padding: 0 20px 40px 20px;
+    }
 
-        body {
-            background: radial-gradient(circle at top, #e0f2fe 0, #f4f8fb 55%);
-            font-family: 'Product Sans', sans-serif;
-            color: var(--text);
-            padding: 22px;
-            font-size: 16px;
-        }
+    .grafico-main-header {
+        background: linear-gradient(135deg, var(--c1), var(--c2));
+        color: #fff;
+        border-radius: 18px;
+        padding: 22px 28px;
+        text-align: center;
+        font-weight: 800;
+        letter-spacing: .4px;
+        box-shadow: 0 12px 28px rgba(2, 8, 23, .15);
+        text-transform: uppercase;
+        font-size: 26px;
+        margin-bottom: 20px;
+    }
 
-        .main-header {
-            background: linear-gradient(135deg, var(--c1), var(--c2));
-            color: #fff;
-            border-radius: 16px;
-            padding: 20px 26px;
-            text-align: center;
-            font-weight: 800;
-            box-shadow: 0 16px 34px rgba(15,23,42,.25);
-            text-transform: uppercase;
-            font-size: 30px;
-            letter-spacing: 0.08em;
-        }
-
-        .main-header i {
+        .grafico-main-header i {
             margin-right: 10px;
         }
 
-        .control-bar {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
-            gap: 12px;
-            margin: 20px 0;
-        }
+    .control-bar {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 12px;
+        margin-bottom: 24px;
+    }
 
-        .chip {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            background: #fff;
-            border-radius: 999px;
-            padding: 9px 18px;
-            box-shadow: 0 3px 10px rgba(15,23,42,0.12);
-            font-size: 15px;
-            border: 1px solid rgba(148,163,184,0.35);
-            transition: transform 0.15s ease, box-shadow 0.15s ease, border-color 0.15s ease;
-        }
+    .chip {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: #fff;
+        border-radius: 999px;
+        padding: 10px 20px;
+        box-shadow: 0 4px 12px rgba(15,23,42,0.10);
+        font-size: 14px;
+        font-weight: 600;
+        border: 1px solid #e2e8f0;
+        transition: all 0.15s ease;
+    }
 
         .chip:hover {
-            transform: translateY(-1px);
-            box-shadow: 0 6px 18px rgba(15,23,42,0.18);
-            border-color: rgba(59,130,246,0.7);
+            box-shadow: 0 6px 18px rgba(15,23,42,0.15);
+            border-color: var(--c1);
         }
 
         .chip select {
             border: none;
             outline: none;
-            font-size: 15px;
+            font-size: 14px;
+            font-weight: 600;
             background: transparent;
+            cursor: pointer;
+        }
+
+        .chip i {
+            color: var(--c1);
         }
 
         .chip strong {
-            font-weight: 700;
             color: var(--c2);
         }
 
-        .charts-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
-            gap: 20px;
-        }
+    .charts-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
 
-        .chart-card {
-            background: #fff;
-            border-radius: 16px;
-            box-shadow: 0 12px 26px rgba(15,23,42,.14);
-            padding: 18px 18px 20px 18px;
-            position: relative;
-            min-height: 260px;
-            border: 1px solid rgba(148,163,184,0.35);
-            transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+    @@media (max-width: 992px) {
+        .charts-grid {
+            grid-template-columns: 1fr;
         }
+    }
+
+    .chart-card {
+        background: #fff;
+        border-radius: 18px;
+        box-shadow: 0 8px 24px rgba(15,23,42,.08);
+        padding: 20px;
+        position: relative;
+        min-height: 320px;
+        border: 1px solid #e2e8f0;
+        transition: all 0.2s ease;
+    }
 
         .chart-card:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 18px 32px rgba(15,23,42,.2);
-            border-color: rgba(59,130,246,0.8);
+            transform: translateY(-4px);
+            box-shadow: 0 16px 32px rgba(15,23,42,.12);
+            border-color: var(--c1);
         }
 
-        .chart-card h3 {
-            font-size: 19px;
-            font-weight: 700;
-            margin-bottom: 4px;
-            color: #0f172a;
+    .chart-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-start;
+        margin-bottom: 16px;
+    }
+
+    .chart-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: var(--text);
+        margin: 0 0 4px 0;
+    }
+
+    .chart-subtitle {
+        font-size: 13px;
+        color: var(--muted);
+        margin: 0;
+    }
+
+    .chart-tag {
+        font-size: 11px;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-weight: 600;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .chart-tag-tipo {
+        background: linear-gradient(135deg, #dbeafe, #eff6ff);
+        color: #1d4ed8;
+    }
+
+    .chart-tag-barrio {
+        background: linear-gradient(135deg, #dcfce7, #f0fdf4);
+        color: #15803d;
+    }
+
+    .chart-tag-estado {
+        background: linear-gradient(135deg, #ffedd5, #fff7ed);
+        color: #c2410c;
+    }
+
+    .chart-tag-fecha {
+        background: linear-gradient(135deg, #e0e7ff, #eef2ff);
+        color: #4338ca;
+    }
+
+    .chart-container {
+        position: relative;
+        height: 240px;
+    }
+
+    .button-container {
+        text-align: center;
+        margin-top: 28px;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-excel {
+        padding: 12px 28px;
+        border-radius: 999px;
+        font-weight: 600;
+        border: none;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: #fff;
+        text-decoration: none;
+        box-shadow: 0 10px 22px rgba(34,197,94,.30);
+        transition: filter 0.15s, transform 0.15s;
+        cursor: pointer;
+    }
+
+        .btn-excel:hover {
+            filter: brightness(1.05);
+            transform: translateY(-2px);
+            color: #fff;
         }
 
-        .chart-subtitle {
-            font-size: 13px;
-            color: #6b7280;
-            margin-bottom: 4px;
+    .btn-back {
+        padding: 12px 28px;
+        border-radius: 999px;
+        font-weight: 600;
+        border: none;
+        background: linear-gradient(135deg, #fb7185, #ef4444);
+        color: #fff;
+        text-decoration: none;
+        box-shadow: 0 10px 22px rgba(248,113,113,.30);
+        transition: filter 0.15s, transform 0.15s;
+    }
+
+        .btn-back:hover {
+            filter: brightness(1.05);
+            transform: translateY(-2px);
+            color: #fff;
         }
 
-        .chart-tag {
-            position: absolute;
-            top: 14px;
-            right: 18px;
-            font-size: 12px;
-            padding: 3px 9px;
-            border-radius: 999px;
-            background: rgba(14,165,233,0.08);
-            color: #0369a1;
-            border: 1px solid rgba(14,165,233,0.2);
+    .summary-cards {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    @@media (max-width: 768px) {
+        .summary-cards {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+
+    .summary-card {
+        background: #fff;
+        border-radius: 14px;
+        padding: 18px;
+        box-shadow: 0 4px 12px rgba(15,23,42,.06);
+        border: 1px solid #e2e8f0;
+        text-align: center;
+        transition: all 0.2s ease;
+    }
+
+        .summary-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(15,23,42,.10);
         }
 
-        canvas {
-            width: 100% !important;
-            height: 210px !important;
-        }
+    .summary-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 10px;
+        font-size: 20px;
+    }
 
-       @@media (max-width: 576.98px) {
-            .main-header {
-                font-size: 24px;
-                padding: 14px 16px;
-            }
-        }
-    </style>
-</head>
-<body>
-    <div class="container-fluid">
-        <div class="main-header">
-            <i class="fa-solid fa-chart-pie"></i> ESTADÍSTICAS DE PQRS
-        </div>
+    .summary-icon-total {
+        background: linear-gradient(135deg, #dbeafe, #eff6ff);
+        color: #2563eb;
+    }
 
-        <div class="control-bar">
-            <div class="chip">
-                <i class="fa-solid fa-chart-column text-primary"></i>
-                <select id="chartType">
-                    <option value="bar">Gráfico de barras</option>
-                    <option value="pie">Gráfico circular</option>
-                </select>
+    .summary-icon-proceso {
+        background: linear-gradient(135deg, #ffedd5, #fff7ed);
+        color: #ea580c;
+    }
+
+    .summary-icon-cerradas {
+        background: linear-gradient(135deg, #dcfce7, #f0fdf4);
+        color: #16a34a;
+    }
+
+    .summary-icon-sinasignar {
+        background: linear-gradient(135deg, #f1f5f9, #f8fafc);
+        color: #64748b;
+    }
+
+    .summary-value {
+        font-size: 28px;
+        font-weight: 800;
+        color: var(--text);
+        line-height: 1;
+    }
+
+    .summary-label {
+        font-size: 13px;
+        color: var(--muted);
+        margin-top: 4px;
+    }
+</style>
+
+<div class="grafico-page">
+    <div class="grafico-main-header">
+        <i class="fa-solid fa-chart-pie"></i> Estadisticas de PQRS
+    </div>
+
+    <div class="summary-cards" id="summaryCards">
+        <div class="summary-card">
+            <div class="summary-icon summary-icon-total">
+                <i class="fa-solid fa-clipboard-list"></i>
             </div>
+            <div class="summary-value" id="totalPqrs">0</div>
+            <div class="summary-label">Total PQRS</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon summary-icon-proceso">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="summary-value" id="enProceso">0</div>
+            <div class="summary-label">En Proceso</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon summary-icon-cerradas">
+                <i class="fa-solid fa-circle-check"></i>
+            </div>
+            <div class="summary-value" id="cerradas">0</div>
+            <div class="summary-label">Cerradas</div>
+        </div>
+        <div class="summary-card">
+            <div class="summary-icon summary-icon-sinasignar">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <div class="summary-value" id="sinAsignar">0</div>
+            <div class="summary-label">Sin Asignar</div>
+        </div>
+    </div>
 
-            @if (esAdminLocal && !string.IsNullOrEmpty(municipioSesion))
-            {
-                <div class="chip">
-                    <i class="fa-solid fa-city text-primary"></i>
-                    <span>Municipio actual: <strong>@municipioSesion</strong></span>
-                </div>
-            }
+    <div class="control-bar">
+        <div class="chip">
+            <i class="fa-solid fa-chart-column"></i>
+            <select id="chartType">
+                <option value="bar">Grafico de barras</option>
+                <option value="doughnut">Grafico circular</option>
+            </select>
         </div>
 
-        <div class="charts-grid">
-            <div class="chart-card">
-                <span class="chart-tag">
+        @if (esAdminLocal && !string.IsNullOrEmpty(municipioSesion))
+        {
+            <div class="chip">
+                <i class="fa-solid fa-city"></i>
+                <span>Municipio: <strong>@municipioSesion</strong></span>
+            </div>
+        }
+    </div>
+
+    <div class="charts-grid">
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Por Tipo de PQRS</h3>
+                    <p class="chart-subtitle">Distribucion por clasificacion</p>
+                </div>
+                <span class="chart-tag chart-tag-tipo">
                     <i class="fa-solid fa-list-ul"></i> Tipo
                 </span>
-                <h3>Por Tipo de PQRS</h3>
-                <div class="chart-subtitle">Distribución por clasificación de solicitud</div>
+            </div>
+            <div class="chart-container">
                 <canvas id="chartTipoPqrs"></canvas>
             </div>
+        </div>
 
-            <div class="chart-card">
-                <span class="chart-tag">
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Por Barrio de Afectacion</h3>
+                    <p class="chart-subtitle">Zonas con mayor numero de reportes</p>
+                </div>
+                <span class="chart-tag chart-tag-barrio">
                     <i class="fa-solid fa-location-dot"></i> Barrio
                 </span>
-                <h3>Por Barrio de Afectación</h3>
-                <div class="chart-subtitle">Zonas con mayor número de reportes</div>
+            </div>
+            <div class="chart-container">
                 <canvas id="chartBarrioAfectacion"></canvas>
             </div>
+        </div>
 
-            <div class="chart-card">
-                <span class="chart-tag">
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Por Estado de PQRS</h3>
+                    <p class="chart-subtitle">Sin asignar, en proceso, cerradas</p>
+                </div>
+                <span class="chart-tag chart-tag-estado">
                     <i class="fa-solid fa-circle-dot"></i> Estado
                 </span>
-                <h3>Por Estado de la PQRS</h3>
-                <div class="chart-subtitle">Sin asignar, en proceso, cerradas, etc.</div>
+            </div>
+            <div class="chart-container">
                 <canvas id="chartEstadoPqrs"></canvas>
             </div>
+        </div>
 
-            <div class="chart-card">
-                <span class="chart-tag">
+        <div class="chart-card">
+            <div class="chart-header">
+                <div>
+                    <h3 class="chart-title">Por Fecha de Registro</h3>
+                    <p class="chart-subtitle">Evolucion de PQRS en el tiempo</p>
+                </div>
+                <span class="chart-tag chart-tag-fecha">
                     <i class="fa-solid fa-calendar-day"></i> Fecha
                 </span>
-                <h3>Por Fecha de Registro</h3>
-                <div class="chart-subtitle">Evolución de PQRS en el tiempo</div>
+            </div>
+            <div class="chart-container">
                 <canvas id="chartFechaRegistro"></canvas>
             </div>
         </div>
     </div>
 
-    @section scripts {
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.9.4/Chart.bundle.min.js"></script>
-        <script>
-            // Fuente global un poco más grande
-            Chart.defaults.global.defaultFontFamily = "'Product Sans','Segoe UI',sans-serif";
-            Chart.defaults.global.defaultFontSize = 13;
-            Chart.defaults.global.defaultFontColor = '#0f172a';
+    <div class="button-container">
+        <button type="button" class="btn-excel" id="btnExportExcel">
+            <i class="fa-solid fa-file-excel me-2"></i> Exportar a Excel
+        </button>
+        <a href="@Url.Action("inicio", "Login")" class="btn-back">
+            <i class="fa-solid fa-arrow-left me-2"></i> Atras
+        </a>
+    </div>
+</div>
 
-            // Datos desde el controlador
-            const tipos = @Html.Raw(ViewBag.TiposPqrs ?? "[]");
-            const barrios = @Html.Raw(ViewBag.BarriosAfectacion ?? "[]");
-            const estados = @Html.Raw(ViewBag.EstadosPqrs ?? "[]");
-            const fechas = @Html.Raw(ViewBag.FechasRegistro ?? "[]");
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script>
+    // Datos desde el controlador
+    const tipos = @Html.Raw(ViewBag.TiposPqrs ?? "[]");
+    const barrios = @Html.Raw(ViewBag.BarriosAfectacion ?? "[]");
+    const estados = @Html.Raw(ViewBag.EstadosPqrs ?? "[]");
+    const fechas = @Html.Raw(ViewBag.FechasRegistro ?? "[]");
 
-            const charts = {};
+    // Calcular totales para las tarjetas de resumen
+    function calcularResumen() {
+        let total = 0;
+        let enProceso = 0;
+        let cerradas = 0;
+        let sinAsignar = 0;
 
-            // 🎨 Paletas coherentes por gráfico
-
-            // Tipo de PQRS → azules
-            const paletteTipo = [
-                '#0ea5e9', // sky-500
-                '#38bdf8', // sky-400
-                '#3b82f6', // blue-500
-                '#2563eb', // blue-600
-                '#1d4ed8'  // blue-700
-            ];
-
-            // Barrio → verdes
-            const paletteBarrio = [
-                '#22c55e', // green-500
-                '#4ade80', // green-400
-                '#16a34a', // green-600
-                '#15803d', // green-700
-                '#65a30d'  // lime-600
-            ];
-
-            // Fecha → turquesa / azul / verde (timeline fresca)
-            const paletteFecha = [
-                '#06b6d4', // cyan-500
-                '#0ea5e9', // sky-500
-                '#22c55e', // green-500
-                '#14b8a6', // teal-500
-                '#3b82f6'  // blue-500
-            ];
-
-            // Colores fijos por estado (semántico)
-            const estadoColors = {
-                "Sin asignar": "#64748b", // gris
-                "En proceso": "#f97316",  // naranja
-                "Cerrada": "#22c55e",     // verde
-                "Cerrado": "#22c55e",
-                "Cancelada": "#e11d48",   // rojo
-                "Cancelado": "#e11d48"
-            };
-
-            function getColorsForChart(id, labels) {
-                if (id === 'chartEstadoPqrs') {
-                    // Estados: usamos el mapa semántico
-                    return labels.map(l => estadoColors[l] || '#64748b');
-                }
-
-                let sourcePalette = paletteTipo;
-
-                if (id === 'chartTipoPqrs') {
-                    sourcePalette = paletteTipo;
-                } else if (id === 'chartBarrioAfectacion') {
-                    sourcePalette = paletteBarrio;
-                } else if (id === 'chartFechaRegistro') {
-                    sourcePalette = paletteFecha;
-                }
-
-                const res = [];
-                for (let i = 0; i < labels.length; i++) {
-                    res.push(sourcePalette[i % sourcePalette.length]);
-                }
-                return res;
+        estados.forEach(e => {
+            total += e.Total;
+            const estado = e.Estado.toLowerCase();
+            if (estado.includes('proceso')) {
+                enProceso += e.Total;
+            } else if (estado.includes('cerrad')) {
+                cerradas += e.Total;
+            } else if (estado.includes('sin asignar') || estado.includes('pendiente')) {
+                sinAsignar += e.Total;
             }
+        });
 
-            function drawChart(id, data, labels, type) {
-                if (charts[id]) charts[id].destroy();
+        document.getElementById('totalPqrs').textContent = total;
+        document.getElementById('enProceso').textContent = enProceso;
+        document.getElementById('cerradas').textContent = cerradas;
+        document.getElementById('sinAsignar').textContent = sinAsignar;
+    }
 
-                const ctx = document.getElementById(id).getContext('2d');
-                const colors = getColorsForChart(id, labels);
+    calcularResumen();
 
-                const optionsBase = {
-                    responsive: true,
-                    maintainAspectRatio: false,
+    const charts = {};
+
+    // Paletas de colores profesionales con gradientes
+    const paletteTipo = [
+        '#3b82f6', // blue-500
+        '#06b6d4', // cyan-500
+        '#8b5cf6', // violet-500
+        '#ec4899', // pink-500
+        '#f59e0b', // amber-500
+        '#10b981', // emerald-500
+        '#6366f1'  // indigo-500
+    ];
+
+    const paletteBarrio = [
+        '#10b981', // emerald-500
+        '#14b8a6', // teal-500
+        '#22c55e', // green-500
+        '#84cc16', // lime-500
+        '#06b6d4', // cyan-500
+        '#0ea5e9', // sky-500
+        '#3b82f6'  // blue-500
+    ];
+
+    const paletteFecha = [
+        '#6366f1', // indigo-500
+        '#8b5cf6', // violet-500
+        '#a855f7', // purple-500
+        '#d946ef', // fuchsia-500
+        '#ec4899', // pink-500
+        '#f43f5e', // rose-500
+        '#3b82f6'  // blue-500
+    ];
+
+    // Colores semanticos por estado
+    const estadoColors = {
+        "sin asignar": "#94a3b8",
+        "en proceso": "#f97316",
+        "cerrada": "#22c55e",
+        "cerrado": "#22c55e",
+        "cancelada": "#ef4444",
+        "cancelado": "#ef4444",
+        "resuelto": "#22c55e",
+        "resuelta": "#22c55e",
+        "pendiente": "#64748b"
+    };
+
+    function getColorsForChart(id, labels) {
+        if (id === 'chartEstadoPqrs') {
+            return labels.map(l => {
+                const key = l.toLowerCase();
+                for (const [k, v] of Object.entries(estadoColors)) {
+                    if (key.includes(k)) return v;
+                }
+                return '#64748b';
+            });
+        }
+
+        let palette;
+        switch (id) {
+            case 'chartTipoPqrs':
+                palette = paletteTipo;
+                break;
+            case 'chartBarrioAfectacion':
+                palette = paletteBarrio;
+                break;
+            case 'chartFechaRegistro':
+                palette = paletteFecha;
+                break;
+            default:
+                palette = paletteTipo;
+        }
+
+        return labels.map((_, i) => palette[i % palette.length]);
+    }
+
+    function drawChart(id, data, labels, type) {
+        if (charts[id]) charts[id].destroy();
+
+        const ctx = document.getElementById(id).getContext('2d');
+        const colors = getColorsForChart(id, labels);
+
+        const isBar = type === 'bar';
+
+        const config = {
+            type: isBar ? 'bar' : 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: data,
+                    backgroundColor: colors,
+                    borderColor: isBar ? colors.map(c => c) : '#ffffff',
+                    borderWidth: isBar ? 0 : 3,
+                    borderRadius: isBar ? 8 : 0,
+                    hoverOffset: isBar ? 0 : 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
                     legend: {
+                        display: !isBar,
                         position: 'bottom',
                         labels: {
                             usePointStyle: true,
-                            padding: 18,
-                            fontSize: 12
+                            padding: 16,
+                            font: {
+                                size: 12,
+                                family: "'Segoe UI', sans-serif"
+                            }
                         }
                     },
-                    animation: {
-                        duration: 900,
-                        easing: 'easeOutQuart'
-                    },
-                    tooltips: {
+                    tooltip: {
+                        backgroundColor: '#1e293b',
+                        titleFont: { size: 13, weight: '600' },
+                        bodyFont: { size: 12 },
+                        padding: 12,
+                        cornerRadius: 8,
                         callbacks: {
-                            label: function (tooltipItem, data) {
-                                const dataset = data.datasets[tooltipItem.datasetIndex];
-                                const total = dataset.data.reduce(function (sum, value) {
-                                    return sum + value;
-                                }, 0);
-                                const currentValue = dataset.data[tooltipItem.index] || 0;
-                                const percentage = total > 0
-                                    ? ((currentValue / total) * 100).toFixed(1)
-                                    : 0;
-                                const label = data.labels[tooltipItem.index] || '';
-                                return label + ': ' + currentValue + ' (' + percentage + '%)';
+                            label: function (context) {
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const value = context.raw;
+                                const pct = total > 0 ? ((value / total) * 100).toFixed(1) : 0;
+                                return `${context.label}: ${value} (${pct}%)`;
                             }
                         }
                     }
-                };
-
-                if (type === 'bar') {
-                    optionsBase.scales = {
-                        xAxes: [{
-                            ticks: {
-                                autoSkip: false,
-                                maxRotation: 45,
-                                minRotation: 0
-                            },
-                            gridLines: {
-                                display: false
-                            }
-                        }],
-                        yAxes: [{
-                            ticks: {
-                                beginAtZero: true,
-                                stepSize: 1
-                            },
-                            gridLines: {
-                                color: 'rgba(148,163,184,0.25)'
-                            }
-                        }]
-                    };
-                } else {
-                    optionsBase.scales = {};
-                }
-
-                charts[id] = new Chart(ctx, {
-                    type: type === 'pie' ? 'pie' : 'bar',
-                    data: {
-                        labels: labels,
-                        datasets: [{
-                            data: data,
-                            backgroundColor: colors,
-                            borderColor: type === 'bar' ? colors : '#ffffff',
-                            borderWidth: type === 'bar' ? 1 : 2,
-                            hoverBorderWidth: 2,
-                            hoverBorderColor: '#0f172a'
-                        }]
+                },
+                scales: isBar ? {
+                    x: {
+                        grid: { display: false },
+                        ticks: {
+                            font: { size: 11 },
+                            maxRotation: 45
+                        }
                     },
-                    options: optionsBase
-                });
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(148,163,184,0.2)' },
+                        ticks: {
+                            font: { size: 11 },
+                            stepSize: 1
+                        }
+                    }
+                } : {},
+                animation: {
+                    duration: 800,
+                    easing: 'easeOutQuart'
+                }
             }
+        };
 
-            function renderAll(type) {
-                drawChart(
-                    'chartTipoPqrs',
-                    tipos.map(x => x.Total),
-                    tipos.map(x => x.TipoPqrs),
-                    type
-                );
-
-                drawChart(
-                    'chartBarrioAfectacion',
-                    barrios.map(x => x.Total),
-                    barrios.map(x => x.BarrioAfectacion),
-                    type
-                );
-
-                drawChart(
-                    'chartEstadoPqrs',
-                    estados.map(x => x.Total),
-                    estados.map(x => x.Estado),
-                    type
-                );
-
-                drawChart(
-                    'chartFechaRegistro',
-                    fechas.map(x => x.Total),
-                    fechas.map(x => x.Fecha),
-                    type
-                );
-            }
-
-            document.addEventListener('DOMContentLoaded', function () {
-                renderAll('bar');
-
-                document.getElementById('chartType')
-                    .addEventListener('change', function () {
-                        renderAll(this.value);
-                    });
-            });
-        </script>
+        charts[id] = new Chart(ctx, config);
     }
-</body>
-</html>
+
+    function renderAll(type) {
+        drawChart('chartTipoPqrs', tipos.map(x => x.Total), tipos.map(x => x.TipoPqrs), type);
+        drawChart('chartBarrioAfectacion', barrios.map(x => x.Total), barrios.map(x => x.BarrioAfectacion), type);
+        drawChart('chartEstadoPqrs', estados.map(x => x.Total), estados.map(x => x.Estado), type);
+        drawChart('chartFechaRegistro', fechas.map(x => x.Total), fechas.map(x => x.Fecha), type);
+    }
+
+    document.addEventListener('DOMContentLoaded', function () {
+        renderAll('bar');
+
+        document.getElementById('chartType').addEventListener('change', function () {
+            renderAll(this.value);
+        });
+
+        // Exportar a Excel
+        document.getElementById('btnExportExcel').addEventListener('click', function () {
+            const wb = XLSX.utils.book_new();
+
+            // Hoja 1: Por Tipo de PQRS
+            const wsTipo = XLSX.utils.json_to_sheet(tipos.map(x => ({
+                'Tipo de PQRS': x.TipoPqrs,
+                'Cantidad': x.Total
+            })));
+            XLSX.utils.book_append_sheet(wb, wsTipo, 'Por Tipo');
+
+            // Hoja 2: Por Barrio
+            const wsBarrio = XLSX.utils.json_to_sheet(barrios.map(x => ({
+                'Barrio de Afectacion': x.BarrioAfectacion,
+                'Cantidad': x.Total
+            })));
+            XLSX.utils.book_append_sheet(wb, wsBarrio, 'Por Barrio');
+
+            // Hoja 3: Por Estado
+            const wsEstado = XLSX.utils.json_to_sheet(estados.map(x => ({
+                'Estado': x.Estado,
+                'Cantidad': x.Total
+            })));
+            XLSX.utils.book_append_sheet(wb, wsEstado, 'Por Estado');
+
+            // Hoja 4: Por Fecha
+            const wsFecha = XLSX.utils.json_to_sheet(fechas.map(x => ({
+                'Fecha de Registro': x.Fecha,
+                'Cantidad': x.Total
+            })));
+            XLSX.utils.book_append_sheet(wb, wsFecha, 'Por Fecha');
+
+            // Hoja 5: Resumen
+            const resumen = [
+                { 'Indicador': 'Total PQRS', 'Valor': document.getElementById('totalPqrs').textContent },
+                { 'Indicador': 'En Proceso', 'Valor': document.getElementById('enProceso').textContent },
+                { 'Indicador': 'Cerradas', 'Valor': document.getElementById('cerradas').textContent },
+                { 'Indicador': 'Sin Asignar', 'Valor': document.getElementById('sinAsignar').textContent }
+            ];
+            const wsResumen = XLSX.utils.json_to_sheet(resumen);
+            XLSX.utils.book_append_sheet(wb, wsResumen, 'Resumen');
+
+            // Descargar
+            const fecha = new Date().toISOString().slice(0, 10);
+            XLSX.writeFile(wb, `Estadisticas_PQRS_${fecha}.xlsx`);
+        });
+    });
+</script>

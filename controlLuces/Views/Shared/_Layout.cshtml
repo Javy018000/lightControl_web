@@ -212,6 +212,24 @@
                 @* NUEVO: gráficos PQRS para Admin *@
                 <li><a href='@Url.Action("GraficoPqrs", "pqrs", new { area = "" })'>Gráficos PQRS</a></li>
             </ul>
+
+            @* RETILAP: Consumos y Facturación - Solo Admin *@
+            <a href="#consumosAdm" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                <i class="fas fa-file-invoice-dollar"></i> Consumos RETILAP
+            </a>
+            <ul class="collapse list-unstyled" id="consumosAdm">
+                <li><a href='@Url.Action("VerConsumos", "Archivo", new { area = "" })'>Ver Consumos</a></li>
+                <li><a href='@Url.Action("NuevoConsumo", "Archivo", new { area = "" })'>Nuevo Registro</a></li>
+            </ul>
+
+            @* Licencias - Solo Admin Global *@
+            <a href="#licenciasAdm" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                <i class="fas fa-key"></i> Licencias
+            </a>
+            <ul class="collapse list-unstyled" id="licenciasAdm">
+                <li><a href='@Url.Action("Index", "Licencias", new { area = "" })'>Gestionar Licencias</a></li>
+                <li><a href='@Url.Action("Crear", "Licencias", new { area = "" })'>Nueva Licencia</a></li>
+            </ul>
         }
     }
 
@@ -292,6 +310,23 @@
         </a>
         <ul class="collapse list-unstyled" id="inventariosLocal">
             <li><a href='@Url.Action("verElementos", "Inventario", new { area = "" })'>Ver Items</a></li>
+        </ul>
+
+        @* RETILAP: Consumos y Facturación - Admin Local *@
+        <a href="#consumosLocal" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-file-invoice-dollar"></i> Consumos RETILAP
+        </a>
+        <ul class="collapse list-unstyled" id="consumosLocal">
+            <li><a href='@Url.Action("VerConsumos", "Archivo", new { area = "" })'>Ver Consumos</a></li>
+            <li><a href='@Url.Action("NuevoConsumo", "Archivo", new { area = "" })'>Nuevo Registro</a></li>
+        </ul>
+
+        @* Licencias - Admin Local solo ve su licencia *@
+        <a href="#licenciasLocal" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-key"></i> Mi Licencia
+        </a>
+        <ul class="collapse list-unstyled" id="licenciasLocal">
+            <li><a href='@Url.Action("Index", "Licencias", new { area = "" })'>Ver Mi Licencia</a></li>
         </ul>
     }
 

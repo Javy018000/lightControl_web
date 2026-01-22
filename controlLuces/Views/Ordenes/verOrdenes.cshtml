@@ -1,16 +1,20 @@
 ﻿@model List<controlLuces.Models.OrdenModel>
+@using controlLuces.Models
 
 @{
     ViewBag.Title = "verOrdenes";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    Response.Charset = "UTF-8";
+    Response.ContentEncoding = System.Text.Encoding.UTF8;
 
-    var usuario = Session["Usuario"] as controlLuces.Models.UsuarioModel;
+    var usuario = Session["Usuario"] as UsuarioModel;
     var muni = (Session["Municipio"] as string) ?? usuario?.Municipio;
     var k = (muni ?? "").Trim().ToLower().Replace("í", "i");
     var prefijo = k == "madrid" ? "MA" : k == "chia" ? "CH" : "CH";
     var year = DateTime.Now.Year;
 
     bool esAdminLocal = ViewBag.EsAdminLocal != null && (bool)ViewBag.EsAdminLocal;
+    List<PqrsModel> pqrsList = ViewBag.PqrsList as List<PqrsModel> ?? new List<PqrsModel>();
 
     var urlAtras = esAdminLocal
         ? Url.Action("inicio_local", "Home")
@@ -20,7 +24,8 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Ver todas las órdenes de servicio</title>
 
@@ -113,42 +118,79 @@
             font-weight: 700;
         }
 
-        .footer-actions {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            gap: 14px;
-            margin-top: 22px;
-            flex-wrap: wrap;
+        .back-wrapper {
+            margin-top: 24px;
+            text-align: center;
         }
 
         .btn-export {
-            background: #28a745;
-            color: #fff;
-            border: none;
-            padding: 10px 16px;
-            border-radius: 12px;
+            padding: 10px 24px;
+            border-radius: 999px;
             font-weight: 700;
-            box-shadow: 0 10px 18px rgba(16,185,129,.22);
+            border: none;
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+            color: #fff;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 10px 22px rgba(220,38,38,.34);
+            margin-right: 10px;
+            transition: filter 0.15s, transform 0.15s;
+        }
+
+        .btn-export:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+
+        .btn-excel {
+            padding: 10px 24px;
+            border-radius: 999px;
+            font-weight: 700;
+            border: none;
+            background: linear-gradient(135deg, #16a34a, #15803d);
+            color: #fff;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 10px 22px rgba(22,163,74,.34);
+            margin-right: 10px;
+            transition: filter 0.15s, transform 0.15s;
+        }
+
+        .btn-excel:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            color: #fff;
         }
 
         .btn-back {
-            background: #dc3545;
+            padding: 8px 24px;
+            border-radius: 999px;
+            font-weight: 600;
             border: none;
+            background: linear-gradient(135deg, #fb7185, #ef4444);
             color: #fff;
-            padding: 10px 16px;
-            border-radius: 12px;
-            font-weight: 700;
+            text-decoration: none;
+            display: inline-block;
+            box-shadow: 0 10px 22px rgba(248,113,113,.34);
+            transition: filter 0.15s, transform 0.15s;
+        }
+
+        .btn-back:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            color: #fff;
         }
     </style>
 </head>
 <body>
     <div class="container-fluid px-2 px-md-3">
         <div class="main-header">
-            <i class="fas fa-hard-hat me-2"></i> Órdenes de Servicio
+            <i class="fas fa-hard-hat me-2"></i> Órdenes de Servicio Activas
         </div>
 
         <div class="cards-grid">
+            @* ========== MOSTRAR ÓRDENES DE SERVICIO ========== *@
             @foreach (var Orden in Model.OrderBy(o => o.FechaARealizar))
             {
                 <div class="card">
@@ -160,6 +202,7 @@
                         )
                     </div>
                     <div class="card-body">
+                        <p><strong>Estado:</strong> <span class="badge bg-success">@Orden.EstadoNombre</span></p>
                         <p><strong>Fecha:</strong> @Orden.FechaARealizar.ToString("dd/MM/yyyy")</p>
                         <p><strong>Descripción:</strong> @Orden.ProblemaRelacionado</p>
                         <p><strong>PQRS Relacionada:</strong> @Orden.ElementoRelacionado</p>
@@ -170,26 +213,46 @@
                            class="btn btn-primary btn-sm">
                             <i class="fas fa-info-circle"></i> Ver info
                         </a>
-                        <button class="btn btn-danger btn-sm delete-orden"
-                                data-id="@Orden.IdOrden"
-                                data-idpqrs="@Orden.Idpqrs">
-                            <i class="fas fa-trash-alt"></i> Eliminar
-                        </button>
+                    </div>
+                </div>
+            }
+
+            @* ========== MOSTRAR PQRS (ESTADO 1 Y 2) ========== *@
+            @foreach (var pqrs in pqrsList)
+            {
+                var codigoPqrs = prefijo + year + ":" + pqrs.Idpqrs;
+                <div class="card">
+                    <div class="card-header">
+                        @codigoPqrs
+                    </div>
+                    <div class="card-body">
+                        <p><strong>Estado:</strong> @pqrs.EstadoNombre</p>
+                        <p><strong>Fecha:</strong> @pqrs.FechaRegistro</p>
+                        <p><strong>Tipo:</strong> @pqrs.Tipopqrs</p>
+                        <p><strong>Canal:</strong> @pqrs.Canal</p>
+                        <p><strong>Dirección:</strong> @pqrs.DireccionAfectacion</p>
+                        <p><strong>Descripción:</strong> @pqrs.DescripcionAfectacion</p>
+                    </div>
+                    <div class="card-footer">
+                        <a href="@Url.Action("VerInfo", "pqrs", new { id = pqrs.Idpqrs })"
+                           class="btn btn-primary btn-sm">
+                            <i class="fas fa-info-circle"></i> Ver info
+                        </a>
                     </div>
                 </div>
             }
         </div>
 
-        <div class="footer-actions">
+        <div class="back-wrapper">
+            <a href="@Url.Action("DescargarOrdenesExcel", "Ordenes")" class="btn-excel">
+                <i class="fas fa-file-excel me-1"></i> Exportar a Excel
+            </a>
             <a href="@Url.Action("DescargarOrdenesPDF", "Ordenes")" class="btn-export">
                 <i class="fas fa-file-pdf me-1"></i> Descargar PDF
             </a>
-            <div class="footer-actions">
-                <a href="@Url.Action("inicio","login")" class="btn-back">
-                    <i class="fas fa-arrow-left me-1"></i> Atrás
-                </a>
-            </div>
-        </div>
+            <a href="@Url.Action("inicio","login")" class="btn-back">
+                <i class="fas fa-arrow-left me-1"></i> Atrás
+            </a>
         </div>
     </div>
 

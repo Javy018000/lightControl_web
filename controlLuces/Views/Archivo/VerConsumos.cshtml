@@ -1,12 +1,13 @@
 @model List<controlLuces.Models.ArchivoModel>
 
 @{
-    ViewBag.Title = "Archivos cargados";
+    ViewBag.Title = "Archivos de Consumos RETILAP";
     Layout = "~/Views/Shared/_Layout.cshtml";
 
     string mensajeExito = ViewBag.MensajeExito as string;
     string busqueda = ViewBag.Busqueda as string;
     string tipoSeleccionado = ViewBag.TipoSeleccionado as string ?? "Todos";
+    bool esAdmin = ViewBag.EsAdmin ?? false;
 }
 
 <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
@@ -47,9 +48,7 @@
         margin-bottom: 18px;
     }
 
-        .archivo-main-header i {
-            margin-right: 8px;
-        }
+    .archivo-main-header i { margin-right: 8px; }
 
     .archivo-subtitle {
         font-size: 14px;
@@ -84,11 +83,11 @@
         transition: filter 0.15s, transform 0.15s;
     }
 
-        .btn-buscar:hover {
-            filter: brightness(1.05);
-            transform: translateY(-1px);
-            color: #fff;
-        }
+    .btn-buscar:hover {
+        filter: brightness(1.05);
+        transform: translateY(-1px);
+        color: #fff;
+    }
 
     .btn-limpiar-filtro {
         padding: 10px 24px;
@@ -102,11 +101,11 @@
         transition: filter 0.15s, transform 0.15s;
     }
 
-        .btn-limpiar-filtro:hover {
-            filter: brightness(1.05);
-            transform: translateY(-1px);
-            color: #fff;
-        }
+    .btn-limpiar-filtro:hover {
+        filter: brightness(1.05);
+        transform: translateY(-1px);
+        color: #fff;
+    }
 
     .btn-cargar {
         padding: 10px 24px;
@@ -120,11 +119,11 @@
         transition: filter 0.15s, transform 0.15s;
     }
 
-        .btn-cargar:hover {
-            filter: brightness(1.05);
-            transform: translateY(-1px);
-            color: #fff;
-        }
+    .btn-cargar:hover {
+        filter: brightness(1.05);
+        transform: translateY(-1px);
+        color: #fff;
+    }
 
     .btn-back {
         padding: 10px 24px;
@@ -138,206 +137,58 @@
         transition: filter 0.15s, transform 0.15s;
     }
 
-        .btn-back:hover {
-            filter: brightness(1.05);
-            transform: translateY(-1px);
-            color: #fff;
-        }
-
-    .table-archivos {
-        border-radius: 12px;
-        overflow: hidden;
+    .btn-back:hover {
+        filter: brightness(1.05);
+        transform: translateY(-1px);
+        color: #fff;
     }
 
-        .table-archivos thead {
-            background: linear-gradient(135deg, var(--c1), var(--c2));
-            color: #fff;
-        }
+    .table-archivos { border-radius: 12px; overflow: hidden; }
+    .table-archivos thead { background: linear-gradient(135deg, var(--c1), var(--c2)); color: #fff; }
+    .table-archivos thead th { font-weight: 600; padding: 14px 12px; border: none; }
+    .table-archivos tbody tr { transition: background 0.15s; }
+    .table-archivos tbody tr:hover { background: #f1f5f9; }
+    .table-archivos tbody td { padding: 12px; vertical-align: middle; border-bottom: 1px solid #e2e8f0; }
 
-            .table-archivos thead th {
-                font-weight: 600;
-                padding: 14px 12px;
-                border: none;
-            }
+    .file-icon { width: 40px; height: 40px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; }
+    .file-icon-pdf { background: #fef2f2; color: #dc2626; }
+    .file-icon-word { background: #eff6ff; color: #2563eb; }
+    .file-icon-excel { background: #f0fdf4; color: #16a34a; }
+    .file-icon-imagen { background: #fefce8; color: #ca8a04; }
+    .file-icon-otro { background: #f1f5f9; color: #64748b; }
 
-        .table-archivos tbody tr {
-            transition: background 0.15s;
-        }
+    .file-name { font-weight: 600; color: var(--text); word-break: break-all; }
+    .file-date { font-size: 13px; color: var(--muted); }
 
-            .table-archivos tbody tr:hover {
-                background: #f1f5f9;
-            }
+    .tipo-badge { padding: 4px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .tipo-badge-pdf { background: #fef2f2; color: #dc2626; }
+    .tipo-badge-word { background: #eff6ff; color: #2563eb; }
+    .tipo-badge-excel { background: #f0fdf4; color: #16a34a; }
+    .tipo-badge-imagen { background: #fefce8; color: #ca8a04; }
+    .tipo-badge-otro { background: #f1f5f9; color: #64748b; }
 
-        .table-archivos tbody td {
-            padding: 12px;
-            vertical-align: middle;
-            border-bottom: 1px solid #e2e8f0;
-        }
+    .btn-action { padding: 6px 12px; border-radius: 8px; font-size: 13px; font-weight: 600; border: none; transition: all 0.15s; }
+    .btn-ver { background: #eff6ff; color: #2563eb; }
+    .btn-ver:hover { background: #dbeafe; color: #1d4ed8; }
+    .btn-descargar { background: #f0fdf4; color: #16a34a; }
+    .btn-descargar:hover { background: #dcfce7; color: #15803d; }
+    .btn-eliminar { background: #fef2f2; color: #dc2626; }
+    .btn-eliminar:hover { background: #fee2e2; color: #b91c1c; }
 
-    .file-icon {
-        width: 40px;
-        height: 40px;
-        border-radius: 10px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 18px;
-    }
+    .empty-state { text-align: center; padding: 60px 20px; }
+    .empty-state i { font-size: 4rem; color: #cbd5e1; margin-bottom: 16px; }
+    .empty-state h5 { color: var(--text); margin-bottom: 8px; }
+    .empty-state p { color: var(--muted); margin-bottom: 20px; }
 
-    .file-icon-pdf {
-        background: #fef2f2;
-        color: #dc2626;
-    }
-
-    .file-icon-word {
-        background: #eff6ff;
-        color: #2563eb;
-    }
-
-    .file-icon-excel {
-        background: #f0fdf4;
-        color: #16a34a;
-    }
-
-    .file-icon-imagen {
-        background: #fefce8;
-        color: #ca8a04;
-    }
-
-    .file-icon-otro {
-        background: #f1f5f9;
-        color: #64748b;
-    }
-
-    .file-name {
-        font-weight: 600;
-        color: var(--text);
-        word-break: break-all;
-    }
-
-    .file-date {
-        font-size: 13px;
-        color: var(--muted);
-    }
-
-    .tipo-badge {
-        padding: 4px 12px;
-        border-radius: 999px;
-        font-size: 12px;
-        font-weight: 600;
-    }
-
-    .tipo-badge-pdf {
-        background: #fef2f2;
-        color: #dc2626;
-    }
-
-    .tipo-badge-word {
-        background: #eff6ff;
-        color: #2563eb;
-    }
-
-    .tipo-badge-excel {
-        background: #f0fdf4;
-        color: #16a34a;
-    }
-
-    .tipo-badge-imagen {
-        background: #fefce8;
-        color: #ca8a04;
-    }
-
-    .tipo-badge-otro {
-        background: #f1f5f9;
-        color: #64748b;
-    }
-
-    .btn-action {
-        padding: 6px 12px;
-        border-radius: 8px;
-        font-size: 13px;
-        font-weight: 600;
-        border: none;
-        transition: all 0.15s;
-    }
-
-    .btn-ver {
-        background: #eff6ff;
-        color: #2563eb;
-    }
-
-        .btn-ver:hover {
-            background: #dbeafe;
-            color: #1d4ed8;
-        }
-
-    .btn-descargar {
-        background: #f0fdf4;
-        color: #16a34a;
-    }
-
-        .btn-descargar:hover {
-            background: #dcfce7;
-            color: #15803d;
-        }
-
-    .btn-eliminar {
-        background: #fef2f2;
-        color: #dc2626;
-    }
-
-        .btn-eliminar:hover {
-            background: #fee2e2;
-            color: #b91c1c;
-        }
-
-    .empty-state {
-        text-align: center;
-        padding: 60px 20px;
-    }
-
-        .empty-state i {
-            font-size: 4rem;
-            color: #cbd5e1;
-            margin-bottom: 16px;
-        }
-
-        .empty-state h5 {
-            color: var(--text);
-            margin-bottom: 8px;
-        }
-
-        .empty-state p {
-            color: var(--muted);
-            margin-bottom: 20px;
-        }
-
-    .button-container {
-        text-align: center;
-        margin-top: 24px;
-        display: flex;
-        justify-content: center;
-        gap: 12px;
-        flex-wrap: wrap;
-    }
-
-    .total-archivos {
-        background: #f1f5f9;
-        padding: 8px 16px;
-        border-radius: 999px;
-        font-size: 14px;
-        color: var(--muted);
-    }
-
-        .total-archivos strong {
-            color: var(--text);
-        }
+    .button-container { text-align: center; margin-top: 24px; display: flex; justify-content: center; gap: 12px; flex-wrap: wrap; }
+    .total-archivos { background: #f1f5f9; padding: 8px 16px; border-radius: 999px; font-size: 14px; color: var(--muted); }
+    .total-archivos strong { color: var(--text); }
 </style>
 
 <div class="archivo-page">
     <div class="archivo-main-header">
-        <i class="fa-solid fa-folder-open"></i> Archivos Cargados
-        <div class="archivo-subtitle">Gestiona y visualiza todos los archivos del sistema</div>
+        <i class="fa-solid fa-file-invoice-dollar"></i> Archivos de Consumos RETILAP
+        <div class="archivo-subtitle">Gestiona los archivos de consumo y facturacion del alumbrado publico</div>
     </div>
 
     <div class="archivo-card">
@@ -350,8 +201,24 @@
             </div>
         }
 
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger mb-3">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>
+                @ViewBag.Error
+            </div>
+        }
+
+        @if (ViewBag.TablaNoExiste == true)
+        {
+            <div class="alert alert-warning mb-3">
+                <i class="fa-solid fa-database me-1"></i>
+                La tabla de archivos de consumos no existe. Contacte al administrador para crearla.
+            </div>
+        }
+
         <div class="search-section">
-            <form method="get" action="@Url.Action("VerArchivo", "Archivo")" class="row g-3 align-items-end">
+            <form method="get" action="@Url.Action("VerConsumos", "Archivo")" class="row g-3 align-items-end">
                 <div class="col-md-5">
                     <label class="form-label fw-semibold">
                         <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar por nombre
@@ -376,7 +243,7 @@
                         <button type="submit" class="btn-buscar">
                             <i class="fa-solid fa-magnifying-glass me-1"></i> Buscar
                         </button>
-                        <a href="@Url.Action("VerArchivo", "Archivo")" class="btn-limpiar-filtro">
+                        <a href="@Url.Action("VerConsumos", "Archivo")" class="btn-limpiar-filtro">
                             <i class="fa-solid fa-rotate-left me-1"></i> Limpiar
                         </a>
                     </div>
@@ -384,15 +251,18 @@
             </form>
         </div>
 
-        @if (Model == null || !Model.Any())
+        @if (Model == null || Model.Count == 0)
         {
             <div class="empty-state">
                 <i class="fa-solid fa-folder-open"></i>
                 <h5>No hay archivos</h5>
-                <p>No se encontraron archivos con los criterios de busqueda.</p>
-                <a href="@Url.Action("NuevoArchivo", "Archivo")" class="btn-cargar">
-                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Cargar primer archivo
-                </a>
+                <p>No se encontraron archivos de consumos con los criterios de busqueda.</p>
+                @if (esAdmin)
+                {
+                    <a href="@Url.Action("NuevoConsumo", "Archivo")" class="btn-cargar">
+                        <i class="fa-solid fa-cloud-arrow-up me-1"></i> Cargar primer archivo
+                    </a>
+                }
             </div>
         }
         else
@@ -422,30 +292,10 @@
                             var iconName = "fa-file";
                             var badgeClass = "tipo-badge-otro";
 
-                            if (archivo.TipoArchivo == "PDF")
-                            {
-                                iconClass = "file-icon-pdf";
-                                iconName = "fa-file-pdf";
-                                badgeClass = "tipo-badge-pdf";
-                            }
-                            else if (archivo.TipoArchivo == "Word")
-                            {
-                                iconClass = "file-icon-word";
-                                iconName = "fa-file-word";
-                                badgeClass = "tipo-badge-word";
-                            }
-                            else if (archivo.TipoArchivo == "Excel")
-                            {
-                                iconClass = "file-icon-excel";
-                                iconName = "fa-file-excel";
-                                badgeClass = "tipo-badge-excel";
-                            }
-                            else if (archivo.TipoArchivo == "Imagen")
-                            {
-                                iconClass = "file-icon-imagen";
-                                iconName = "fa-image";
-                                badgeClass = "tipo-badge-imagen";
-                            }
+                            if (archivo.TipoArchivo == "PDF") { iconClass = "file-icon-pdf"; iconName = "fa-file-pdf"; badgeClass = "tipo-badge-pdf"; }
+                            else if (archivo.TipoArchivo == "Word") { iconClass = "file-icon-word"; iconName = "fa-file-word"; badgeClass = "tipo-badge-word"; }
+                            else if (archivo.TipoArchivo == "Excel") { iconClass = "file-icon-excel"; iconName = "fa-file-excel"; badgeClass = "tipo-badge-excel"; }
+                            else if (archivo.TipoArchivo == "Imagen") { iconClass = "file-icon-imagen"; iconName = "fa-image"; badgeClass = "tipo-badge-imagen"; }
 
                             <tr>
                                 <td>
@@ -466,18 +316,21 @@
                                 </td>
                                 <td class="text-center">
                                     <div class="d-flex gap-1 justify-content-center">
-                                        <a href="@Url.Action("MostrarArchivo", "Archivo", new { id = archivo.Id })"
+                                        <a href="@Url.Action("MostrarConsumo", "Archivo", new { id = archivo.Id })"
                                            class="btn-action btn-ver" target="_blank" title="Ver archivo">
                                             <i class="fa-solid fa-eye"></i>
                                         </a>
-                                        <a href="@Url.Action("DescargarArchivo", "Archivo", new { id = archivo.Id })"
+                                        <a href="@Url.Action("DescargarConsumo", "Archivo", new { id = archivo.Id })"
                                            class="btn-action btn-descargar" title="Descargar">
                                             <i class="fa-solid fa-download"></i>
                                         </a>
-                                        <button type="button" class="btn-action btn-eliminar btn-delete"
-                                                data-id="@archivo.Id" data-nombre="@archivo.NombreArchivo" title="Eliminar">
-                                            <i class="fa-solid fa-trash-alt"></i>
-                                        </button>
+                                        @if (esAdmin)
+                                        {
+                                            <button type="button" class="btn-action btn-eliminar btn-delete"
+                                                    data-id="@archivo.Id" data-nombre="@archivo.NombreArchivo" title="Eliminar">
+                                                <i class="fa-solid fa-trash-alt"></i>
+                                            </button>
+                                        }
                                     </div>
                                 </td>
                             </tr>
@@ -488,9 +341,12 @@
         }
 
         <div class="button-container">
-            <a href="@Url.Action("NuevoArchivo", "Archivo")" class="btn-cargar">
-                <i class="fa-solid fa-cloud-arrow-up me-1"></i> Cargar Archivo
-            </a>
+            @if (esAdmin)
+            {
+                <a href="@Url.Action("NuevoConsumo", "Archivo")" class="btn-cargar">
+                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Cargar Archivo
+                </a>
+            }
             <a href="@Url.Action("inicio", "Login")" class="btn-back">
                 <i class="fa-solid fa-arrow-left me-1"></i> Atras
             </a>
@@ -518,7 +374,7 @@
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.ajax({
-                        url: '@Url.Action("EliminarArchivo", "Archivo")',
+                        url: '@Url.Action("EliminarConsumo", "Archivo")',
                         type: 'POST',
                         data: { id: id },
                         success: function (response) {

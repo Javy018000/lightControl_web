@@ -3,6 +3,8 @@
 @{
     ViewBag.Title = "PQRS sin asignar";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    Response.Charset = "UTF-8";
+    Response.ContentEncoding = System.Text.Encoding.UTF8;
 
     // Permisos para mostrar el botón "Crear Orden"
     var usuario = Session["Usuario"] as UsuarioModel;
@@ -22,10 +24,24 @@
     var year = DateTime.Now.Year;
 }
 
+@functions {
+    string ObtenerTextoEstado(int estado)
+    {
+        switch (estado)
+        {
+            case 1: return "Sin asignar";
+            case 2: return "En proceso";
+            case 3: return "Terminada";
+            default: return "Desconocido";
+        }
+    }
+}
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>PQRS sin asignar</title>
 
@@ -109,6 +125,32 @@
             .pqrs-card-body strong {
                 color: #1e293b;
             }
+
+        /* Badge de estado */
+        .estado-badge {
+            display: inline-block;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.3px;
+        }
+
+        .estado-sin-asignar {
+            background: linear-gradient(135deg, #fbbf24, #f59e0b);
+            color: #fff;
+        }
+
+        .estado-en-proceso {
+            background: linear-gradient(135deg, #3b82f6, #2563eb);
+            color: #fff;
+        }
+
+        .estado-terminada {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            color: #fff;
+        }
 
         .pqrs-card-footer {
             padding: 10px 16px 14px;
@@ -197,7 +239,7 @@
             }
 
         @@media (max-width: 576px) {
-            .pqrs-card {
+             .pqrs-card {
                 width: 100%;
             }
         }
@@ -214,12 +256,18 @@
             {
                 foreach (var pqrs in Model)
                 {
+                    var textoEstado = ObtenerTextoEstado(pqrs.Estado);
+                    var claseEstado = pqrs.Estado == 1 ? "estado-sin-asignar" :
+                                      pqrs.Estado == 2 ? "estado-en-proceso" :
+                                      "estado-terminada";
+
                     <div class="pqrs-card">
                         <div class="pqrs-card-header">
                             @pqrs.Consecutivo
                         </div>
 
                         <div class="pqrs-card-body">
+                            <p><strong>Estado:</strong> <span class="estado-badge @claseEstado">@textoEstado</span></p>
                             <p><strong>Fecha:</strong> @pqrs.FechaRegistro</p>
                             <p><strong>Tipo:</strong> @pqrs.Tipopqrs</p>
                             <p><strong>Canal:</strong> @pqrs.Canal</p>

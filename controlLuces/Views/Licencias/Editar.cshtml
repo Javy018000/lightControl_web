@@ -1,0 +1,236 @@
+@model controlLuces.Models.LicenciaModel
+@{
+    ViewBag.Title = "Editar Licencia";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+    bool esAdminGlobal = ViewBag.EsAdminGlobal == true;
+    var modulosActuales = Model.ListaModulos ?? new List<string>();
+}
+
+<style>
+    .form-container { padding: 20px; width: 100%; }
+    .main-header { background: linear-gradient(135deg, #0ea5e9, #3b82f6); color: #fff; border-radius: 14px; padding: 18px 25px; box-shadow: 0 10px 24px rgba(2, 8, 23, 0.12); font-size: 24px; font-weight: 800; text-align: center; margin-bottom: 25px; text-transform: uppercase; letter-spacing: .6px; }
+    .main-header i { margin-right: 8px; }
+    .form-card { background: #fff; border-radius: 20px; padding: 40px; box-shadow: 0 4px 20px rgba(0,0,0,0.1); }
+    .clave-display { background: #f1f5f9; padding: 12px 20px; border-radius: 12px; font-family: monospace; font-size: 14px; text-align: center; margin-bottom: 30px; }
+    .form-section { margin-bottom: 30px; }
+    .section-title { font-size: 16px; font-weight: 600; color: #6366f1; margin-bottom: 15px; padding-bottom: 8px; border-bottom: 2px solid #e2e8f0; }
+    .form-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .form-group { margin-bottom: 20px; }
+    .form-group label { display: block; margin-bottom: 8px; font-weight: 600; color: #475569; font-size: 14px; }
+    .form-control { width: 100%; padding: 12px 16px; border: 2px solid #e2e8f0; border-radius: 12px; font-size: 16px; transition: border-color 0.2s; }
+    .form-control:focus { outline: none; border-color: #6366f1; }
+    .form-control:disabled { background: #f1f5f9; color: #64748b; }
+    textarea.form-control { min-height: 100px; resize: vertical; }
+    .checkbox-group { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; }
+    .checkbox-item { display: flex; align-items: center; padding: 10px; background: #f8fafc; border-radius: 8px; }
+    .checkbox-item input { margin-right: 10px; width: 18px; height: 18px; }
+    .checkbox-item label { margin: 0; font-weight: 500; cursor: pointer; }
+    .btn-group { display: flex; gap: 15px; justify-content: center; margin-top: 30px; }
+    .btn-guardar { padding: 14px 40px; border-radius: 999px; font-weight: 600; font-size: 16px; border: none; background: linear-gradient(135deg, #22c55e, #16a34a); color: #fff; cursor: pointer; box-shadow: 0 10px 22px rgba(34,197,94,.34); transition: all 0.2s; }
+    .btn-guardar:hover { filter: brightness(1.05); transform: translateY(-1px); }
+    .btn-cancelar { padding: 14px 40px; border-radius: 999px; font-weight: 600; font-size: 16px; border: none; background: linear-gradient(135deg, #64748b, #475569); color: #fff; text-decoration: none; transition: all 0.2s; }
+    .btn-cancelar:hover { filter: brightness(1.1); text-decoration: none; color: #fff; }
+    .error-message { background: #fee2e2; color: #991b1b; padding: 16px; border-radius: 12px; margin-bottom: 20px; }
+    .info-row { display: flex; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #f1f5f9; }
+    .info-label { color: #64748b; }
+    .info-value { font-weight: 600; color: #1e293b; }
+    .modulos-texto { color: #64748b; font-size: 14px; background: #f8fafc; padding: 12px; border-radius: 8px; }
+</style>
+
+<div class="form-container">
+    <div class="main-header">
+        <i class="fas fa-edit"></i> Editar Licencia - @Model.Municipio
+    </div>
+
+    <div class="form-card">
+        <div class="clave-display">
+            <strong>Clave:</strong> @Model.ClaveLicencia
+        </div>
+
+        @if (ViewBag.Error != null)
+        {
+            <div class="error-message">
+                <i class="fas fa-exclamation-circle"></i> @ViewBag.Error
+            </div>
+        }
+
+        <form action="@Url.Action("Editar", "Licencias", new { id = Model.Id })" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="form-section">
+                <h3 class="section-title">Información del Cliente</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Municipio</label>
+                        <input type="text" class="form-control" value="@Model.Municipio" disabled />
+                    </div>
+                    <div class="form-group">
+                        <label>Nombre del Cliente</label>
+                        <input type="text" name="NombreCliente" class="form-control" value="@Model.NombreCliente" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>NIT</label>
+                        <input type="text" name="NIT" class="form-control" value="@Model.NIT" />
+                    </div>
+                    <div class="form-group">
+                        <label>Contacto</label>
+                        <input type="text" name="Contacto" class="form-control" value="@Model.Contacto" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Email</label>
+                        <input type="email" name="Email" class="form-control" value="@Model.Email" />
+                    </div>
+                    <div class="form-group">
+                        <label>Teléfono</label>
+                        <input type="text" name="Telefono" class="form-control" value="@Model.Telefono" />
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">Configuración de Licencia</h3>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Fecha de Inicio</label>
+                        <input type="text" class="form-control" value="@Model.FechaInicio.ToString("dd/MM/yyyy")" disabled />
+                    </div>
+                    <div class="form-group">
+                        <label>Fecha de Expiración</label>
+                        <input type="date" name="FechaExpiracion" class="form-control" value="@Model.FechaExpiracion.ToString("yyyy-MM-dd")" />
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label>Máximo de Usuarios</label>
+                        @if (esAdminGlobal)
+                        {
+                            <input type="number" name="MaxUsuarios" class="form-control" value="@Model.MaxUsuarios" min="1" />
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control" value="@Model.MaxUsuarios" disabled />
+                            <input type="hidden" name="MaxUsuarios" value="@Model.MaxUsuarios" />
+                        }
+                    </div>
+                    <div class="form-group">
+                        <label>Estado</label>
+                        @if (esAdminGlobal)
+                        {
+                            <select name="Estado" class="form-control">
+                                <option value="Activa" @(Model.Estado == "Activa" ? "selected" : "")>Activa</option>
+                                <option value="Suspendida" @(Model.Estado == "Suspendida" ? "selected" : "")>Suspendida</option>
+                                <option value="Expirada" @(Model.Estado == "Expirada" ? "selected" : "")>Expirada</option>
+                                <option value="Cancelada" @(Model.Estado == "Cancelada" ? "selected" : "")>Cancelada</option>
+                            </select>
+                        }
+                        else
+                        {
+                            <input type="text" class="form-control" value="@Model.Estado" disabled />
+                            <input type="hidden" name="Estado" value="@Model.Estado" />
+                        }
+                    </div>
+                </div>
+            </div>
+
+            @if (esAdminGlobal)
+            {
+                <div class="form-section">
+                    <h3 class="section-title">Módulos Permitidos</h3>
+                    <div class="checkbox-group">
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="mod_pqrs" name="modulos" value="PQRS" @(modulosActuales.Contains("PQRS") ? "checked" : "") />
+                            <label for="mod_pqrs">PQRS</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="mod_ordenes" name="modulos" value="Ordenes" @(modulosActuales.Contains("Ordenes") ? "checked" : "") />
+                            <label for="mod_ordenes">Órdenes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="mod_infra" name="modulos" value="Infraestructura" @(modulosActuales.Contains("Infraestructura") ? "checked" : "") />
+                            <label for="mod_infra">Infraestructura</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="mod_postes" name="modulos" value="Postes" @(modulosActuales.Contains("Postes") ? "checked" : "") />
+                            <label for="mod_postes">Postes</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="mod_cajas" name="modulos" value="Cajas" @(modulosActuales.Contains("Cajas") ? "checked" : "") />
+                            <label for="mod_cajas">Cajas</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="mod_archivos" name="modulos" value="Archivos" @(modulosActuales.Contains("Archivos") ? "checked" : "") />
+                            <label for="mod_archivos">Archivos</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="mod_consumos" name="modulos" value="Consumos" @(modulosActuales.Contains("Consumos") ? "checked" : "") />
+                            <label for="mod_consumos">Consumos</label>
+                        </div>
+                        <div class="checkbox-item">
+                            <input type="checkbox" id="mod_usuarios" name="modulos" value="Usuarios" @(modulosActuales.Contains("Usuarios") ? "checked" : "") />
+                            <label for="mod_usuarios">Usuarios</label>
+                        </div>
+                    </div>
+                    <input type="hidden" name="ModulosPermitidos" id="modulosPermitidos" value="@Model.ModulosPermitidos" />
+                </div>
+            }
+            else
+            {
+                <input type="hidden" name="ModulosPermitidos" value="@Model.ModulosPermitidos" />
+                <div class="form-section">
+                    <h3 class="section-title">Módulos Habilitados</h3>
+                    <p class="modulos-texto">@(Model.ModulosPermitidos != null ? Model.ModulosPermitidos.Replace(",", ", ") : "Ninguno")</p>
+                </div>
+            }
+
+            <div class="form-section">
+                <h3 class="section-title">Información Adicional</h3>
+                <div class="info-row">
+                    <span class="info-label">Fecha de Creación:</span>
+                    <span class="info-value">@(Model.FechaCreacion.HasValue ? Model.FechaCreacion.Value.ToString("dd/MM/yyyy HH:mm") : "N/A")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Última Validación:</span>
+                    <span class="info-value">@(Model.FechaUltimaValidacion.HasValue ? Model.FechaUltimaValidacion.Value.ToString("dd/MM/yyyy HH:mm") : "Nunca")</span>
+                </div>
+                <div class="info-row">
+                    <span class="info-label">Días Restantes:</span>
+                    <span class="info-value">@Model.DiasRestantes días</span>
+                </div>
+            </div>
+
+            <div class="form-section">
+                <h3 class="section-title">Observaciones</h3>
+                <div class="form-group">
+                    <textarea name="Observaciones" class="form-control">@Model.Observaciones</textarea>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <a href="@Url.Action("Index", "Licencias")" class="btn-cancelar">
+                    <i class="fas fa-arrow-left"></i> Cancelar
+                </a>
+                <button type="submit" class="btn-guardar" onclick="prepararModulos()">
+                    <i class="fas fa-save"></i> Guardar Cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    function prepararModulos() {
+        var hiddenField = document.getElementById('modulosPermitidos');
+        if (hiddenField) {
+            var checkboxes = document.querySelectorAll('input[name="modulos"]:checked');
+            var modulos = [];
+            checkboxes.forEach(function(cb) {
+                modulos.push(cb.value);
+            });
+            hiddenField.value = modulos.join(',');
+        }
+    }
+</script>

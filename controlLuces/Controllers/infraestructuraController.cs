@@ -514,12 +514,6 @@ namespace controlLuces.Controllers
 
         public async Task<ActionResult> vertodainfraestructura()
         {
-            connectionString();
-            await con.OpenAsync();
-            com.Connection = con;
-            com.Parameters.Clear();
-            com.CommandTimeout = 120;
-
             var esLocal = EsAdminLocal();
             var municipio = MunicipioSesion();
 
@@ -530,45 +524,63 @@ namespace controlLuces.Controllers
             ViewBag.MapaLng = c.lng;
             ViewBag.MapaZoom = c.zoom;
 
-            string sql = "SELECT * FROM dbo.infraestructura";
-            if (esLocal)
-            {
-                if (EsChiaNombre(municipio))
-                {
-                    sql += " WHERE IdMunicipio = @IdM";
-                    com.Parameters.AddWithValue("@IdM", CHIA_ID);
-                }
-                else
-                {
-                    sql += " WHERE municipio = @Municipio";
-                    com.Parameters.AddWithValue("@Municipio", municipio);
-                }
-            }
-            com.CommandText = sql;
+            // Usar conexión local con using para mejor manejo de recursos y thread-safety
+            string cs = "data source=tadeo.colombiahosting.com.co\\MSSQLSERVER2019;initial catalog=lightcon_luminaria;user id=lightcon_lumin;pwd=luminaria2024*";
 
             var infraestructuraList = new List<infraestructuraModel>();
-            using (var dr = await com.ExecuteReaderAsync())
+
+            using (var cn = new SqlConnection(cs))
+            using (var cmd = new SqlCommand())
             {
-                while (await dr.ReadAsync())
+                await cn.OpenAsync().ConfigureAwait(false);
+                cmd.Connection = cn;
+                cmd.CommandTimeout = 120;
+
+                // Seleccionar solo columnas necesarias para mejor rendimiento
+                string sql = @"SELECT codigo, latitud, longitud, direccion, configuracion,
+                               fabricante, linea, barrio, potencia, tipo, municipio, IdMunicipio
+                               FROM dbo.infraestructura";
+
+                if (esLocal)
                 {
-                    infraestructuraList.Add(new infraestructuraModel
+                    if (EsChiaNombre(municipio))
                     {
-                        codigo = dr["codigo"] != DBNull.Value ? dr["codigo"].ToString() : string.Empty,
-                        latitud = dr["latitud"] != DBNull.Value ? Convert.ToSingle(dr["latitud"]) : 0,
-                        longitud = dr["longitud"] != DBNull.Value ? Convert.ToSingle(dr["longitud"]) : 0,
-                        direccion = dr["direccion"] != DBNull.Value ? dr["direccion"].ToString() : string.Empty,
-                        configuracion = dr["configuracion"] != DBNull.Value ? dr["configuracion"].ToString() : string.Empty,
-                        fabricante = dr["fabricante"] != DBNull.Value ? dr["fabricante"].ToString() : string.Empty,
-                        linea = dr["linea"] != DBNull.Value ? dr["linea"].ToString() : string.Empty,
-                        barrio = dr["barrio"] != DBNull.Value ? dr["barrio"].ToString() : string.Empty,
-                        potencia = dr["potencia"] != DBNull.Value ? dr["potencia"].ToString() : string.Empty,
-                        tipo = dr["tipo"] != DBNull.Value ? dr["tipo"].ToString() : string.Empty,
-                        municipio = dr["municipio"] != DBNull.Value ? dr["municipio"].ToString() : string.Empty,
-                        IdMunicipio = dr["IdMunicipio"] != DBNull.Value ? Convert.ToInt32(dr["IdMunicipio"]) : (int?)null
-                    });
+                        sql += " WHERE IdMunicipio = @IdM";
+                        cmd.Parameters.AddWithValue("@IdM", CHIA_ID);
+                    }
+                    else
+                    {
+                        sql += " WHERE municipio = @Municipio";
+                        cmd.Parameters.AddWithValue("@Municipio", municipio);
+                    }
+                }
+
+                // Ordenar en SQL para mejor rendimiento
+                sql += " ORDER BY codigo DESC";
+                cmd.CommandText = sql;
+
+                using (var dr = await cmd.ExecuteReaderAsync().ConfigureAwait(false))
+                {
+                    while (await dr.ReadAsync().ConfigureAwait(false))
+                    {
+                        infraestructuraList.Add(new infraestructuraModel
+                        {
+                            codigo = dr["codigo"] != DBNull.Value ? dr["codigo"].ToString() : string.Empty,
+                            latitud = dr["latitud"] != DBNull.Value ? Convert.ToSingle(dr["latitud"]) : 0,
+                            longitud = dr["longitud"] != DBNull.Value ? Convert.ToSingle(dr["longitud"]) : 0,
+                            direccion = dr["direccion"] != DBNull.Value ? dr["direccion"].ToString() : string.Empty,
+                            configuracion = dr["configuracion"] != DBNull.Value ? dr["configuracion"].ToString() : string.Empty,
+                            fabricante = dr["fabricante"] != DBNull.Value ? dr["fabricante"].ToString() : string.Empty,
+                            linea = dr["linea"] != DBNull.Value ? dr["linea"].ToString() : string.Empty,
+                            barrio = dr["barrio"] != DBNull.Value ? dr["barrio"].ToString() : string.Empty,
+                            potencia = dr["potencia"] != DBNull.Value ? dr["potencia"].ToString() : string.Empty,
+                            tipo = dr["tipo"] != DBNull.Value ? dr["tipo"].ToString() : string.Empty,
+                            municipio = dr["municipio"] != DBNull.Value ? dr["municipio"].ToString() : string.Empty,
+                            IdMunicipio = dr["IdMunicipio"] != DBNull.Value ? Convert.ToInt32(dr["IdMunicipio"]) : (int?)null
+                        });
+                    }
                 }
             }
-            con.Close();
 
             List<string> municipios;
             if (esLocal)
@@ -582,11 +594,7 @@ namespace controlLuces.Controllers
                     .ToList();
             ViewBag.Municipios = municipios;
 
-            var infraestructuraListOrdenada = infraestructuraList
-                .OrderByDescending(i => i.codigo)
-                .ToList();
-
-            return View(infraestructuraListOrdenada);
+            return View(infraestructuraList);
         }
 
         public async Task<ActionResult> VerInfoDetallada(string id)
