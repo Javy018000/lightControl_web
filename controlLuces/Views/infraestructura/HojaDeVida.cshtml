@@ -1,0 +1,743 @@
+@model controlLuces.Models.HojaDeVidaLuminariaViewModel
+@using controlLuces.Models
+@{
+    ViewBag.Title = "Hoja de Vida - Luminaria";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    var luminaria = Model?.Luminaria;
+    var codigo = luminaria?.codigo ?? "N/A";
+    var latitud = luminaria?.latitud.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0";
+    var longitud = luminaria?.longitud.ToString(System.Globalization.CultureInfo.InvariantCulture) ?? "0";
+    var historial = Model?.HistorialOrdenes ?? new List<OrdenHistorialModel>();
+    var imagenes = Model?.Imagenes ?? new List<ImagenElementoModel>();
+}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hoja de Vida - @codigo</title>
+
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet/dist/leaflet.css" />
+
+    <style>
+        :root {
+            --c1: #0ea5e9;
+            --c2: #3b82f6;
+            --c3: #8b5cf6;
+            --bg: #f4f8fb;
+            --text: #0f172a;
+            --muted: #64748b;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+        }
+
+        body {
+            font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding: 22px;
+        }
+
+        .main-header {
+            background: linear-gradient(135deg, var(--c3), var(--c2));
+            color: #fff;
+            border-radius: 14px;
+            padding: 18px 24px;
+            text-align: center;
+            font-weight: 800;
+            letter-spacing: .4px;
+            box-shadow: 0 12px 28px rgba(2,8,23,.15);
+            text-transform: uppercase;
+            margin-bottom: 22px;
+            font-size: 28px;
+        }
+
+        .stats-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 16px;
+            margin-bottom: 22px;
+        }
+
+        .stat-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 18px;
+            text-align: center;
+            box-shadow: 0 8px 20px rgba(2,8,23,.06);
+            transition: transform 0.2s ease;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-3px);
+        }
+
+        .stat-card.total { border-top: 4px solid var(--c2); }
+        .stat-card.activas { border-top: 4px solid var(--warning); }
+        .stat-card.cerradas { border-top: 4px solid var(--success); }
+
+        .stat-number {
+            font-size: 36px;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 6px;
+        }
+
+        .stat-card.total .stat-number { color: var(--c2); }
+        .stat-card.activas .stat-number { color: var(--warning); }
+        .stat-card.cerradas .stat-number { color: var(--success); }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .content-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 22px;
+        }
+
+        @@media (max-width: 1100px) {
+            .content-grid { grid-template-columns: 1fr; }
+        }
+
+        .card-modern {
+            background: #fff;
+            border-radius: 14px;
+            box-shadow: 0 10px 24px rgba(2,8,23,.08);
+            padding: 20px;
+        }
+
+        .card-title {
+            color: var(--c2);
+            font-weight: 700;
+            margin-bottom: 16px;
+            font-size: 18px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-title i {
+            font-size: 20px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @@media (max-width: 600px) {
+            .info-grid { grid-template-columns: 1fr; }
+        }
+
+        .info-item {
+            background: #f8fafc;
+            padding: 12px 14px;
+            border-radius: 10px;
+            border-left: 3px solid var(--c1);
+        }
+
+        .info-label {
+            font-size: 11px;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.4px;
+            margin-bottom: 4px;
+        }
+
+        .info-value {
+            font-weight: 600;
+            color: var(--text);
+            font-size: 14px;
+        }
+
+        #map {
+            width: 100%;
+            height: 280px;
+            border-radius: 12px;
+            margin-top: 12px;
+        }
+
+        /* Historial de Ordenes */
+        .historial-section {
+            margin-top: 22px;
+        }
+
+        .orden-card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 14px;
+            box-shadow: 0 4px 12px rgba(2,8,23,.06);
+            border-left: 4px solid var(--c2);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .orden-card:hover {
+            transform: translateX(4px);
+            box-shadow: 0 6px 18px rgba(2,8,23,.1);
+        }
+
+        .orden-card.estado-activa { border-left-color: var(--warning); }
+        .orden-card.estado-cerrada { border-left-color: var(--success); }
+        .orden-card.estado-pendiente { border-left-color: var(--c1); }
+
+        .orden-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .orden-codigo {
+            font-weight: 700;
+            font-size: 16px;
+            color: var(--text);
+        }
+
+        .orden-tipo {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .estado-badge {
+            padding: 5px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        .estado-badge.pendiente { background: #dbeafe; color: #1d4ed8; }
+        .estado-badge.proceso { background: #fef3c7; color: #b45309; }
+        .estado-badge.cerrada { background: #dcfce7; color: #166534; }
+
+        .orden-body {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 10px;
+            font-size: 13px;
+        }
+
+        .orden-field {
+            display: flex;
+            gap: 6px;
+        }
+
+        .orden-field-label {
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        .orden-field-value {
+            color: var(--text);
+            font-weight: 600;
+        }
+
+        .orden-descripcion {
+            margin-top: 10px;
+            padding: 10px;
+            background: #f8fafc;
+            border-radius: 8px;
+            font-size: 13px;
+            color: var(--text);
+        }
+
+        .ver-orden-btn {
+            margin-top: 10px;
+            display: inline-block;
+            padding: 10px 22px;
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            color: #fff;
+            border-radius: 50px;
+            font-size: 13px;
+            font-weight: 600;
+            text-decoration: none !important;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+
+        .ver-orden-btn:hover, .ver-orden-btn:focus, .ver-orden-btn:active {
+            transform: translateY(-2px);
+            color: #fff;
+            text-decoration: none !important;
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        }
+
+        .no-ordenes {
+            text-align: center;
+            padding: 50px 20px;
+            background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+            border-radius: 12px;
+            color: var(--muted);
+        }
+
+        .no-ordenes i {
+            font-size: 48px;
+            color: #cbd5e1;
+            margin-bottom: 12px;
+        }
+
+        /* Timeline visual */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(180deg, var(--c2), var(--c1));
+        }
+
+        .timeline .orden-card {
+            position: relative;
+        }
+
+        .timeline .orden-card::before {
+            content: '';
+            position: absolute;
+            left: -26px;
+            top: 20px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--c2);
+            border: 3px solid #fff;
+            box-shadow: 0 2px 6px rgba(0,0,0,.15);
+        }
+
+        .timeline .orden-card.estado-cerrada::before { background: var(--success); }
+        .timeline .orden-card.estado-activa::before { background: var(--warning); }
+
+        /* Buscador */
+        .search-box {
+            background: #fff;
+            border-radius: 14px;
+            padding: 20px;
+            box-shadow: 0 8px 20px rgba(2,8,23,.06);
+            margin-bottom: 22px;
+        }
+
+        .search-input-group {
+            display: flex;
+            gap: 12px;
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 12px 16px;
+            border: 2px solid #e2e8f0;
+            border-radius: 10px;
+            font-size: 14px;
+            transition: border-color 0.2s ease;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: var(--c2);
+        }
+
+        .search-btn {
+            padding: 12px 28px;
+            background: linear-gradient(135deg, #0ea5e9, #3b82f6);
+            color: #fff;
+            border: none;
+            border-radius: 50px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+        }
+
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+        }
+
+        .search-results {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            background: #fff;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,.15);
+            max-height: 300px;
+            overflow-y: auto;
+            z-index: 1000;
+            display: none;
+        }
+
+        .search-result-item {
+            padding: 12px 16px;
+            cursor: pointer;
+            border-bottom: 1px solid #f1f5f9;
+            transition: background 0.2s ease;
+        }
+
+        .search-result-item:hover {
+            background: #f8fafc;
+        }
+
+        .search-result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-codigo {
+            font-weight: 700;
+            color: var(--c2);
+        }
+
+        .result-info {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 2px;
+        }
+
+        .btn-back {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 50px;
+            padding: 12px 28px;
+            box-shadow: 0 4px 15px rgba(239, 68, 68, 0.3);
+            transition: all 0.3s ease;
+            text-decoration: none !important;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .btn-back:hover, .btn-back:focus, .btn-back:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+            color: #fff;
+            text-decoration: none !important;
+        }
+
+        .btn-success-pill {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            border: none;
+            color: #fff;
+            font-weight: 600;
+            border-radius: 50px;
+            padding: 12px 28px;
+            box-shadow: 0 4px 15px rgba(34, 197, 94, 0.3);
+            transition: all 0.3s ease;
+            text-decoration: none !important;
+            display: inline-block;
+            font-size: 14px;
+        }
+
+        .btn-success-pill:hover, .btn-success-pill:focus, .btn-success-pill:active {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(34, 197, 94, 0.4);
+            color: #fff;
+            text-decoration: none !important;
+        }
+
+        .actions-bar {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container-fluid">
+        <div class="main-header">
+            <i class="fas fa-id-card me-2"></i> Hoja de Vida - Luminaria
+        </div>
+
+        <!-- Buscador de Luminarias -->
+        <div class="search-box">
+            <form method="get" action="@Url.Action("HojaDeVida", "infraestructura")" class="search-input-group" style="position: relative;">
+                <input type="text" id="buscarCodigo" name="codigo" class="search-input"
+                       placeholder="Buscar por codigo, barrio o direccion..."
+                       value="@codigo" autocomplete="off" />
+                <button type="submit" class="search-btn">
+                    <i class="fas fa-search me-2"></i> Buscar
+                </button>
+                <div id="searchResults" class="search-results"></div>
+            </form>
+        </div>
+
+        @if (luminaria != null)
+        {
+            <!-- Estadisticas -->
+            <div class="stats-row">
+                <div class="stat-card total">
+                    <div class="stat-number">@Model.TotalOrdenes</div>
+                    <div class="stat-label">Total Ordenes</div>
+                </div>
+                <div class="stat-card activas">
+                    <div class="stat-number">@Model.OrdenesActivas</div>
+                    <div class="stat-label">Ordenes Activas</div>
+                </div>
+                <div class="stat-card cerradas">
+                    <div class="stat-number">@Model.OrdenesCerradas</div>
+                    <div class="stat-label">Ordenes Cerradas</div>
+                </div>
+            </div>
+
+            <!-- Informacion y Mapa -->
+            <div class="content-grid">
+                <!-- Datos de la Luminaria -->
+                <div class="card-modern">
+                    <div class="card-title">
+                        <i class="fas fa-lightbulb"></i> Datos de la Luminaria
+                    </div>
+                    <div class="info-grid">
+                        <div class="info-item">
+                            <div class="info-label">Codigo</div>
+                            <div class="info-value">@codigo</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Tipo</div>
+                            <div class="info-value">@(luminaria.tipo ?? "N/A")</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Municipio</div>
+                            <div class="info-value">@(luminaria.municipio ?? "N/A")</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Barrio</div>
+                            <div class="info-value">@(luminaria.barrio ?? "N/A")</div>
+                        </div>
+                        <div class="info-item" style="grid-column: span 2;">
+                            <div class="info-label">Direccion</div>
+                            <div class="info-value">@(luminaria.direccion ?? "N/A")</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Potencia</div>
+                            <div class="info-value">@(luminaria.potencia ?? "N/A")</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Linea</div>
+                            <div class="info-value">@(luminaria.linea ?? "N/A")</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Configuracion</div>
+                            <div class="info-value">@(luminaria.configuracion ?? "N/A")</div>
+                        </div>
+                        <div class="info-item">
+                            <div class="info-label">Fabricante</div>
+                            <div class="info-value">@(luminaria.fabricante ?? "N/A")</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Mapa -->
+                <div class="card-modern">
+                    <div class="card-title">
+                        <i class="fas fa-map-marked-alt"></i> Ubicacion
+                    </div>
+                    <div id="map"></div>
+                </div>
+            </div>
+
+            <!-- Historial de Ordenes -->
+            <div class="historial-section">
+                <div class="card-modern">
+                    <div class="card-title">
+                        <i class="fas fa-history"></i> Historial de Ordenes de Servicio
+                        <span style="margin-left: auto; font-size: 14px; color: var(--muted);">
+                            @historial.Count registro(s)
+                        </span>
+                    </div>
+
+                    @if (historial.Any())
+                    {
+                        <div class="timeline">
+                            @foreach (var orden in historial)
+                            {
+                                var estadoClase = orden.IdEstado == 3 ? "estado-cerrada" : orden.IdEstado == 2 ? "estado-activa" : "estado-pendiente";
+                                var badgeClase = orden.IdEstado == 3 ? "cerrada" : orden.IdEstado == 2 ? "proceso" : "pendiente";
+                                var fechaMostrar = orden.FechaCreacion ?? orden.FechaARealizar;
+
+                                <div class="orden-card @estadoClase">
+                                    <div class="orden-header">
+                                        <div>
+                                            <div class="orden-codigo">
+                                                @(string.IsNullOrWhiteSpace(orden.CodigoOrden) ? "Orden #" + orden.IdOrden : orden.CodigoOrden)
+                                            </div>
+                                            <div class="orden-tipo">
+                                                @orden.TipoDeOrden @(!string.IsNullOrWhiteSpace(orden.ClaseDeOrden) ? "- " + orden.ClaseDeOrden : "")
+                                            </div>
+                                        </div>
+                                        <span class="estado-badge @badgeClase">@orden.EstadoNombre</span>
+                                    </div>
+                                    <div class="orden-body">
+                                        <div class="orden-field">
+                                            <span class="orden-field-label"><i class="far fa-calendar me-1"></i>Fecha:</span>
+                                            <span class="orden-field-value">@fechaMostrar.ToString("dd/MM/yyyy")</span>
+                                        </div>
+                                        <div class="orden-field">
+                                            <span class="orden-field-label"><i class="fas fa-users me-1"></i>Cuadrilla:</span>
+                                            <span class="orden-field-value">@(string.IsNullOrWhiteSpace(orden.Cuadrilla) ? "Sin asignar" : orden.Cuadrilla)</span>
+                                        </div>
+                                    </div>
+                                    @if (!string.IsNullOrWhiteSpace(orden.ProblemaRelacionado))
+                                    {
+                                        <div class="orden-descripcion">
+                                            <strong><i class="fas fa-exclamation-circle me-1"></i>Problema:</strong> @orden.ProblemaRelacionado
+                                        </div>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(orden.Trabajos))
+                                    {
+                                        <div class="orden-descripcion" style="border-left: 3px solid var(--success); margin-top: 8px;">
+                                            <strong><i class="fas fa-tools me-1"></i>Trabajos realizados:</strong> @orden.Trabajos
+                                        </div>
+                                    }
+                                    <a href="@Url.Action("verinfo", "Ordenes", new { id = orden.IdOrden })" class="ver-orden-btn">
+                                        <i class="fas fa-eye me-1"></i> Ver Detalle
+                                    </a>
+                                </div>
+                            }
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="no-ordenes">
+                            <i class="fas fa-clipboard-list"></i>
+                            <h5>Sin historial de ordenes</h5>
+                            <p>Esta luminaria no tiene ordenes de servicio registradas.</p>
+                        </div>
+                    }
+                </div>
+            </div>
+
+            <!-- Botones de Accion -->
+            <div class="actions-bar">
+                <a href="@Url.Action("VerInfoDetallada", "infraestructura", new { id = codigo })" class="btn-success-pill">
+                    <i class="fas fa-info-circle me-2"></i> Ver Detalle Completo
+                </a>
+                <a href="@Url.Action("vertodainfraestructura", "infraestructura")" class="btn-back">
+                    <i class="fas fa-arrow-left me-2"></i> Atrás
+                </a>
+            </div>
+        }
+        else
+        {
+            <div class="card-modern" style="text-align: center; padding: 60px 20px;">
+                <i class="fas fa-search" style="font-size: 64px; color: #cbd5e1; margin-bottom: 20px;"></i>
+                <h4 style="color: var(--muted);">Busca una luminaria</h4>
+                <p style="color: var(--muted);">Ingresa el codigo, barrio o direccion para ver su hoja de vida.</p>
+            </div>
+        }
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="https://unpkg.com/leaflet/dist/leaflet.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // Inicializar mapa si hay coordenadas
+            @if (luminaria != null)
+            {
+                <text>
+                var lat = parseFloat("@latitud");
+                var lng = parseFloat("@longitud");
+
+                if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
+                    var map = L.map('map').setView([lat, lng], 16);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        maxZoom: 19,
+                        attribution: '&copy; OpenStreetMap'
+                    }).addTo(map);
+
+                    var popupContent = '<div style="font-family: Segoe UI, sans-serif;">' +
+                        '<h6 style="color: #3b82f6; font-weight: 700; margin-bottom: 8px;">@codigo</h6>' +
+                        '<p style="margin: 4px 0;"><strong>Tipo:</strong> @(luminaria?.tipo ?? "N/A")</p>' +
+                        '<p style="margin: 4px 0;"><strong>Barrio:</strong> @(luminaria?.barrio ?? "N/A")</p>' +
+                        '</div>';
+
+                    L.circleMarker([lat, lng], {
+                        radius: 12,
+                        fillColor: "#8b5cf6",
+                        color: "#6d28d9",
+                        weight: 3,
+                        opacity: 1,
+                        fillOpacity: 0.9
+                    }).addTo(map).bindPopup(popupContent).openPopup();
+                }
+                </text>
+            }
+
+            // Buscador con autocompletado
+            var searchTimeout;
+            $('#buscarCodigo').on('input', function () {
+                var termino = $(this).val();
+                clearTimeout(searchTimeout);
+
+                if (termino.length < 2) {
+                    $('#searchResults').hide();
+                    return;
+                }
+
+                searchTimeout = setTimeout(function () {
+                    $.ajax({
+                        url: '@Url.Action("BuscarLuminaria", "infraestructura")',
+                        type: 'GET',
+                        data: { termino: termino },
+                        success: function (data) {
+                            var $results = $('#searchResults');
+                            $results.empty();
+
+                            if (data.length > 0) {
+                                $.each(data, function (i, item) {
+                                    var html = '<div class="search-result-item" data-codigo="' + item.codigo + '">' +
+                                        '<div class="result-codigo">' + item.codigo + '</div>' +
+                                        '<div class="result-info">' + item.tipo + ' - ' + item.barrio + ', ' + item.municipio + '</div>' +
+                                        '</div>';
+                                    $results.append(html);
+                                });
+                                $results.show();
+                            } else {
+                                $results.append('<div class="search-result-item"><div class="result-info">No se encontraron resultados</div></div>');
+                                $results.show();
+                            }
+                        }
+                    });
+                }, 300);
+            });
+
+            // Click en resultado de busqueda
+            $(document).on('click', '.search-result-item[data-codigo]', function () {
+                var codigo = $(this).data('codigo');
+                window.location.href = '@Url.Action("HojaDeVida", "infraestructura")?codigo=' + encodeURIComponent(codigo);
+            });
+
+            // Ocultar resultados al hacer click fuera
+            $(document).on('click', function (e) {
+                if (!$(e.target).closest('.search-box').length) {
+                    $('#searchResults').hide();
+                }
+            });
+        });
+    </script>
+</body>
+</html>

@@ -50,11 +50,6 @@
             display: block !important;
         }
 
-        .container.body-content {
-            margin-left: 220px;
-            margin-top: 20px;
-        }
-
         .user-name {
             text-align: center;
             font-size: 16px;
@@ -115,6 +110,40 @@
             .municipio-banner.muni-default {
                 background: linear-gradient(135deg,#8b5cf6,#6d28d9);
             }
+
+        /* Footer LightControl */
+        .footer-brand {
+            position: fixed;
+            bottom: 0;
+            left: 210px;
+            right: 0;
+            background: linear-gradient(135deg, #1e293b, #0f172a);
+            color: #94a3b8;
+            text-align: center;
+            padding: 10px 20px;
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+            z-index: 999;
+            border-top: 1px solid #334155;
+        }
+
+        .footer-brand .brand-name {
+            color: #fff;
+            font-weight: 700;
+            font-size: 14px;
+        }
+
+        .footer-brand .registered {
+            font-size: 10px;
+            vertical-align: super;
+        }
+
+        .container.body-content {
+            margin-left: 220px;
+            margin-top: 20px;
+            padding-bottom: 60px;
+        }
     </style>
 </head>
 <body>
@@ -171,6 +200,7 @@
                 <ul class="collapse list-unstyled" id="luminarias">
                     <li>
                         <a href="@Url.Action("vertodainfraestructura", "infraestructura", new { area = "", tipo = "LED" })">Luminarias</a>
+                        <a href="@Url.Action("HojaDeVida", "infraestructura", new { area = "" })"><i class="fas fa-id-card"></i> Hoja de Vida</a>
                         <a href="@Url.Action("vertodapostes", "Postes", new { area = "" })">Estructuras de Soporte o Poste</a>
                         <a href="@Url.Action("verTodasCajas", "Cajas", new { area = "" })">Cajas</a>
                         <a href="">Red de Alimentación</a>
@@ -212,6 +242,26 @@
                 @* NUEVO: gráficos PQRS para Admin *@
                 <li><a href='@Url.Action("GraficoPqrs", "pqrs", new { area = "" })'>Gráficos PQRS</a></li>
             </ul>
+
+            @* RETILAP: Menú desplegable con 4 opciones - Solo Admin *@
+            <a href="#retilap" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                <i class="fas fa-file-invoice-dollar"></i> RETILAP
+            </a>
+            <ul class="collapse list-unstyled" id="retilap">
+                <li><a href='@Url.Action("DashboardConsumos", "Archivo", new { area = "" })'><i class="fas fa-chart-line"></i> Consumos</a></li>
+                <li><a href='@Url.Action("DashboardFacturacion", "Archivo", new { area = "" })'><i class="fas fa-file-invoice"></i> Facturación</a></li>
+                <li><a href='@Url.Action("DashboardRecaudos", "Archivo", new { area = "" })'><i class="fas fa-hand-holding-usd"></i> Recaudos</a></li>
+                <li><a href='@Url.Action("DashboardPagosEnergia", "Archivo", new { area = "" })'><i class="fas fa-bolt"></i> Pagos de Energía</a></li>
+            </ul>
+
+            @* Licencias - Solo Admin Global *@
+            <a href="#licenciasAdm" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+                <i class="fas fa-key"></i> Licencias
+            </a>
+            <ul class="collapse list-unstyled" id="licenciasAdm">
+                <li><a href='@Url.Action("Index", "Licencias", new { area = "" })'>Gestionar Licencias</a></li>
+                <li><a href='@Url.Action("Crear", "Licencias", new { area = "" })'>Nueva Licencia</a></li>
+            </ul>
         }
     }
 
@@ -246,6 +296,9 @@
                 <a href='@Url.Action("vertodainfraestructura", "infraestructura", new { area = "", tipo = "LED" })'>
                     Luminarias
                 </a>
+            </li>
+            <li>
+                <a href='@Url.Action("HojaDeVida", "infraestructura", new { area = "" })'><i class="fas fa-id-card"></i> Hoja de Vida</a>
             </li>
             @if (!string.IsNullOrWhiteSpace(muni) && muni.Trim().ToLower().Contains("madrid"))
             {
@@ -293,6 +346,25 @@
         <ul class="collapse list-unstyled" id="inventariosLocal">
             <li><a href='@Url.Action("verElementos", "Inventario", new { area = "" })'>Ver Items</a></li>
         </ul>
+
+        @* RETILAP: Menú desplegable con 4 opciones - Admin Local *@
+        <a href="#retilapLocal" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-file-invoice-dollar"></i> RETILAP
+        </a>
+        <ul class="collapse list-unstyled" id="retilapLocal">
+            <li><a href='@Url.Action("DashboardConsumos", "Archivo", new { area = "" })'><i class="fas fa-chart-line"></i> Consumos</a></li>
+            <li><a href='@Url.Action("DashboardFacturacion", "Archivo", new { area = "" })'><i class="fas fa-file-invoice"></i> Facturación</a></li>
+            <li><a href='@Url.Action("DashboardRecaudos", "Archivo", new { area = "" })'><i class="fas fa-hand-holding-usd"></i> Recaudos</a></li>
+            <li><a href='@Url.Action("DashboardPagosEnergia", "Archivo", new { area = "" })'><i class="fas fa-bolt"></i> Pagos de Energía</a></li>
+        </ul>
+
+        @* Licencias - Admin Local solo ve su licencia *@
+        <a href="#licenciasLocal" data-toggle="collapse" aria-expanded="false" class="dropdown-toggle">
+            <i class="fas fa-key"></i> Mi Licencia
+        </a>
+        <ul class="collapse list-unstyled" id="licenciasLocal">
+            <li><a href='@Url.Action("Index", "Licencias", new { area = "" })'>Ver Mi Licencia</a></li>
+        </ul>
     }
 
     @if (usuario != null)
@@ -314,6 +386,11 @@
         @RenderBody()
         <hr />
     </div>
+
+    <!-- Footer con marca registrada -->
+    <footer class="footer-brand">
+        <span class="brand-name">LightControl<span class="registered">&reg;</span></span> - Sistema de Gestión de Alumbrado Público
+    </footer>
 
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.bundle.min.js"></script>

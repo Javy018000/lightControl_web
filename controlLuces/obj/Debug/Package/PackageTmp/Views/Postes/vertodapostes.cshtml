@@ -268,7 +268,7 @@
 
         <div class="content">
             <!-- Tabla -->
-            <div class="table-card">
+            <div class="table-card" id="tableContainer">
                 <table class="table table-hover">
                     <thead>
                         <tr>
@@ -282,9 +282,15 @@
                         </tr>
                     </thead>
                     <tbody id="postesTable">
+                        @{ var counter = 0; }
                         @foreach (var p in Model)
                         {
-                            <tr>
+                            var displayStyle = counter < 100 ? "" : "display:none;";
+                            <tr data-loaded="@(counter < 100 ? "true" : "false")"
+                                data-lat="@p.latitud.ToString().Replace(',', '.')"
+                                data-lng="@p.longitud.ToString().Replace(',', '.')"
+                                data-barrio="@p.barrio"
+                                style="@displayStyle">
                                 <td>@p.codigo</td>
                                 <td>@p.latitud.ToString().Replace(',', '.')</td>
                                 <td>@p.longitud.ToString().Replace(',', '.')</td>
@@ -298,9 +304,16 @@
                                     </a>
                                 </td>
                             </tr>
+                            counter++;
                         }
                     </tbody>
                 </table>
+                <div id="loadMoreIndicator" style="text-align:center; padding:15px; display:none;">
+                    <button class="btn btn-primary" id="loadMoreBtn" style="border-radius:12px;">
+                        <i class="fas fa-plus me-2"></i>Cargar más registros
+                    </button>
+                    <span id="recordCount" style="margin-left:15px; color:#64748b; font-size:14px;"></span>
+                </div>
             </div>
 
             <!-- Mapa -->
@@ -403,6 +416,54 @@
                     $('#searchButton').click();
                 }
             });
+
+            // ========================================
+            // LAZY LOADING - Carga progresiva de filas
+            // ========================================
+            var BATCH_SIZE = 100;
+            var totalRows = $('#postesTable tr').length;
+
+            function updateRecordCount() {
+                var visibleCount = $('#postesTable tr[data-loaded="true"]').length;
+                var hiddenCount = $('#postesTable tr[data-loaded="false"]').length;
+                if (hiddenCount > 0) {
+                    $('#loadMoreIndicator').show();
+                    $('#recordCount').text('Mostrando ' + visibleCount + ' de ' + totalRows + ' registros');
+                } else {
+                    $('#loadMoreIndicator').hide();
+                }
+            }
+
+            function loadMoreRows() {
+                var hiddenRows = $('#postesTable tr[data-loaded="false"]');
+                var toShow = hiddenRows.slice(0, BATCH_SIZE);
+
+                toShow.each(function() {
+                    $(this).attr('data-loaded', 'true').show();
+                });
+
+                updateRecordCount();
+                repaintMarkersFromVisibleRows();
+            }
+
+            // Cargar más al hacer click en el botón
+            $('#loadMoreBtn').on('click', function() {
+                loadMoreRows();
+            });
+
+            // Cargar más al hacer scroll hasta el final de la tabla
+            $('#tableContainer').on('scroll', function() {
+                var $this = $(this);
+                if ($this.scrollTop() + $this.innerHeight() >= $this[0].scrollHeight - 50) {
+                    var hiddenRows = $('#postesTable tr[data-loaded="false"]');
+                    if (hiddenRows.length > 0) {
+                        loadMoreRows();
+                    }
+                }
+            });
+
+            // Mostrar contador inicial
+            setTimeout(updateRecordCount, 100);
         });
     </script>
 </body>

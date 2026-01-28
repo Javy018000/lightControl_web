@@ -253,7 +253,7 @@
 
         <div class="content">
             <!-- Tabla -->
-            <div class="table-card">
+            <div class="table-card" id="tableContainer">
                 <table class="table table-hover">
                     <thead>
                         <tr>
@@ -267,15 +267,22 @@
                         </tr>
                     </thead>
                     <tbody id="cajasTable">
+                        @{ var counter = 0; }
                         @foreach (var c in Model)
                         {
-                            <tr>
+                            var displayStyle = counter < 100 ? "" : "display:none;";
+                            <tr data-loaded="@(counter < 100 ? "true" : "false")"
+                                data-lat="@c.Latitud.ToString().Replace(',', '.')"
+                                data-lng="@c.Longitud.ToString().Replace(',', '.')"
+                                data-code="@c.Codigo_CajaID"
+                                data-poste="@c.Codigo_Poste"
+                                style="@displayStyle">
                                 <td>@c.Codigo_CajaID</td>
                                 <td>@c.ID_CAJA</td>
                                 <td>@c.Codigo_Poste</td>
                                 <td>@c.BARRIO</td>
-                                <td>@c.Latitud</td>
-                                <td>@c.Longitud</td>
+                                <td>@c.Latitud.ToString().Replace(',', '.')</td>
+                                <td>@c.Longitud.ToString().Replace(',', '.')</td>
                                 <td>
                                     <a href="@Url.Action("VerInfoDetalladaCaja", "Cajas", new { id = c.Codigo_CajaID })"
                                        class="btn btn-info btn-sm">
@@ -283,9 +290,16 @@
                                     </a>
                                 </td>
                             </tr>
+                            counter++;
                         }
                     </tbody>
                 </table>
+                <div id="loadMoreIndicator" style="text-align:center; padding:15px; display:none;">
+                    <button class="btn btn-primary" id="loadMoreBtn" style="border-radius:12px;">
+                        <i class="fas fa-plus me-2"></i>Cargar más registros
+                    </button>
+                    <span id="recordCount" style="margin-left:15px; color:#64748b; font-size:14px;"></span>
+                </div>
             </div>
 
             <!-- Mapa -->
@@ -314,8 +328,14 @@
                 maxZoom: 19
             }).addTo(map);
 
+            function clearMarkers() {
+                map.eachLayer(function (l) {
+                    if (l instanceof L.Marker || l instanceof L.CircleMarker) map.removeLayer(l);
+                });
+            }
+
             function addMarker(lat, lng, text) {
-                if (lat && lng) {
+                if (lat && lng && !isNaN(lat) && !isNaN(lng)) {
                     L.circleMarker([lat, lng], {
                         radius: 8,
                         fillColor: "#ff7a00",
@@ -327,19 +347,88 @@
                 }
             }
 
-            @foreach (var c in Model)
-            {
-                <text>
-                    addMarker(@c.Latitud.ToString().Replace(',', '.'), @c.Longitud.ToString().Replace(',', '.'), '@c.Codigo_CajaID - @c.Codigo_Poste');
-                </text>
+            // Pintar marcadores solo de filas visibles
+            function repaintMarkersFromVisibleRows() {
+                clearMarkers();
+                $('#cajasTable tr:visible').each(function () {
+                    var $tr = $(this);
+                    var lat = parseFloat($tr.data('lat'));
+                    var lng = parseFloat($tr.data('lng'));
+                    var code = $tr.data('code');
+                    var poste = $tr.data('poste');
+                    if (!isNaN(lat) && !isNaN(lng)) {
+                        addMarker(lat, lng, code + ' - ' + poste);
+                    }
+                });
             }
 
+            // Pintar marcadores iniciales
+            repaintMarkersFromVisibleRows();
+
+            // Buscador
             $('#searchButton').on('click', function () {
                 var query = $('#searchInput').val().toLowerCase();
                 $('#cajasTable tr').each(function () {
-                    $(this).toggle($(this).text().toLowerCase().indexOf(query) > -1);
+                    var isVisible = $(this).text().toLowerCase().indexOf(query) > -1;
+                    $(this).toggle(isVisible);
                 });
+                repaintMarkersFromVisibleRows();
             });
+
+            // Enter para buscar
+            $('#searchInput').on('keypress', function (e) {
+                if (e.which === 13) {
+                    $('#searchButton').click();
+                }
+            });
+
+            // ========================================
+            // LAZY LOADING - Carga progresiva de filas
+            // ========================================
+            var BATCH_SIZE = 100;
+            var totalRows = $('#cajasTable tr').length;
+
+            function updateRecordCount() {
+                var visibleCount = $('#cajasTable tr[data-loaded="true"]').length;
+                var hiddenCount = $('#cajasTable tr[data-loaded="false"]').length;
+                if (hiddenCount > 0) {
+                    $('#loadMoreIndicator').show();
+                    $('#recordCount').text('Mostrando ' + visibleCount + ' de ' + totalRows + ' registros');
+                } else {
+                    $('#loadMoreIndicator').hide();
+                }
+            }
+
+            function loadMoreRows() {
+                var hiddenRows = $('#cajasTable tr[data-loaded="false"]');
+                var toShow = hiddenRows.slice(0, BATCH_SIZE);
+
+                toShow.each(function() {
+                    $(this).attr('data-loaded', 'true').show();
+                });
+
+                updateRecordCount();
+                repaintMarkersFromVisibleRows();
+            }
+
+            // Cargar más al hacer click en el botón
+            $('#loadMoreBtn').on('click', function() {
+                loadMoreRows();
+            });
+
+            // Cargar más al hacer scroll hasta el final de la tabla
+            $('#tableContainer').on('scroll', function() {
+                var $this = $(this);
+                if ($this.scrollTop() + $this.innerHeight() >= $this[0].scrollHeight - 50) {
+                    var hiddenRows = $('#cajasTable tr[data-loaded="false"]');
+                    if (hiddenRows.length > 0) {
+                        loadMoreRows();
+                    }
+                }
+            });
+
+            // Mostrar contador inicial
+            setTimeout(updateRecordCount, 100);
         });
     </script>
 </body>

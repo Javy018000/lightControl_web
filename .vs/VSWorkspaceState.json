@@ -1,6 +1,12 @@
 {
   "ExpandedNodes": [
-    ""
+    "",
+    "\\controlLuces",
+    "\\controlLuces\\Controllers",
+    "\\controlLuces\\Views",
+    "\\controlLuces\\Views\\Archivo",
+    "\\packages"
   ],
+  "SelectedNode": "\\controlLuces\\Views\\Archivo\\VerArchivo.cshtml",
   "PreviewInSolutionExplorer": false
 }

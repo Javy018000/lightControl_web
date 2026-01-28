@@ -987,5 +987,197 @@ namespace controlLuces.Controllers
                 return RedirectToAction("VerTransformador", new { id = newId });
             }
         }
+
+        // ===== HOJA DE VIDA DE LUMINARIA =====
+        /// <summary>
+        /// Muestra la hoja de vida de una luminaria con su historial de órdenes de servicio
+        /// </summary>
+        [HttpGet]
+        public async Task<ActionResult> HojaDeVida(string codigo)
+        {
+            var viewModel = new HojaDeVidaLuminariaViewModel();
+
+            // Si no hay código, mostrar la vista con el buscador vacío
+            if (string.IsNullOrWhiteSpace(codigo))
+            {
+                ViewBag.EsAdminLocal = EsAdminLocal();
+                return View("HojaDeVida", viewModel);
+            }
+            string cs = "data source=tadeo.colombiahosting.com.co\\MSSQLSERVER2019;initial catalog=lightcon_luminaria;user id=lightcon_lumin;pwd=luminaria2024*";
+
+            using (var cn = new SqlConnection(cs))
+            {
+                await cn.OpenAsync();
+
+                // 1. Obtener datos de la luminaria
+                using (var cmd = new SqlCommand())
+                {
+                    cmd.Connection = cn;
+                    cmd.CommandTimeout = 120;
+
+                    // Obtener municipio de la sesión (aplica para TODOS los usuarios)
+                    var muni = MunicipioSesion();
+
+                    string sqlLuminaria = @"SELECT codigo, latitud, longitud, direccion, configuracion,
+                                           fabricante, linea, barrio, potencia, tipo, municipio, IdMunicipio
+                                           FROM dbo.infraestructura WHERE codigo = @codigo";
+
+                    // SIEMPRE filtrar por municipio de la sesión
+                    if (EsChiaNombre(muni))
+                    {
+                        sqlLuminaria += " AND IdMunicipio = @IdM";
+                        cmd.Parameters.AddWithValue("@IdM", CHIA_ID);
+                    }
+                    else
+                    {
+                        sqlLuminaria += " AND municipio = @Municipio";
+                        cmd.Parameters.AddWithValue("@Municipio", muni);
+                    }
+
+                    cmd.CommandText = sqlLuminaria;
+                    cmd.Parameters.AddWithValue("@codigo", codigo);
+
+                    using (var dr = await cmd.ExecuteReaderAsync())
+                    {
+                        if (await dr.ReadAsync())
+                        {
+                            viewModel.Luminaria = new infraestructuraModel
+                            {
+                                codigo = dr["codigo"]?.ToString() ?? "",
+                                latitud = dr["latitud"] != DBNull.Value ? Convert.ToSingle(dr["latitud"]) : 0,
+                                longitud = dr["longitud"] != DBNull.Value ? Convert.ToSingle(dr["longitud"]) : 0,
+                                direccion = dr["direccion"]?.ToString() ?? "",
+                                configuracion = dr["configuracion"]?.ToString() ?? "",
+                                fabricante = dr["fabricante"]?.ToString() ?? "",
+                                linea = dr["linea"]?.ToString() ?? "",
+                                barrio = dr["barrio"]?.ToString() ?? "",
+                                potencia = dr["potencia"]?.ToString() ?? "",
+                                tipo = dr["tipo"]?.ToString() ?? "",
+                                municipio = dr["municipio"]?.ToString() ?? "",
+                                IdMunicipio = dr["IdMunicipio"] != DBNull.Value ? Convert.ToInt32(dr["IdMunicipio"]) : (int?)null
+                            };
+                        }
+                    }
+                }
+
+                if (viewModel.Luminaria == null)
+                {
+                    return HttpNotFound("Luminaria no encontrada");
+                }
+
+                // 2. Obtener historial de órdenes de servicio
+                using (var cmdOrdenes = new SqlCommand())
+                {
+                    cmdOrdenes.Connection = cn;
+                    cmdOrdenes.CommandTimeout = 120;
+
+                    string sqlOrdenes = @"
+                        SELECT id_orden, codigo_orden, tipo_de_orden, clase_de_orden,
+                               problema_relacionado, cuadrilla, fecha_creacion, fecha_a_realizar,
+                               IdEstado, Trabajos, observaciones,
+                               CASE IdEstado
+                                   WHEN 1 THEN 'Pendiente'
+                                   WHEN 2 THEN 'En Proceso'
+                                   WHEN 3 THEN 'Cerrada'
+                                   ELSE 'Desconocido'
+                               END AS EstadoNombre
+                        FROM dbo.ordenes_de_servicio
+                        WHERE codigo_de_elemento = @codigo
+                        ORDER BY ISNULL(fecha_creacion, fecha_a_realizar) DESC, id_orden DESC";
+
+                    cmdOrdenes.CommandText = sqlOrdenes;
+                    cmdOrdenes.Parameters.AddWithValue("@codigo", codigo);
+
+                    using (var drOrdenes = await cmdOrdenes.ExecuteReaderAsync())
+                    {
+                        while (await drOrdenes.ReadAsync())
+                        {
+                            viewModel.HistorialOrdenes.Add(new OrdenHistorialModel
+                            {
+                                IdOrden = Convert.ToInt32(drOrdenes["id_orden"]),
+                                CodigoOrden = drOrdenes["codigo_orden"]?.ToString() ?? "",
+                                TipoDeOrden = drOrdenes["tipo_de_orden"]?.ToString() ?? "",
+                                ClaseDeOrden = drOrdenes["clase_de_orden"]?.ToString() ?? "",
+                                ProblemaRelacionado = drOrdenes["problema_relacionado"]?.ToString() ?? "",
+                                Cuadrilla = drOrdenes["cuadrilla"]?.ToString() ?? "",
+                                FechaCreacion = drOrdenes["fecha_creacion"] != DBNull.Value ? Convert.ToDateTime(drOrdenes["fecha_creacion"]) : (DateTime?)null,
+                                FechaARealizar = drOrdenes["fecha_a_realizar"] != DBNull.Value ? Convert.ToDateTime(drOrdenes["fecha_a_realizar"]) : DateTime.MinValue,
+                                IdEstado = drOrdenes["IdEstado"] != DBNull.Value ? Convert.ToInt32(drOrdenes["IdEstado"]) : 0,
+                                EstadoNombre = drOrdenes["EstadoNombre"]?.ToString() ?? "Desconocido",
+                                Trabajos = drOrdenes["Trabajos"]?.ToString() ?? "",
+                                Observaciones = drOrdenes["observaciones"]?.ToString() ?? ""
+                            });
+                        }
+                    }
+                }
+
+                // 3. Obtener imágenes
+                viewModel.Imagenes = ObtenerImagenes(codigo);
+            }
+
+            ViewBag.EsAdminLocal = EsAdminLocal();
+            return View("HojaDeVida", viewModel);
+        }
+
+        // ===== BUSCADOR DE LUMINARIAS PARA HOJA DE VIDA =====
+        [HttpGet]
+        public async Task<ActionResult> BuscarLuminaria(string termino)
+        {
+            if (string.IsNullOrWhiteSpace(termino) || termino.Length < 2)
+            {
+                return Json(new List<object>(), JsonRequestBehavior.AllowGet);
+            }
+
+            var resultados = new List<object>();
+            string cs = "data source=tadeo.colombiahosting.com.co\\MSSQLSERVER2019;initial catalog=lightcon_luminaria;user id=lightcon_lumin;pwd=luminaria2024*";
+
+            using (var cn = new SqlConnection(cs))
+            using (var cmd = new SqlCommand())
+            {
+                await cn.OpenAsync();
+                cmd.Connection = cn;
+                cmd.CommandTimeout = 60;
+
+                // Obtener municipio de la sesión (aplica para TODOS los usuarios)
+                var muni = MunicipioSesion();
+
+                string sql = @"SELECT TOP 15 codigo, barrio, direccion, tipo, municipio
+                              FROM dbo.infraestructura
+                              WHERE (codigo LIKE @termino OR barrio LIKE @termino OR direccion LIKE @termino)";
+
+                // SIEMPRE filtrar por municipio de la sesión
+                if (EsChiaNombre(muni))
+                {
+                    sql += " AND IdMunicipio = @IdM";
+                    cmd.Parameters.AddWithValue("@IdM", CHIA_ID);
+                }
+                else
+                {
+                    sql += " AND municipio = @Municipio";
+                    cmd.Parameters.AddWithValue("@Municipio", muni);
+                }
+
+                sql += " ORDER BY codigo";
+                cmd.CommandText = sql;
+                cmd.Parameters.AddWithValue("@termino", "%" + termino + "%");
+
+                using (var dr = await cmd.ExecuteReaderAsync())
+                {
+                    while (await dr.ReadAsync())
+                    {
+                        resultados.Add(new
+                        {
+                            codigo = dr["codigo"]?.ToString() ?? "",
+                            barrio = dr["barrio"]?.ToString() ?? "",
+                            direccion = dr["direccion"]?.ToString() ?? "",
+                            tipo = dr["tipo"]?.ToString() ?? "",
+                            municipio = dr["municipio"]?.ToString() ?? ""
+                        });
+                    }
+                }
+            }
+
+            return Json(resultados, JsonRequestBehavior.AllowGet);
+        }
     }
 }

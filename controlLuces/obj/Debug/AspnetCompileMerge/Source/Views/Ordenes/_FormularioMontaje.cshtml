@@ -148,14 +148,17 @@
             }
 
         .btn-atras {
-            background: #ef4444;
+            background: linear-gradient(135deg, #fb7185, #ef4444);
             color: #ffffff;
+            box-shadow: 0 10px 22px rgba(248,113,113,.34);
+            text-decoration: none;
         }
 
-            .btn-atras:hover {
-                background: #dc2626;
-                color: #ffffff;
-            }
+        .btn-atras:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            color: #ffffff;
+        }
 
         @@media (max-width: 768px) {
             .form-content {
@@ -249,7 +252,6 @@
                     <div class="form-content">
                         <div class="row g-3">
                             <div class="col-md-6">
-
                                 <!-- ✅ SOLO SE MUESTRA EL CÓDIGO DE LA PQRS (visible) -->
                                 <div class="form-group">
                                     <label class="required">PQRS relacionada:</label>
@@ -258,33 +260,10 @@
                                            value="@ViewBag.CodigoPqrs"
                                            readonly />
                                 </div>
-
                                 <!-- ✅ ID INTERNO DE LA PQRS (oculto con hidden) -->
                                 <input type="hidden"
                                        name="ElementoRelacionado"
                                        value="@ViewBag.IdPqrs" />
-
-                                <div class="form-group">
-                                    <label class="required">Problema Relacionado:</label>
-                                    <textarea name="ProblemaRelacionado"
-                                              class="form-control"
-                                              readonly>@ViewBag.descripcionAfectacion</textarea>
-                                </div>
-
-                                <div class="form-group">
-                                    <label class="required">Orden Prioridad:</label>
-                                    <select name="OrdenPrioridad" class="form-control" required>
-                                        <option value="">Seleccione</option>
-                                        <option value="Baja">Baja</option>
-                                        <option value="Media">Media</option>
-                                        <option value="Alta">Alta</option>
-                                    </select>
-                                </div>
-
-                                <div class="form-group">
-                                    <label>Fecha a Realizar:</label>
-                                    <input type="date" name="FechaARealizar" class="form-control" />
-                                </div>
                             </div>
 
                             <div class="col-md-6">
@@ -295,9 +274,20 @@
                                         <option value="No">No</option>
                                     </select>
                                 </div>
+                            </div>
+                        </div>
 
-   
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="required">Problema Relacionado:</label>
+                                    <textarea name="ProblemaRelacionado"
+                                              class="form-control"
+                                              readonly>@ViewBag.descripcionAfectacion</textarea>
+                                </div>
+                            </div>
 
+                            <div class="col-md-6">
                                 <div class="form-group">
                                     <label class="required">Tipo De Solucion:</label>
                                     <select name="TipoDeSolucion" class="form-control" required>
@@ -316,8 +306,29 @@
                                         }
                                     </select>
                                 </div>
+                            </div>
+                        </div>
 
-                                
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label class="required">Orden Prioridad:</label>
+                                    <select name="OrdenPrioridad" class="form-control" required>
+                                        <option value="">Seleccione</option>
+                                        <option value="Baja">Baja</option>
+                                        <option value="Media">Media</option>
+                                        <option value="Alta">Alta</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="col-md-6">
+                                <div class="form-group">
+                                    <label>Fecha a Realizar:</label>
+                                    <input type="date" name="FechaARealizar" class="form-control" />
+                                </div>
+                            </div>
+                        </div>
 
                         <div class="orden-actions">
                             <button type="submit" class="btn-pill btn-orden">
@@ -325,7 +336,7 @@
                                 Generar Nueva Orden
                             </button>
 
-                            <a href="javascript:history.back()" class="btn-pill btn-atras">
+                            <a href="@Url.Action("inicio", "Login")" class="btn-pill btn-atras">
                                 <i class="fas fa-arrow-left"></i>
                                 Atrás
                             </a>

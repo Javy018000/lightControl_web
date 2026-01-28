@@ -54,9 +54,27 @@ namespace controlLuces.Controllers
             return $"ODSLC{year}";
         }
 
+        // ====== HELPER PARA VERIFICAR SI EXISTE COLUMNA ======
+        private bool HasColumn(IDataRecord rd, string columnName)
+        {
+            for (int i = 0; i < rd.FieldCount; i++)
+            {
+                if (rd.GetName(i).Equals(columnName, StringComparison.OrdinalIgnoreCase))
+                    return true;
+            }
+            return false;
+        }
+
         // ====== MAPPER REUTILIZABLE PARA ORDEN ======
         private OrdenModel MapOrden(IDataRecord rd)
         {
+            // Intentar obtener fecha_creacion si existe
+            DateTime? fechaCreacion = null;
+            if (HasColumn(rd, "fecha_creacion") && rd["fecha_creacion"] != DBNull.Value)
+            {
+                fechaCreacion = Convert.ToDateTime(rd["fecha_creacion"]);
+            }
+
             return new OrdenModel
             {
                 IdOrden = rd["id_orden"] != DBNull.Value ? Convert.ToInt32(rd["id_orden"]) : 0,
@@ -69,6 +87,7 @@ namespace controlLuces.Controllers
                 OrdenPrioridad = rd["Orden_prioridad"] == DBNull.Value ? "" : rd["Orden_prioridad"].ToString(),
                 PrioridadDeRuta = rd["prioridad_de_ruta"] == DBNull.Value ? 0 : Convert.ToInt32(rd["prioridad_de_ruta"]),
                 FechaARealizar = rd["fecha_a_realizar"] == DBNull.Value ? DateTime.MinValue : Convert.ToDateTime(rd["fecha_a_realizar"]),
+                FechaCreacion = fechaCreacion,
                 Cuadrilla = rd["cuadrilla"] == DBNull.Value ? "" : rd["cuadrilla"].ToString(),
                 TipoDeOrden = rd["tipo_de_orden"] == DBNull.Value ? "" : rd["tipo_de_orden"].ToString(),
                 TipoDeSolucion = rd["tipo_de_Solucion"] == DBNull.Value ? "" : rd["tipo_de_Solucion"].ToString(),
@@ -589,14 +608,14 @@ namespace controlLuces.Controllers
                     : orden.FechaARealizar.ToUniversalTime();
 
                 string query = @"
-INSERT INTO ordenes_de_servicio 
-(Tipo_de_elemento, codigo_de_elemento, elemento_relacionado, 
+INSERT INTO ordenes_de_servicio
+(Tipo_de_elemento, codigo_de_elemento, elemento_relacionado,
  problema_relacionado, problema_validado, prioridad_de_ruta, Orden_prioridad,
- fecha_a_realizar, cuadrilla, tipo_de_orden, tipo_de_Solucion, clase_de_orden, IdEstado, Municipio)
+ fecha_a_realizar, cuadrilla, tipo_de_orden, tipo_de_Solucion, clase_de_orden, IdEstado, Municipio, fecha_creacion)
 VALUES
 (@TipoDeElemento, @CodigoDeElemento, @ElementoRelacionado,
  @ProblemaRelacionado, @ProblemaValidado, @PrioridadDeRuta, @OrdenPrioridad,
- @FechaARealizar, @Cuadrilla, @TipoDeOrden, @TipoDeSolucion, @ClaseDeOrden, @Idestado, @Municipio);
+ @FechaARealizar, @Cuadrilla, @TipoDeOrden, @TipoDeSolucion, @ClaseDeOrden, @Idestado, @Municipio, @FechaCreacion);
 SELECT CAST(SCOPE_IDENTITY() AS int);";
 
                 com.CommandText = query;

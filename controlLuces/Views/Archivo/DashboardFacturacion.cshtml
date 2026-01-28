@@ -1,0 +1,901 @@
+@model List<controlLuces.Models.ArchivoModel>
+@using System.Linq
+
+@{
+    ViewBag.Title = "Dashboard de Facturación";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    string mensajeExito = ViewBag.MensajeExito as string;
+    string busqueda = ViewBag.Busqueda as string;
+    string tipoSeleccionado = ViewBag.TipoSeleccionado as string ?? "Todos";
+    bool esAdmin = ViewBag.EsAdmin ?? false;
+
+    int totalArchivos = Model?.Count ?? 0;
+    int totalPdf = Model?.Count(x => x.TipoArchivo == "PDF") ?? 0;
+    int totalExcel = Model?.Count(x => x.TipoArchivo == "Excel") ?? 0;
+    int totalWord = Model?.Count(x => x.TipoArchivo == "Word") ?? 0;
+    int totalImagenes = Model?.Count(x => x.TipoArchivo == "Imagen") ?? 0;
+}
+
+<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css" />
+
+<style>
+    :root {
+        --primary: #8b5cf6;
+        --primary-dark: #7c3aed;
+        --secondary: #a855f7;
+        --success: #22c55e;
+        --warning: #f59e0b;
+        --danger: #ef4444;
+        --bg: #f1f5f9;
+        --card-bg: #ffffff;
+        --text: #0f172a;
+        --text-muted: #64748b;
+        --border: #e2e8f0;
+    }
+
+    .dashboard-facturacion {
+        width: 100%;
+        padding: 20px;
+        background: var(--bg);
+        min-height: 100vh;
+    }
+
+    .dashboard-header {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #fff;
+        border-radius: 20px;
+        padding: 24px 32px;
+        margin-bottom: 24px;
+        box-shadow: 0 10px 40px rgba(139, 92, 246, 0.3);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: rgba(255,255,255,0.1);
+        border-radius: 50%;
+    }
+
+    .dashboard-header h1 {
+        font-size: 28px;
+        font-weight: 800;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .dashboard-header p {
+        margin: 8px 0 0 0;
+        opacity: 0.9;
+        font-size: 15px;
+        position: relative;
+        z-index: 1;
+    }
+
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+        gap: 16px;
+        margin-bottom: 24px;
+    }
+
+    .stat-card {
+        background: var(--card-bg);
+        border-radius: 16px;
+        padding: 20px;
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid var(--border);
+    }
+
+    .stat-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 8px 30px rgba(0,0,0,0.1);
+    }
+
+    .stat-icon {
+        width: 56px;
+        height: 56px;
+        border-radius: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+    }
+
+    .stat-icon.total { background: linear-gradient(135deg, #f3e8ff, #e9d5ff); color: #7c3aed; }
+    .stat-icon.pdf { background: linear-gradient(135deg, #fee2e2, #fecaca); color: #dc2626; }
+    .stat-icon.excel { background: linear-gradient(135deg, #dcfce7, #bbf7d0); color: #16a34a; }
+    .stat-icon.word { background: linear-gradient(135deg, #dbeafe, #bfdbfe); color: #2563eb; }
+    .stat-icon.imagen { background: linear-gradient(135deg, #fef3c7, #fde68a); color: #d97706; }
+
+    .stat-info h3 { font-size: 28px; font-weight: 800; margin: 0; color: var(--text); }
+    .stat-info p { font-size: 13px; color: var(--text-muted); margin: 4px 0 0 0; }
+
+    .main-content {
+        display: grid;
+        grid-template-columns: 380px 1fr;
+        gap: 24px;
+    }
+
+    @@media (max-width: 1100px) {
+        .main-content { grid-template-columns: 1fr; }
+    }
+
+    .upload-panel {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid var(--border);
+        height: fit-content;
+        position: sticky;
+        top: 20px;
+    }
+
+    .upload-panel h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0 0 20px 0;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .upload-panel h2 i { color: var(--primary); }
+
+    .upload-zone {
+        border: 2px dashed var(--border);
+        border-radius: 16px;
+        padding: 40px 20px;
+        text-align: center;
+        background: #f8fafc;
+        transition: all 0.3s ease;
+        cursor: pointer;
+    }
+
+    .upload-zone:hover, .upload-zone.dragover {
+        border-color: var(--primary);
+        background: #faf5ff;
+    }
+
+    .upload-zone.uploading { pointer-events: none; opacity: 0.7; }
+
+    .upload-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 16px;
+        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.35);
+    }
+
+    .upload-icon-wrapper i { font-size: 32px; color: #fff; }
+
+    .upload-zone h4 { font-size: 16px; font-weight: 700; color: var(--text); margin: 0 0 8px 0; }
+    .upload-zone p { font-size: 13px; color: var(--text-muted); margin: 0 0 16px 0; }
+
+    .btn-select-file {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 12px 28px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+    }
+
+    .btn-select-file:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(139, 92, 246, 0.4);
+    }
+
+    .file-types {
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 16px;
+        flex-wrap: wrap;
+    }
+
+    .file-type-badge {
+        background: #f3e8ff;
+        color: #7c3aed;
+        padding: 5px 12px;
+        border-radius: 999px;
+        font-size: 11px;
+        font-weight: 600;
+    }
+
+    .file-preview {
+        margin-top: 20px;
+        padding: 16px;
+        background: #f8fafc;
+        border-radius: 12px;
+        display: none;
+    }
+
+    .file-preview.show { display: block; }
+
+    .file-preview-info { display: flex; align-items: center; gap: 12px; }
+
+    .file-preview-icon {
+        width: 48px;
+        height: 48px;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 20px;
+    }
+
+    .file-preview-details h5 { font-size: 14px; font-weight: 600; margin: 0; color: var(--text); word-break: break-all; }
+    .file-preview-details span { font-size: 12px; color: var(--text-muted); }
+
+    .upload-actions { display: flex; gap: 10px; margin-top: 20px; }
+
+    .btn-upload {
+        flex: 1;
+        background: linear-gradient(135deg, var(--success), #16a34a);
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 14px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .btn-upload:hover:not(:disabled) {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(34, 197, 94, 0.35);
+    }
+
+    .btn-upload:disabled { opacity: 0.6; cursor: not-allowed; }
+
+    .btn-clear {
+        background: #f1f5f9;
+        color: var(--text-muted);
+        border: none;
+        border-radius: 12px;
+        padding: 14px 20px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+    }
+
+    .btn-clear:hover { background: #e2e8f0; color: var(--text); }
+
+    .files-panel {
+        background: var(--card-bg);
+        border-radius: 20px;
+        padding: 24px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.06);
+        border: 1px solid var(--border);
+    }
+
+    .files-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+        flex-wrap: wrap;
+        gap: 16px;
+    }
+
+    .files-header h2 {
+        font-size: 18px;
+        font-weight: 700;
+        margin: 0;
+        color: var(--text);
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .files-header h2 i { color: var(--secondary); }
+
+    .files-count {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #fff;
+        padding: 6px 14px;
+        border-radius: 999px;
+        font-size: 13px;
+        font-weight: 600;
+    }
+
+    .filters-bar { display: flex; gap: 12px; margin-bottom: 20px; flex-wrap: wrap; }
+
+    .search-box { flex: 1; min-width: 200px; position: relative; }
+    .search-box i { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); color: var(--text-muted); }
+    .search-box input {
+        width: 100%;
+        padding: 12px 14px 12px 42px;
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        font-size: 14px;
+        transition: border-color 0.2s;
+    }
+    .search-box input:focus { outline: none; border-color: var(--primary); }
+
+    .filter-select { min-width: 160px; }
+    .filter-select select {
+        width: 100%;
+        padding: 12px 14px;
+        border: 2px solid var(--border);
+        border-radius: 12px;
+        font-size: 14px;
+        background: #fff;
+        cursor: pointer;
+        transition: border-color 0.2s;
+    }
+    .filter-select select:focus { outline: none; border-color: var(--primary); }
+
+    .btn-filter {
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        color: #fff;
+        border: none;
+        border-radius: 12px;
+        padding: 12px 24px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .btn-filter:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(139, 92, 246, 0.3);
+    }
+
+    .files-table-wrapper { overflow-x: auto; border-radius: 12px; border: 1px solid var(--border); }
+    .files-table { width: 100%; border-collapse: collapse; }
+    .files-table thead { background: linear-gradient(135deg, #f8fafc, #f1f5f9); }
+    .files-table th {
+        padding: 14px 16px;
+        text-align: left;
+        font-weight: 600;
+        font-size: 13px;
+        color: var(--text-muted);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        border-bottom: 2px solid var(--border);
+    }
+    .files-table td { padding: 14px 16px; border-bottom: 1px solid var(--border); vertical-align: middle; }
+    .files-table tbody tr { transition: background 0.15s; }
+    .files-table tbody tr:hover { background: #f8fafc; }
+    .files-table tbody tr:last-child td { border-bottom: none; }
+
+    .file-item { display: flex; align-items: center; gap: 12px; }
+    .file-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+    }
+
+    .file-icon.pdf { background: #fef2f2; color: #dc2626; }
+    .file-icon.excel { background: #f0fdf4; color: #16a34a; }
+    .file-icon.word { background: #eff6ff; color: #2563eb; }
+    .file-icon.imagen { background: #fefce8; color: #d97706; }
+    .file-icon.otro { background: #f1f5f9; color: #64748b; }
+
+    .file-name { font-weight: 600; color: var(--text); word-break: break-all; }
+
+    .tipo-badge { padding: 5px 12px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .tipo-badge.pdf { background: #fef2f2; color: #dc2626; }
+    .tipo-badge.excel { background: #f0fdf4; color: #16a34a; }
+    .tipo-badge.word { background: #eff6ff; color: #2563eb; }
+    .tipo-badge.imagen { background: #fefce8; color: #d97706; }
+    .tipo-badge.otro { background: #f1f5f9; color: #64748b; }
+
+    .file-date { font-size: 13px; color: var(--text-muted); }
+    .file-actions { display: flex; gap: 6px; }
+
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        cursor: pointer;
+        transition: all 0.2s;
+        text-decoration: none;
+    }
+
+    .btn-action.view { background: #eff6ff; color: #2563eb; }
+    .btn-action.view:hover { background: #dbeafe; }
+    .btn-action.download { background: #f0fdf4; color: #16a34a; }
+    .btn-action.download:hover { background: #dcfce7; }
+    .btn-action.delete { background: #fef2f2; color: #dc2626; }
+    .btn-action.delete:hover { background: #fee2e2; }
+
+    .empty-state { text-align: center; padding: 60px 20px; }
+    .empty-state-icon {
+        width: 100px;
+        height: 100px;
+        background: #f1f5f9;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 20px;
+    }
+    .empty-state-icon i { font-size: 40px; color: #cbd5e1; }
+    .empty-state h4 { font-size: 18px; font-weight: 700; color: var(--text); margin: 0 0 8px 0; }
+    .empty-state p { font-size: 14px; color: var(--text-muted); margin: 0; }
+
+    .upload-progress { margin-top: 16px; display: none; }
+    .upload-progress.show { display: block; }
+    .progress-bar-wrapper { background: #e2e8f0; border-radius: 999px; height: 8px; overflow: hidden; }
+    .progress-bar {
+        height: 100%;
+        background: linear-gradient(135deg, var(--primary), var(--secondary));
+        border-radius: 999px;
+        width: 0%;
+        transition: width 0.3s ease;
+    }
+    .progress-text { text-align: center; font-size: 13px; color: var(--text-muted); margin-top: 8px; }
+
+    .alert-floating {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        padding: 16px 24px;
+        border-radius: 12px;
+        font-weight: 600;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        animation: slideIn 0.3s ease;
+    }
+
+    .alert-floating.success { background: linear-gradient(135deg, var(--success), #16a34a); color: #fff; }
+    .alert-floating.error { background: linear-gradient(135deg, var(--danger), #dc2626); color: #fff; }
+
+    @@keyframes slideIn {
+        from { transform: translateX(100%); opacity: 0; }
+        to { transform: translateX(0); opacity: 1; }
+    }
+
+    .footer-actions { display: flex; justify-content: center; gap: 12px; margin-top: 24px; flex-wrap: wrap; }
+
+    .btn-back {
+        background: linear-gradient(135deg, #fb7185, #ef4444);
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 12px 28px;
+        font-weight: 600;
+        font-size: 14px;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s;
+        box-shadow: 0 6px 20px rgba(239, 68, 68, 0.3);
+    }
+
+    .btn-back:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 24px rgba(239, 68, 68, 0.4);
+        color: #fff;
+    }
+
+    .loader {
+        display: inline-block;
+        width: 16px;
+        height: 16px;
+        border: 2px solid rgba(255,255,255,0.3);
+        border-top-color: #fff;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+    }
+
+    @@keyframes spin { to { transform: rotate(360deg); } }
+</style>
+
+<div class="dashboard-facturacion">
+    <div class="dashboard-header">
+        <h1>
+            <i class="fa-solid fa-file-invoice"></i>
+            Dashboard de Facturación
+        </h1>
+        <p>Gestiona los archivos de facturación del alumbrado público</p>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon total"><i class="fa-solid fa-files"></i></div>
+            <div class="stat-info">
+                <h3 id="statTotal">@totalArchivos</h3>
+                <p>Total Archivos</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon pdf"><i class="fa-solid fa-file-pdf"></i></div>
+            <div class="stat-info">
+                <h3 id="statPdf">@totalPdf</h3>
+                <p>Documentos PDF</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon excel"><i class="fa-solid fa-file-excel"></i></div>
+            <div class="stat-info">
+                <h3 id="statExcel">@totalExcel</h3>
+                <p>Hojas Excel</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon word"><i class="fa-solid fa-file-word"></i></div>
+            <div class="stat-info">
+                <h3 id="statWord">@totalWord</h3>
+                <p>Documentos Word</p>
+            </div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-icon imagen"><i class="fa-solid fa-image"></i></div>
+            <div class="stat-info">
+                <h3 id="statImagen">@totalImagenes</h3>
+                <p>Imágenes</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="main-content">
+        @if (esAdmin)
+        {
+            <div class="upload-panel">
+                <h2><i class="fa-solid fa-cloud-arrow-up"></i> Cargar Nuevo Archivo</h2>
+                <form id="uploadForm" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-icon-wrapper"><i class="fa-solid fa-folder-open"></i></div>
+                        <h4>Arrastra y suelta aquí</h4>
+                        <p>o haz clic para seleccionar</p>
+                        <button type="button" class="btn-select-file" id="btnSelectFile">
+                            <i class="fa-solid fa-plus me-1"></i> Seleccionar Archivo
+                        </button>
+                        <input type="file" id="fileInput" name="archivo" accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.bmp" style="display: none;" />
+                        <div class="file-types">
+                            <span class="file-type-badge"><i class="fa-solid fa-file-pdf me-1"></i>PDF</span>
+                            <span class="file-type-badge"><i class="fa-solid fa-file-excel me-1"></i>Excel</span>
+                            <span class="file-type-badge"><i class="fa-solid fa-file-word me-1"></i>Word</span>
+                            <span class="file-type-badge"><i class="fa-solid fa-image me-1"></i>Imagen</span>
+                        </div>
+                    </div>
+                    <div class="file-preview" id="filePreview">
+                        <div class="file-preview-info">
+                            <div class="file-preview-icon"><i class="fa-solid fa-file" id="previewIcon"></i></div>
+                            <div class="file-preview-details">
+                                <h5 id="previewName">nombre_archivo.pdf</h5>
+                                <span id="previewSize">2.5 MB</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="upload-progress" id="uploadProgress">
+                        <div class="progress-bar-wrapper"><div class="progress-bar" id="progressBar"></div></div>
+                        <div class="progress-text" id="progressText">Subiendo archivo...</div>
+                    </div>
+                    <div class="upload-actions">
+                        <button type="submit" class="btn-upload" id="btnUpload" disabled>
+                            <i class="fa-solid fa-cloud-arrow-up"></i><span>Subir Archivo</span>
+                        </button>
+                        <button type="button" class="btn-clear" id="btnClear"><i class="fa-solid fa-xmark"></i></button>
+                    </div>
+                </form>
+            </div>
+        }
+
+        <div class="files-panel">
+            <div class="files-header">
+                <h2><i class="fa-solid fa-folder-open"></i> Archivos Cargados</h2>
+                <span class="files-count" id="filesCount">@totalArchivos archivo(s)</span>
+            </div>
+
+            <form id="filterForm" class="filters-bar">
+                <div class="search-box">
+                    <i class="fa-solid fa-magnifying-glass"></i>
+                    <input type="text" name="busqueda" id="searchInput" placeholder="Buscar por nombre..." value="@busqueda" />
+                </div>
+                <div class="filter-select">
+                    <select name="tipo" id="tipoSelect">
+                        <option value="Todos" @(tipoSeleccionado == "Todos" ? "selected" : "")>Todos los tipos</option>
+                        <option value="PDF" @(tipoSeleccionado == "PDF" ? "selected" : "")>PDF</option>
+                        <option value="Excel" @(tipoSeleccionado == "Excel" ? "selected" : "")>Excel</option>
+                        <option value="Word" @(tipoSeleccionado == "Word" ? "selected" : "")>Word</option>
+                        <option value="Imagen" @(tipoSeleccionado == "Imagen" ? "selected" : "")>Imagen</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-filter"><i class="fa-solid fa-magnifying-glass"></i> Buscar</button>
+            </form>
+
+            @if (ViewBag.TablaNoExiste == true)
+            {
+                <div class="alert alert-warning">
+                    <i class="fa-solid fa-database me-1"></i>
+                    La tabla de archivos de facturación no existe. Contacte al administrador para crearla.
+                </div>
+            }
+
+            @if (Model == null || Model.Count == 0)
+            {
+                <div class="empty-state">
+                    <div class="empty-state-icon"><i class="fa-solid fa-folder-open"></i></div>
+                    <h4>No hay archivos</h4>
+                    <p>No se encontraron archivos de facturación@(!string.IsNullOrEmpty(busqueda) || tipoSeleccionado != "Todos" ? " con los criterios de búsqueda" : "").</p>
+                </div>
+            }
+            else
+            {
+                <div class="files-table-wrapper">
+                    <table class="files-table" id="filesTable">
+                        <thead>
+                            <tr>
+                                <th>Archivo</th>
+                                <th>Tipo</th>
+                                <th>Fecha de Carga</th>
+                                <th style="width: 130px;">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody id="filesTableBody">
+                            @foreach (var archivo in Model)
+                            {
+                                var iconClass = "otro";
+                                var iconName = "fa-file";
+                                if (archivo.TipoArchivo == "PDF") { iconClass = "pdf"; iconName = "fa-file-pdf"; }
+                                else if (archivo.TipoArchivo == "Word") { iconClass = "word"; iconName = "fa-file-word"; }
+                                else if (archivo.TipoArchivo == "Excel") { iconClass = "excel"; iconName = "fa-file-excel"; }
+                                else if (archivo.TipoArchivo == "Imagen") { iconClass = "imagen"; iconName = "fa-image"; }
+
+                                <tr data-id="@archivo.Id">
+                                    <td>
+                                        <div class="file-item">
+                                            <div class="file-icon @iconClass"><i class="fa-solid @iconName"></i></div>
+                                            <span class="file-name">@archivo.NombreArchivo</span>
+                                        </div>
+                                    </td>
+                                    <td><span class="tipo-badge @iconClass.ToLower()">@archivo.TipoArchivo</span></td>
+                                    <td><span class="file-date">@(archivo.FechaCarga.HasValue ? archivo.FechaCarga.Value.ToString("dd/MM/yyyy HH:mm") : "-")</span></td>
+                                    <td>
+                                        <div class="file-actions">
+                                            <a href="@Url.Action("MostrarFacturacion", "Archivo", new { id = archivo.Id })" class="btn-action view" target="_blank" title="Ver"><i class="fa-solid fa-eye"></i></a>
+                                            <a href="@Url.Action("DescargarFacturacion", "Archivo", new { id = archivo.Id })" class="btn-action download" title="Descargar"><i class="fa-solid fa-download"></i></a>
+                                            @if (esAdmin)
+                                            {
+                                                <button type="button" class="btn-action delete btn-delete" data-id="@archivo.Id" data-nombre="@archivo.NombreArchivo" title="Eliminar"><i class="fa-solid fa-trash-alt"></i></button>
+                                            }
+                                        </div>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </div>
+    </div>
+
+    <div class="footer-actions">
+        <a href="@Url.Action("inicio", "Login")" class="btn-back"><i class="fa-solid fa-arrow-left"></i> Volver al Inicio</a>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+
+<script>
+    $(function () {
+        const uploadZone = $('#uploadZone');
+        const fileInput = $('#fileInput');
+        const btnSelectFile = $('#btnSelectFile');
+        const btnUpload = $('#btnUpload');
+        const btnClear = $('#btnClear');
+        const filePreview = $('#filePreview');
+        const uploadProgress = $('#uploadProgress');
+        const progressBar = $('#progressBar');
+        const progressText = $('#progressText');
+
+        let selectedFile = null;
+
+        btnSelectFile.on('click', function (e) { e.stopPropagation(); fileInput.click(); });
+        uploadZone.on('click', function () { fileInput.click(); });
+
+        uploadZone.on('dragover', function (e) { e.preventDefault(); uploadZone.addClass('dragover'); });
+        uploadZone.on('dragleave', function (e) { e.preventDefault(); uploadZone.removeClass('dragover'); });
+        uploadZone.on('drop', function (e) {
+            e.preventDefault();
+            uploadZone.removeClass('dragover');
+            if (e.originalEvent.dataTransfer.files.length > 0) {
+                fileInput[0].files = e.originalEvent.dataTransfer.files;
+                handleFileSelect(e.originalEvent.dataTransfer.files[0]);
+            }
+        });
+
+        fileInput.on('change', function () { if (this.files.length > 0) handleFileSelect(this.files[0]); });
+        btnClear.on('click', function () { clearSelection(); });
+
+        function handleFileSelect(file) {
+            selectedFile = file;
+            $('#previewName').text(file.name);
+            $('#previewSize').text(formatFileSize(file.size) + ' - ' + getFileTypeLabel(file.name));
+            const ext = file.name.split('.').pop().toLowerCase();
+            let iconClass = 'fa-file';
+            if (ext === 'pdf') iconClass = 'fa-file-pdf';
+            else if (['doc', 'docx'].includes(ext)) iconClass = 'fa-file-word';
+            else if (['xls', 'xlsx'].includes(ext)) iconClass = 'fa-file-excel';
+            else if (['jpg', 'jpeg', 'png', 'gif', 'bmp'].includes(ext)) iconClass = 'fa-image';
+            $('#previewIcon').removeClass().addClass('fa-solid ' + iconClass);
+            filePreview.addClass('show');
+            btnUpload.prop('disabled', false);
+        }
+
+        function clearSelection() {
+            selectedFile = null;
+            fileInput.val('');
+            filePreview.removeClass('show');
+            uploadProgress.removeClass('show');
+            btnUpload.prop('disabled', true);
+            progressBar.css('width', '0%');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getFileTypeLabel(fileName) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            const types = { 'pdf': 'Documento PDF', 'doc': 'Documento Word', 'docx': 'Documento Word', 'xls': 'Hoja de cálculo Excel', 'xlsx': 'Hoja de cálculo Excel', 'jpg': 'Imagen JPEG', 'jpeg': 'Imagen JPEG', 'png': 'Imagen PNG', 'gif': 'Imagen GIF', 'bmp': 'Imagen BMP' };
+            return types[ext] || 'Archivo';
+        }
+
+        $('#uploadForm').on('submit', function (e) {
+            e.preventDefault();
+            if (!selectedFile) return;
+
+            const formData = new FormData();
+            formData.append('archivo', selectedFile);
+            formData.append('__RequestVerificationToken', $('input[name="__RequestVerificationToken"]').val());
+
+            uploadZone.addClass('uploading');
+            uploadProgress.addClass('show');
+            btnUpload.prop('disabled', true);
+            btnUpload.html('<span class="loader"></span> Subiendo...');
+
+            $.ajax({
+                url: '@Url.Action("SubirFacturacionAjax", "Archivo")',
+                type: 'POST',
+                data: formData,
+                processData: false,
+                contentType: false,
+                xhr: function () {
+                    var xhr = new XMLHttpRequest();
+                    xhr.upload.addEventListener('progress', function (e) {
+                        if (e.lengthComputable) {
+                            var percent = Math.round((e.loaded / e.total) * 100);
+                            progressBar.css('width', percent + '%');
+                            progressText.text('Subiendo... ' + percent + '%');
+                        }
+                    });
+                    return xhr;
+                },
+                success: function (response) {
+                    if (response.success) {
+                        showAlert('success', response.message);
+                        clearSelection();
+                        setTimeout(function () { window.location.reload(); }, 1500);
+                    } else {
+                        showAlert('error', response.message);
+                        resetUploadButton();
+                    }
+                },
+                error: function () { showAlert('error', 'Error al subir el archivo.'); resetUploadButton(); }
+            });
+        });
+
+        function resetUploadButton() {
+            uploadZone.removeClass('uploading');
+            uploadProgress.removeClass('show');
+            btnUpload.prop('disabled', false);
+            btnUpload.html('<i class="fa-solid fa-cloud-arrow-up"></i> <span>Subir Archivo</span>');
+            progressBar.css('width', '0%');
+        }
+
+        $(document).on('click', '.btn-delete', function () {
+            var id = $(this).data('id');
+            var nombre = $(this).data('nombre');
+            var row = $(this).closest('tr');
+
+            Swal.fire({
+                title: 'Eliminar archivo',
+                text: '¿Estás seguro de eliminar "' + nombre + '"?',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc2626',
+                cancelButtonColor: '#64748b',
+                confirmButtonText: 'Sí, eliminar',
+                cancelButtonText: 'Cancelar'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.ajax({
+                        url: '@Url.Action("EliminarFacturacion", "Archivo")',
+                        type: 'POST',
+                        data: { id: id },
+                        success: function (response) {
+                            if (response.success) {
+                                row.fadeOut(300, function () { $(this).remove(); updateStats(); });
+                                showAlert('success', response.message);
+                            } else { showAlert('error', response.message); }
+                        },
+                        error: function () { showAlert('error', 'No se pudo eliminar el archivo.'); }
+                    });
+                }
+            });
+        });
+
+        function updateStats() {
+            var total = $('#filesTableBody tr').length;
+            var pdf = $('#filesTableBody .file-icon.pdf').length;
+            var excel = $('#filesTableBody .file-icon.excel').length;
+            var word = $('#filesTableBody .file-icon.word').length;
+            var imagen = $('#filesTableBody .file-icon.imagen').length;
+            $('#statTotal').text(total);
+            $('#statPdf').text(pdf);
+            $('#statExcel').text(excel);
+            $('#statWord').text(word);
+            $('#statImagen').text(imagen);
+            $('#filesCount').text(total + ' archivo(s)');
+        }
+
+        function showAlert(type, message) {
+            var alert = $('<div class="alert-floating ' + type + '"><i class="fa-solid ' + (type === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation') + '"></i><span>' + message + '</span></div>');
+            $('body').append(alert);
+            setTimeout(function () { alert.fadeOut(300, function () { $(this).remove(); }); }, 3000);
+        }
+    });
+</script>

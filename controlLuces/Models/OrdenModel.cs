@@ -15,6 +15,7 @@ namespace controlLuces.Models
         public string OrdenPrioridad { get; set; }
         public int PrioridadDeRuta { get; set; }
         public DateTime FechaARealizar { get; set; }
+        public DateTime? FechaCreacion { get; set; }  // Fecha exacta de creación de la orden
         public string Cuadrilla { get; set; }
         public string TipoDeOrden { get; set; }
         public string TipoDeSolucion { get; set; }

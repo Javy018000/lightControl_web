@@ -181,6 +181,44 @@
             transform: translateY(-1px);
             color: #fff;
         }
+
+        /* Contador de tiempo */
+        .tiempo-orden {
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            padding: 8px 12px;
+            border-radius: 10px;
+            font-size: 13px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-top: 10px;
+        }
+
+        .tiempo-orden i {
+            font-size: 16px;
+        }
+
+        .tiempo-orden .tiempo-valor {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 14px;
+            letter-spacing: 0.5px;
+        }
+
+        .tiempo-orden.tiempo-urgente {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            animation: pulse-urgente 2s infinite;
+        }
+
+        .tiempo-orden.tiempo-normal {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+        }
+
+        @@keyframes pulse-urgente {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.8; }
+        }
     </style>
 </head>
 <body>
@@ -207,6 +245,35 @@
                         <p><strong>Descripción:</strong> @Orden.ProblemaRelacionado</p>
                         <p><strong>PQRS Relacionada:</strong> @Orden.ElementoRelacionado</p>
                         <p><strong>Cuadrilla:</strong> @Orden.Cuadrilla</p>
+
+                        @{
+                            var fechaInicio = Orden.FechaARealizar;
+                            var ahora = DateTime.Now;
+                            var diferencia = ahora - fechaInicio;
+                            var dias = (int)diferencia.TotalDays;
+                            var horas = diferencia.Hours;
+                            var minutos = diferencia.Minutes;
+                            var claseUrgencia = dias >= 3 ? "tiempo-urgente" : dias >= 1 ? "" : "tiempo-normal";
+                        }
+                        <div class="tiempo-orden @claseUrgencia"
+                             data-fecha-inicio="@fechaInicio.ToString("yyyy-MM-ddTHH:mm:ss")">
+                            <i class="fas fa-clock"></i>
+                            <span>Tiempo activo:</span>
+                            <span class="tiempo-valor">
+                                @if (dias > 0)
+                                {
+                                    @(dias + "d " + horas + "h " + minutos + "m")
+                                }
+                                else if (horas > 0)
+                                {
+                                    @(horas + "h " + minutos + "m")
+                                }
+                                else
+                                {
+                                    @(minutos + "m")
+                                }
+                            </span>
+                        </div>
                     </div>
                     <div class="card-footer">
                         <a href="@Url.Action("verinfo", "Ordenes", new { id = Orden.IdOrden })"
@@ -285,6 +352,47 @@
                     });
                 });
             });
+
+            // Actualizar contadores de tiempo en tiempo real
+            function actualizarContadores() {
+                $('.tiempo-orden').each(function () {
+                    var $this = $(this);
+                    var fechaInicio = new Date($this.data('fecha-inicio'));
+                    var ahora = new Date();
+                    var diferencia = ahora - fechaInicio;
+
+                    // Calcular dias, horas y minutos
+                    var totalMinutos = Math.floor(diferencia / 60000);
+                    var totalHoras = Math.floor(totalMinutos / 60);
+                    var dias = Math.floor(totalHoras / 24);
+                    var horas = totalHoras % 24;
+                    var minutos = totalMinutos % 60;
+
+                    // Formatear el tiempo
+                    var tiempoTexto = '';
+                    if (dias > 0) {
+                        tiempoTexto = dias + 'd ' + horas + 'h ' + minutos + 'm';
+                    } else if (horas > 0) {
+                        tiempoTexto = horas + 'h ' + minutos + 'm';
+                    } else {
+                        tiempoTexto = minutos + 'm';
+                    }
+
+                    // Actualizar el texto
+                    $this.find('.tiempo-valor').text(tiempoTexto);
+
+                    // Actualizar clase de urgencia
+                    $this.removeClass('tiempo-urgente tiempo-normal');
+                    if (dias >= 3) {
+                        $this.addClass('tiempo-urgente');
+                    } else if (dias < 1) {
+                        $this.addClass('tiempo-normal');
+                    }
+                });
+            }
+
+            // Actualizar cada minuto
+            setInterval(actualizarContadores, 60000);
         });
     </script>
 </body>

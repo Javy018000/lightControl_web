@@ -1,4 +1,4 @@
-﻿@{
+@{
     ViewBag.Title = "Cargar archivo";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
@@ -9,266 +9,476 @@
 <style>
     :root {
         --c1: #0ea5e9;
-        --c2: #0369a1;
-        --c3: #0b1120;
-        --c4: #e0f2fe;
-        --danger: #ef4444;
+        --c2: #3b82f6;
+        --bg: #f4f8fb;
+        --text: #0f172a;
+        --muted: #64748b;
     }
 
-    .page-wrapper-archivos {
-        max-width: 1400px;
-        margin: 0 auto;
-        padding: 24px 16px 40px;
-        background: radial-gradient(circle at top left, var(--c4) 0, var(--c1) 45%, var(--c2) 100%);
-        border-radius: 24px;
-        box-shadow: 0 20px 40px rgba(15, 23, 42, 0.35);
+    body {
+        font-family: 'Segoe UI', system-ui, -apple-system, Arial, sans-serif;
+        background: var(--bg);
+        color: var(--text);
     }
 
-    .main-header-archivos {
-        background: linear-gradient(120deg, var(--c1), var(--c2));
-        border-radius: 24px;
-        padding: 18px 22px;
-        color: #f9fafb;
+    .archivo-page {
+        width: 100%;
+        margin: 22px auto 40px auto;
+        padding: 0 20px 40px 20px;
     }
 
-    .main-title-archivos {
-        font-size: 1.35rem;
-        font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        gap: 8px;
+    .archivo-main-header {
+        background: linear-gradient(135deg, var(--c1), var(--c2));
+        color: #fff;
+        border-radius: 18px;
+        padding: 18px 24px;
+        text-align: center;
+        font-weight: 800;
+        letter-spacing: .4px;
+        box-shadow: 0 12px 28px rgba(2, 8, 23, .15);
+        text-transform: uppercase;
+        font-size: 24px;
+        margin-bottom: 18px;
     }
 
-    .main-subtitle-archivos {
-        font-size: 0.8rem;
+        .archivo-main-header i {
+            margin-right: 8px;
+        }
+
+    .archivo-subtitle {
+        font-size: 14px;
+        font-weight: 400;
+        text-transform: none;
         opacity: 0.9;
-        margin-top: 2px;
+        margin-top: 4px;
     }
 
-    .content-wrapper-archivos {
-        margin-top: 18px;
-    }
-
-    .card-soft-archivos {
+    .archivo-card {
         background: #ffffff;
-        border-radius: 24px;
-        padding: 24px 22px 26px;
-        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.25);
+        border-radius: 18px;
+        box-shadow: 0 10px 24px rgba(15, 23, 42, .10);
+        padding: 24px;
+        max-width: 800px;
+        margin: 0 auto;
     }
 
     .upload-area {
-        border: 2px dashed rgba(15, 23, 42, 0.18);
-        border-radius: 18px;
-        padding: 32px 20px;
+        border: 2px dashed #cbd5e1;
+        border-radius: 16px;
+        padding: 40px 20px;
         background: #f8fafc;
         text-align: center;
-        transition: border-color 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
+        transition: all 0.2s ease;
+        cursor: pointer;
     }
 
-        .upload-area:hover {
+        .upload-area:hover,
+        .upload-area.dragover {
             border-color: var(--c1);
             background: #eff6ff;
-            box-shadow: 0 0 0 2px rgba(14, 165, 233, 0.12);
         }
 
     .upload-icon {
-        width: 60px;
-        height: 60px;
-        border-radius: 999px;
+        width: 80px;
+        height: 80px;
+        border-radius: 50%;
         display: flex;
         align-items: center;
         justify-content: center;
-        margin: 0 auto 12px;
-        background: rgba(14, 165, 233, 0.15);
+        margin: 0 auto 16px;
+        background: linear-gradient(135deg, var(--c1), var(--c2));
     }
 
         .upload-icon i {
-            font-size: 1.8rem;
-            color: #0f172a;
+            font-size: 2rem;
+            color: #fff;
         }
 
     .upload-title {
-        font-weight: 600;
-        margin-bottom: 4px;
+        font-weight: 700;
+        font-size: 18px;
+        margin-bottom: 8px;
+        color: var(--text);
     }
 
     .upload-subtitle {
-        font-size: 0.85rem;
-        color: #6b7280;
+        font-size: 14px;
+        color: var(--muted);
+        margin-bottom: 16px;
     }
 
-    #archivoInput {
-        margin-top: 14px;
-    }
-
-    #preview {
-        margin-top: 22px;
+    .form-control-file {
         display: none;
     }
 
+    .btn-select-file {
+        background: linear-gradient(135deg, var(--c1), var(--c2));
+        color: #fff;
+        border: none;
+        border-radius: 999px;
+        padding: 10px 24px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+        .btn-select-file:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+        }
+
+    .file-info {
+        margin-top: 20px;
+        padding: 16px;
+        background: #f1f5f9;
+        border-radius: 12px;
+        display: none;
+    }
+
+        .file-info.show {
+            display: block;
+        }
+
+    .file-name {
+        font-weight: 600;
+        color: var(--text);
+        word-break: break-all;
+    }
+
+    .file-type {
+        font-size: 13px;
+        color: var(--muted);
+    }
+
+    .preview-container {
+        margin-top: 20px;
+        display: none;
+    }
+
+        .preview-container.show {
+            display: block;
+        }
+
     .preview-wrapper {
         background: #f1f5f9;
-        border-radius: 18px;
-        padding: 16px;
-        border: 1px solid #e5e7eb;
-    }
-
-    #previewImage,
-    #previewPdf {
-        max-width: 100%;
         border-radius: 12px;
+        padding: 16px;
+        text-align: center;
     }
 
-    .btn-pill {
+    #previewImage {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 8px;
+    }
+
+    #previewPdf {
+        width: 100%;
+        height: 400px;
+        border-radius: 8px;
+    }
+
+    .button-container {
+        text-align: center;
+        margin-top: 24px;
+        display: flex;
+        justify-content: center;
+        gap: 12px;
+        flex-wrap: wrap;
+    }
+
+    .btn-guardar {
+        padding: 10px 28px;
         border-radius: 999px;
+        font-weight: 600;
+        border: none;
+        background: linear-gradient(135deg, #22c55e, #16a34a);
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(34,197,94,.34);
+        transition: filter 0.15s, transform 0.15s;
     }
 
-    .btn-danger-soft {
-        background: rgba(239, 68, 68, 0.08);
-        color: #991b1b;
-        border-color: rgba(239, 68, 68, 0.25);
-    }
-
-        .btn-danger-soft:hover {
-            background: rgba(239, 68, 68, 0.16);
-            color: #7f1d1d;
+        .btn-guardar:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            color: #fff;
         }
+
+    .btn-limpiar {
+        padding: 10px 28px;
+        border-radius: 999px;
+        font-weight: 600;
+        border: none;
+        background: linear-gradient(135deg, #f59e0b, #d97706);
+        color: #fff;
+        box-shadow: 0 10px 22px rgba(245,158,11,.34);
+        transition: filter 0.15s, transform 0.15s;
+    }
+
+        .btn-limpiar:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+
+    .btn-back {
+        padding: 10px 28px;
+        border-radius: 999px;
+        font-weight: 600;
+        border: none;
+        background: linear-gradient(135deg, #fb7185, #ef4444);
+        color: #fff;
+        text-decoration: none;
+        box-shadow: 0 10px 22px rgba(248,113,113,.34);
+        transition: filter 0.15s, transform 0.15s;
+    }
+
+        .btn-back:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+
+    .btn-ver-archivos {
+        padding: 10px 28px;
+        border-radius: 999px;
+        font-weight: 600;
+        border: none;
+        background: linear-gradient(135deg, var(--c1), var(--c2));
+        color: #fff;
+        text-decoration: none;
+        box-shadow: 0 10px 22px rgba(14,165,233,.34);
+        transition: filter 0.15s, transform 0.15s;
+    }
+
+        .btn-ver-archivos:hover {
+            filter: brightness(1.05);
+            transform: translateY(-1px);
+            color: #fff;
+        }
+
+    .tipos-permitidos {
+        margin-top: 12px;
+        display: flex;
+        justify-content: center;
+        gap: 8px;
+        flex-wrap: wrap;
+    }
+
+    .tipo-badge {
+        background: #e0f2fe;
+        color: #0369a1;
+        padding: 4px 12px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 600;
+    }
 </style>
 
-<div class="page-wrapper-archivos">
-    <div class="main-header-archivos d-flex justify-content-between align-items-center flex-wrap gap-2">
-        <div>
-            <div class="main-title-archivos">
-                <i class="fa-solid fa-file-arrow-up"></i>
-                Cargar archivo
-            </div>
-            <div class="main-subtitle-archivos">
-                Sube un archivo (imagen o PDF) para almacenarlo en el sistema.
-            </div>
-        </div>
+<div class="archivo-page">
+    <div class="archivo-main-header">
+        <i class="fa-solid fa-cloud-arrow-up"></i> Cargar Archivo
+        <div class="archivo-subtitle">Sube archivos al sistema para almacenarlos</div>
     </div>
 
-    <div class="content-wrapper-archivos">
-        <div class="card-soft-archivos">
-            @if (ViewBag.Error != null)
-            {
-                <div class="alert alert-danger mb-3">
-                    <i class="fa-solid fa-circle-exclamation me-1"></i>
-                    @ViewBag.Error
+    <div class="archivo-card">
+        @if (ViewBag.Error != null)
+        {
+            <div class="alert alert-danger mb-3">
+                <i class="fa-solid fa-circle-exclamation me-1"></i>
+                @ViewBag.Error
+            </div>
+        }
+
+        @using (Html.BeginForm("NuevoArchivo", "Archivo", FormMethod.Post, new { enctype = "multipart/form-data", id = "uploadForm" }))
+        {
+            @Html.AntiForgeryToken()
+
+            <div class="upload-area" id="uploadArea">
+                <div class="upload-icon">
+                    <i class="fa-solid fa-folder-open"></i>
                 </div>
-            }
+                <div class="upload-title">Arrastra y suelta un archivo aqui</div>
+                <div class="upload-subtitle">O haz clic en el boton para seleccionarlo</div>
+                <button type="button" class="btn-select-file" id="btnSelectFile">
+                    <i class="fa-solid fa-file-arrow-up me-1"></i> Seleccionar archivo
+                </button>
+                <input type="file"
+                       id="archivoInput"
+                       name="archivo"
+                       class="form-control-file"
+                       accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png,.gif,.bmp" />
 
-            @using (Html.BeginForm("NuevoArchivo", "Archivo", FormMethod.Post, new { enctype = "multipart/form-data" }))
-            {
-                @Html.AntiForgeryToken()
-
-                <div class="upload-area">
-                    <div class="upload-icon">
-                        <i class="fa-regular fa-folder-open"></i>
-                    </div>
-                    <div class="upload-title">
-                        Arrastra y suelta un archivo aquí
-                    </div>
-                    <div class="upload-subtitle mb-3">
-                        O haz clic en el botón para seleccionarlo. Formatos: imagen o PDF.
-                    </div>
-
-                    <input type="file"
-                           id="archivoInput"
-                           name="archivo"
-                           class="form-control"
-                           accept="image/*,.pdf" />
+                <div class="tipos-permitidos">
+                    <span class="tipo-badge"><i class="fa-solid fa-file-pdf me-1"></i>PDF</span>
+                    <span class="tipo-badge"><i class="fa-solid fa-file-word me-1"></i>Word</span>
+                    <span class="tipo-badge"><i class="fa-solid fa-file-excel me-1"></i>Excel</span>
+                    <span class="tipo-badge"><i class="fa-solid fa-image me-1"></i>Imagenes</span>
                 </div>
+            </div>
 
-                <div id="preview">
-                    <h6 class="mt-3 mb-2 fw-semibold">
-                        <i class="fa-solid fa-eye me-1"></i> Vista previa
-                    </h6>
-                    <div class="preview-wrapper text-center">
-                        <img id="previewImage" src="" alt="Vista previa" style="display:none;" />
-                        <embed id="previewPdf"
-                               src=""
-                               type="application/pdf"
-                               width="100%"
-                               height="450px"
-                               style="display:none;" />
+            <div class="file-info" id="fileInfo">
+                <div class="d-flex align-items-center gap-3">
+                    <i class="fa-solid fa-file-lines fa-2x text-primary"></i>
+                    <div>
+                        <div class="file-name" id="fileName"></div>
+                        <div class="file-type" id="fileType"></div>
                     </div>
                 </div>
+            </div>
 
-                <div class="d-flex justify-content-between align-items-center flex-wrap gap-2 mt-4">
-                    <a href="@Url.Action("Index", "Home")"
-                       class="btn btn-outline-secondary btn-pill">
-                        <i class="fa-solid fa-house me-1"></i> Inicio
-                    </a>
-
-                    <div class="d-flex gap-2">
-                        <button type="button"
-                                id="clearButton"
-                                class="btn btn-danger-soft btn-pill">
-                            <i class="fa-solid fa-xmark me-1"></i> Limpiar
-                        </button>
-
-                        <button type="submit"
-                                class="btn btn-primary btn-pill">
-                            <i class="fa-solid fa-cloud-arrow-up me-1"></i> Guardar
-                        </button>
+            <div class="preview-container" id="previewContainer">
+                <h6 class="fw-semibold mb-2">
+                    <i class="fa-solid fa-eye me-1"></i> Vista previa
+                </h6>
+                <div class="preview-wrapper">
+                    <img id="previewImage" src="" alt="Vista previa" style="display:none;" />
+                    <embed id="previewPdf" src="" type="application/pdf" style="display:none;" />
+                    <div id="previewOther" style="display:none;">
+                        <i class="fa-solid fa-file fa-4x text-muted mb-2"></i>
+                        <p class="text-muted">Vista previa no disponible para este tipo de archivo</p>
                     </div>
                 </div>
-            }
-        </div>
+            </div>
+
+            <div class="button-container">
+                <button type="submit" class="btn-guardar" id="btnGuardar" disabled>
+                    <i class="fa-solid fa-cloud-arrow-up me-1"></i> Guardar
+                </button>
+                <button type="button" class="btn-limpiar" id="btnLimpiar">
+                    <i class="fa-solid fa-xmark me-1"></i> Limpiar
+                </button>
+                <a href="@Url.Action("VerArchivo", "Archivo")" class="btn-ver-archivos">
+                    <i class="fa-solid fa-folder-open me-1"></i> Ver Archivos
+                </a>
+                <a href="@Url.Action("inicio", "Login")" class="btn-back">
+                    <i class="fa-solid fa-arrow-left me-1"></i> Atras
+                </a>
+            </div>
+        }
     </div>
 </div>
 
 <script>
-    const archivoInput = document.getElementById('archivoInput');
-    const preview = document.getElementById('preview');
-    const previewImage = document.getElementById('previewImage');
-    const previewPdf = document.getElementById('previewPdf');
-    const clearButton = document.getElementById('clearButton');
+    document.addEventListener('DOMContentLoaded', function () {
+        const uploadArea = document.getElementById('uploadArea');
+        const archivoInput = document.getElementById('archivoInput');
+        const btnSelectFile = document.getElementById('btnSelectFile');
+        const btnLimpiar = document.getElementById('btnLimpiar');
+        const btnGuardar = document.getElementById('btnGuardar');
+        const fileInfo = document.getElementById('fileInfo');
+        const fileName = document.getElementById('fileName');
+        const fileType = document.getElementById('fileType');
+        const previewContainer = document.getElementById('previewContainer');
+        const previewImage = document.getElementById('previewImage');
+        const previewPdf = document.getElementById('previewPdf');
+        const previewOther = document.getElementById('previewOther');
 
-    if (archivoInput) {
-        archivoInput.addEventListener('change', function (event) {
-            const file = event.target.files[0];
+        // Click en boton seleccionar
+        btnSelectFile.addEventListener('click', function (e) {
+            e.stopPropagation();
+            archivoInput.click();
+        });
 
-            if (file) {
-                const reader = new FileReader();
+        // Click en area de upload
+        uploadArea.addEventListener('click', function () {
+            archivoInput.click();
+        });
 
-                if (file.type.startsWith('image/')) {
-                    reader.onload = function (e) {
-                        previewImage.src = e.target.result;
-                        previewImage.style.display = 'block';
-                        previewPdf.style.display = 'none';
-                    };
-                    reader.readAsDataURL(file);
-                } else if (file.type === 'application/pdf') {
-                    reader.onload = function (e) {
-                        previewPdf.src = e.target.result;
-                        previewPdf.style.display = 'block';
-                        previewImage.style.display = 'none';
-                    };
-                    reader.readAsDataURL(file);
-                }
+        // Drag and drop
+        uploadArea.addEventListener('dragover', function (e) {
+            e.preventDefault();
+            uploadArea.classList.add('dragover');
+        });
 
-                preview.style.display = 'block';
-            } else {
-                preview.style.display = 'none';
-                previewImage.src = '';
-                previewPdf.src = '';
+        uploadArea.addEventListener('dragleave', function (e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+        });
+
+        uploadArea.addEventListener('drop', function (e) {
+            e.preventDefault();
+            uploadArea.classList.remove('dragover');
+            if (e.dataTransfer.files.length > 0) {
+                archivoInput.files = e.dataTransfer.files;
+                handleFileSelect(e.dataTransfer.files[0]);
             }
         });
-    }
 
-    if (clearButton) {
-        clearButton.addEventListener('click', function () {
-            if (archivoInput) {
-                archivoInput.value = '';
+        // Cambio en input file
+        archivoInput.addEventListener('change', function () {
+            if (this.files.length > 0) {
+                handleFileSelect(this.files[0]);
             }
-            preview.style.display = 'none';
-            previewImage.src = '';
+        });
+
+        // Limpiar
+        btnLimpiar.addEventListener('click', function () {
+            archivoInput.value = '';
+            fileInfo.classList.remove('show');
+            previewContainer.classList.remove('show');
             previewImage.style.display = 'none';
-            previewPdf.src = '';
             previewPdf.style.display = 'none';
+            previewOther.style.display = 'none';
+            btnGuardar.disabled = true;
         });
-    }
+
+        function handleFileSelect(file) {
+            fileName.textContent = file.name;
+            fileType.textContent = formatFileSize(file.size) + ' - ' + getFileTypeLabel(file.type, file.name);
+            fileInfo.classList.add('show');
+            btnGuardar.disabled = false;
+
+            // Vista previa
+            previewImage.style.display = 'none';
+            previewPdf.style.display = 'none';
+            previewOther.style.display = 'none';
+
+            if (file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewImage.src = e.target.result;
+                    previewImage.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                previewContainer.classList.add('show');
+            } else if (file.type === 'application/pdf') {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    previewPdf.src = e.target.result;
+                    previewPdf.style.display = 'block';
+                };
+                reader.readAsDataURL(file);
+                previewContainer.classList.add('show');
+            } else {
+                previewOther.style.display = 'block';
+                previewContainer.classList.add('show');
+            }
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function getFileTypeLabel(mimeType, fileName) {
+            const ext = fileName.split('.').pop().toLowerCase();
+            const types = {
+                'pdf': 'Documento PDF',
+                'doc': 'Documento Word',
+                'docx': 'Documento Word',
+                'xls': 'Hoja de calculo Excel',
+                'xlsx': 'Hoja de calculo Excel',
+                'jpg': 'Imagen JPEG',
+                'jpeg': 'Imagen JPEG',
+                'png': 'Imagen PNG',
+                'gif': 'Imagen GIF',
+                'bmp': 'Imagen BMP'
+            };
+            return types[ext] || 'Archivo';
+        }
+    });
 </script>

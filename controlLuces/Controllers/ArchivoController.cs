@@ -676,5 +676,652 @@ namespace controlLuces.Controllers
                 return Json(new { success = false, message = "Error al eliminar: " + ex.Message });
             }
         }
+
+        // ======================= DASHBOARD CONSUMOS =======================
+        [HttpGet]
+        public ActionResult DashboardConsumos(string busqueda, string tipo)
+        {
+            var usuario = ObtenerUsuarioActual();
+            if (usuario == null)
+                return RedirectToAction("Login", "Login");
+
+            var archivos = new List<ArchivoModel>();
+
+            try
+            {
+                connectionString();
+                using (var cx = new SqlConnection(con.ConnectionString))
+                {
+                    cx.Open();
+
+                    string query = @"
+                        SELECT Id, NombreArchivo, RutaArchivo, TipoArchivo, FechaCarga
+                        FROM [lightcon_lumin].[archivos_consumos]
+                        WHERE 1=1";
+
+                    if (!string.IsNullOrEmpty(busqueda))
+                    {
+                        query += " AND NombreArchivo LIKE @Busqueda";
+                    }
+
+                    if (!string.IsNullOrEmpty(tipo) && tipo != "Todos")
+                    {
+                        query += " AND TipoArchivo = @Tipo";
+                    }
+
+                    query += " ORDER BY FechaCarga DESC";
+
+                    using (var cmd = new SqlCommand(query, cx))
+                    {
+                        if (!string.IsNullOrEmpty(busqueda))
+                        {
+                            cmd.Parameters.AddWithValue("@Busqueda", "%" + busqueda + "%");
+                        }
+
+                        if (!string.IsNullOrEmpty(tipo) && tipo != "Todos")
+                        {
+                            cmd.Parameters.AddWithValue("@Tipo", tipo);
+                        }
+
+                        using (var dr = cmd.ExecuteReader())
+                        {
+                            while (dr.Read())
+                            {
+                                archivos.Add(new ArchivoModel
+                                {
+                                    Id = Convert.ToInt32(dr["Id"]),
+                                    NombreArchivo = dr["NombreArchivo"].ToString(),
+                                    RutaArchivo = dr["RutaArchivo"].ToString(),
+                                    TipoArchivo = dr["TipoArchivo"].ToString(),
+                                    FechaCarga = dr["FechaCarga"] != DBNull.Value ? Convert.ToDateTime(dr["FechaCarga"]) : (DateTime?)null
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message.Contains("Invalid object name") || ex.Number == 208)
+                {
+                    ViewBag.TablaNoExiste = true;
+                }
+                else
+                {
+                    ViewBag.Error = "Error al consultar: " + ex.Message;
+                }
+            }
+
+            ViewBag.MensajeExito = TempData["MensajeExito"] as string;
+            ViewBag.Busqueda = busqueda;
+            ViewBag.TipoSeleccionado = tipo;
+            ViewBag.EsAdmin = EsAdminOAdminLocal();
+
+            return View(archivos);
+        }
+
+        // ======================= SUBIR CONSUMO AJAX =======================
+        [HttpPost]
+        public ActionResult SubirConsumoAjax(HttpPostedFileBase archivo)
+        {
+            if (!EsAdminOAdminLocal())
+            {
+                return Json(new { success = false, message = "No tiene permisos para cargar archivos." });
+            }
+
+            if (archivo == null || archivo.ContentLength == 0)
+            {
+                return Json(new { success = false, message = "Debes seleccionar un archivo para cargar." });
+            }
+
+            try
+            {
+                string carpeta = ObtenerCarpetaConsumos();
+
+                string extension = Path.GetExtension(archivo.FileName).ToLower();
+                string nombreBase = Path.GetFileNameWithoutExtension(archivo.FileName);
+
+                string tipoArchivo = ObtenerTipoArchivo(extension);
+
+                string nombreFinal = nombreBase + "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + extension;
+                string rutaFisica = Path.Combine(carpeta, nombreFinal);
+
+                archivo.SaveAs(rutaFisica);
+
+                string rutaRelativa = "~/Uploads/Consumos/" + nombreFinal;
+
+                connectionString();
+                using (var cx = new SqlConnection(con.ConnectionString))
+                {
+                    cx.Open();
+                    using (var cmd = new SqlCommand(@"
+                        INSERT INTO [lightcon_lumin].[archivos_consumos]
+                        (NombreArchivo, RutaArchivo, TipoArchivo, FechaCarga)
+                        VALUES (@NombreArchivo, @RutaArchivo, @TipoArchivo, @FechaCarga)", cx))
+                    {
+                        cmd.Parameters.AddWithValue("@NombreArchivo", archivo.FileName);
+                        cmd.Parameters.AddWithValue("@RutaArchivo", rutaRelativa);
+                        cmd.Parameters.AddWithValue("@TipoArchivo", tipoArchivo);
+                        cmd.Parameters.AddWithValue("@FechaCarga", DateTime.Now);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                return Json(new { success = true, message = "Archivo cargado correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error al guardar el archivo: " + ex.Message });
+            }
+        }
+
+        // =====================================================================
+        // =================== FACTURACIÓN =====================================
+        // =====================================================================
+
+        private string ObtenerCarpetaFacturacion()
+        {
+            string basePath = Server.MapPath("~/Uploads/Facturacion");
+            if (!Directory.Exists(basePath))
+                Directory.CreateDirectory(basePath);
+            return basePath;
+        }
+
+        [HttpGet]
+        public ActionResult DashboardFacturacion(string busqueda, string tipo)
+        {
+            var usuario = ObtenerUsuarioActual();
+            if (usuario == null)
+                return RedirectToAction("Login", "Login");
+
+            var archivos = new List<ArchivoModel>();
+
+            try
+            {
+                connectionString();
+                using (var cx = new SqlConnection(con.ConnectionString))
+                {
+                    cx.Open();
+
+                    string query = @"
+                        SELECT Id, NombreArchivo, RutaArchivo, TipoArchivo, FechaCarga
+                        FROM [lightcon_lumin].[archivos_facturacion]
+                        WHERE 1=1";
+
+                    if (!string.IsNullOrEmpty(busqueda))
+                        query += " AND NombreArchivo LIKE @Busqueda";
+
+                    if (!string.IsNullOrEmpty(tipo) && tipo != "Todos")
+                        query += " AND TipoArchivo = @Tipo";
+
+                    query += " ORDER BY FechaCarga DESC";
+
+                    using (var cmd = new SqlCommand(query, cx))
+                    {
+                        if (!string.IsNullOrEmpty(busqueda))
+                            cmd.Parameters.AddWithValue("@Busqueda", "%" + busqueda + "%");
+                        if (!string.IsNullOrEmpty(tipo) && tipo != "Todos")
+                            cmd.Parameters.AddWithValue("@Tipo", tipo);
+
+                        using (var dr = cmd.ExecuteReader())
+                        {
+                            while (dr.Read())
+                            {
+                                archivos.Add(new ArchivoModel
+                                {
+                                    Id = Convert.ToInt32(dr["Id"]),
+                                    NombreArchivo = dr["NombreArchivo"].ToString(),
+                                    RutaArchivo = dr["RutaArchivo"].ToString(),
+                                    TipoArchivo = dr["TipoArchivo"].ToString(),
+                                    FechaCarga = dr["FechaCarga"] != DBNull.Value ? Convert.ToDateTime(dr["FechaCarga"]) : (DateTime?)null
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message.Contains("Invalid object name") || ex.Number == 208)
+                    ViewBag.TablaNoExiste = true;
+                else
+                    ViewBag.Error = "Error al consultar: " + ex.Message;
+            }
+
+            ViewBag.MensajeExito = TempData["MensajeExito"] as string;
+            ViewBag.Busqueda = busqueda;
+            ViewBag.TipoSeleccionado = tipo;
+            ViewBag.EsAdmin = EsAdminOAdminLocal();
+
+            return View(archivos);
+        }
+
+        [HttpGet]
+        public ActionResult MostrarFacturacion(int id)
+        {
+            var usuario = ObtenerUsuarioActual();
+            if (usuario == null)
+                return RedirectToAction("Login", "Login");
+
+            ArchivoModel archivo = ObtenerArchivoDeTabla(id, "archivos_facturacion");
+            if (archivo == null)
+                return HttpNotFound();
+
+            string rutaFisica = Server.MapPath(archivo.RutaArchivo);
+            if (!System.IO.File.Exists(rutaFisica))
+                return HttpNotFound();
+
+            string contentType = MimeMapping.GetMimeMapping(rutaFisica);
+            return File(rutaFisica, contentType);
+        }
+
+        [HttpGet]
+        public ActionResult DescargarFacturacion(int id)
+        {
+            var usuario = ObtenerUsuarioActual();
+            if (usuario == null)
+                return RedirectToAction("Login", "Login");
+
+            ArchivoModel archivo = ObtenerArchivoDeTabla(id, "archivos_facturacion");
+            if (archivo == null)
+                return HttpNotFound();
+
+            string rutaFisica = Server.MapPath(archivo.RutaArchivo);
+            if (!System.IO.File.Exists(rutaFisica))
+                return HttpNotFound();
+
+            string contentType = MimeMapping.GetMimeMapping(rutaFisica);
+            return File(rutaFisica, contentType, archivo.NombreArchivo);
+        }
+
+        [HttpPost]
+        public ActionResult EliminarFacturacion(int id)
+        {
+            return EliminarArchivoDeTabla(id, "archivos_facturacion");
+        }
+
+        [HttpPost]
+        public ActionResult SubirFacturacionAjax(HttpPostedFileBase archivo)
+        {
+            return SubirArchivoATabla(archivo, "archivos_facturacion", ObtenerCarpetaFacturacion(), "~/Uploads/Facturacion/");
+        }
+
+        // =====================================================================
+        // =================== RECAUDOS ========================================
+        // =====================================================================
+
+        private string ObtenerCarpetaRecaudos()
+        {
+            string basePath = Server.MapPath("~/Uploads/Recaudos");
+            if (!Directory.Exists(basePath))
+                Directory.CreateDirectory(basePath);
+            return basePath;
+        }
+
+        [HttpGet]
+        public ActionResult DashboardRecaudos(string busqueda, string tipo)
+        {
+            var usuario = ObtenerUsuarioActual();
+            if (usuario == null)
+                return RedirectToAction("Login", "Login");
+
+            var archivos = new List<ArchivoModel>();
+
+            try
+            {
+                connectionString();
+                using (var cx = new SqlConnection(con.ConnectionString))
+                {
+                    cx.Open();
+
+                    string query = @"
+                        SELECT Id, NombreArchivo, RutaArchivo, TipoArchivo, FechaCarga
+                        FROM [lightcon_lumin].[archivos_recaudos]
+                        WHERE 1=1";
+
+                    if (!string.IsNullOrEmpty(busqueda))
+                        query += " AND NombreArchivo LIKE @Busqueda";
+
+                    if (!string.IsNullOrEmpty(tipo) && tipo != "Todos")
+                        query += " AND TipoArchivo = @Tipo";
+
+                    query += " ORDER BY FechaCarga DESC";
+
+                    using (var cmd = new SqlCommand(query, cx))
+                    {
+                        if (!string.IsNullOrEmpty(busqueda))
+                            cmd.Parameters.AddWithValue("@Busqueda", "%" + busqueda + "%");
+                        if (!string.IsNullOrEmpty(tipo) && tipo != "Todos")
+                            cmd.Parameters.AddWithValue("@Tipo", tipo);
+
+                        using (var dr = cmd.ExecuteReader())
+                        {
+                            while (dr.Read())
+                            {
+                                archivos.Add(new ArchivoModel
+                                {
+                                    Id = Convert.ToInt32(dr["Id"]),
+                                    NombreArchivo = dr["NombreArchivo"].ToString(),
+                                    RutaArchivo = dr["RutaArchivo"].ToString(),
+                                    TipoArchivo = dr["TipoArchivo"].ToString(),
+                                    FechaCarga = dr["FechaCarga"] != DBNull.Value ? Convert.ToDateTime(dr["FechaCarga"]) : (DateTime?)null
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message.Contains("Invalid object name") || ex.Number == 208)
+                    ViewBag.TablaNoExiste = true;
+                else
+                    ViewBag.Error = "Error al consultar: " + ex.Message;
+            }
+
+            ViewBag.MensajeExito = TempData["MensajeExito"] as string;
+            ViewBag.Busqueda = busqueda;
+            ViewBag.TipoSeleccionado = tipo;
+            ViewBag.EsAdmin = EsAdminOAdminLocal();
+
+            return View(archivos);
+        }
+
+        [HttpGet]
+        public ActionResult MostrarRecaudo(int id)
+        {
+            var usuario = ObtenerUsuarioActual();
+            if (usuario == null)
+                return RedirectToAction("Login", "Login");
+
+            ArchivoModel archivo = ObtenerArchivoDeTabla(id, "archivos_recaudos");
+            if (archivo == null)
+                return HttpNotFound();
+
+            string rutaFisica = Server.MapPath(archivo.RutaArchivo);
+            if (!System.IO.File.Exists(rutaFisica))
+                return HttpNotFound();
+
+            string contentType = MimeMapping.GetMimeMapping(rutaFisica);
+            return File(rutaFisica, contentType);
+        }
+
+        [HttpGet]
+        public ActionResult DescargarRecaudo(int id)
+        {
+            var usuario = ObtenerUsuarioActual();
+            if (usuario == null)
+                return RedirectToAction("Login", "Login");
+
+            ArchivoModel archivo = ObtenerArchivoDeTabla(id, "archivos_recaudos");
+            if (archivo == null)
+                return HttpNotFound();
+
+            string rutaFisica = Server.MapPath(archivo.RutaArchivo);
+            if (!System.IO.File.Exists(rutaFisica))
+                return HttpNotFound();
+
+            string contentType = MimeMapping.GetMimeMapping(rutaFisica);
+            return File(rutaFisica, contentType, archivo.NombreArchivo);
+        }
+
+        [HttpPost]
+        public ActionResult EliminarRecaudo(int id)
+        {
+            return EliminarArchivoDeTabla(id, "archivos_recaudos");
+        }
+
+        [HttpPost]
+        public ActionResult SubirRecaudoAjax(HttpPostedFileBase archivo)
+        {
+            return SubirArchivoATabla(archivo, "archivos_recaudos", ObtenerCarpetaRecaudos(), "~/Uploads/Recaudos/");
+        }
+
+        // =====================================================================
+        // =================== PAGOS DE ENERGÍA ================================
+        // =====================================================================
+
+        private string ObtenerCarpetaPagosEnergia()
+        {
+            string basePath = Server.MapPath("~/Uploads/PagosEnergia");
+            if (!Directory.Exists(basePath))
+                Directory.CreateDirectory(basePath);
+            return basePath;
+        }
+
+        [HttpGet]
+        public ActionResult DashboardPagosEnergia(string busqueda, string tipo)
+        {
+            var usuario = ObtenerUsuarioActual();
+            if (usuario == null)
+                return RedirectToAction("Login", "Login");
+
+            var archivos = new List<ArchivoModel>();
+
+            try
+            {
+                connectionString();
+                using (var cx = new SqlConnection(con.ConnectionString))
+                {
+                    cx.Open();
+
+                    string query = @"
+                        SELECT Id, NombreArchivo, RutaArchivo, TipoArchivo, FechaCarga
+                        FROM [lightcon_lumin].[archivos_pagos_energia]
+                        WHERE 1=1";
+
+                    if (!string.IsNullOrEmpty(busqueda))
+                        query += " AND NombreArchivo LIKE @Busqueda";
+
+                    if (!string.IsNullOrEmpty(tipo) && tipo != "Todos")
+                        query += " AND TipoArchivo = @Tipo";
+
+                    query += " ORDER BY FechaCarga DESC";
+
+                    using (var cmd = new SqlCommand(query, cx))
+                    {
+                        if (!string.IsNullOrEmpty(busqueda))
+                            cmd.Parameters.AddWithValue("@Busqueda", "%" + busqueda + "%");
+                        if (!string.IsNullOrEmpty(tipo) && tipo != "Todos")
+                            cmd.Parameters.AddWithValue("@Tipo", tipo);
+
+                        using (var dr = cmd.ExecuteReader())
+                        {
+                            while (dr.Read())
+                            {
+                                archivos.Add(new ArchivoModel
+                                {
+                                    Id = Convert.ToInt32(dr["Id"]),
+                                    NombreArchivo = dr["NombreArchivo"].ToString(),
+                                    RutaArchivo = dr["RutaArchivo"].ToString(),
+                                    TipoArchivo = dr["TipoArchivo"].ToString(),
+                                    FechaCarga = dr["FechaCarga"] != DBNull.Value ? Convert.ToDateTime(dr["FechaCarga"]) : (DateTime?)null
+                                });
+                            }
+                        }
+                    }
+                }
+            }
+            catch (SqlException ex)
+            {
+                if (ex.Message.Contains("Invalid object name") || ex.Number == 208)
+                    ViewBag.TablaNoExiste = true;
+                else
+                    ViewBag.Error = "Error al consultar: " + ex.Message;
+            }
+
+            ViewBag.MensajeExito = TempData["MensajeExito"] as string;
+            ViewBag.Busqueda = busqueda;
+            ViewBag.TipoSeleccionado = tipo;
+            ViewBag.EsAdmin = EsAdminOAdminLocal();
+
+            return View(archivos);
+        }
+
+        [HttpGet]
+        public ActionResult MostrarPagoEnergia(int id)
+        {
+            var usuario = ObtenerUsuarioActual();
+            if (usuario == null)
+                return RedirectToAction("Login", "Login");
+
+            ArchivoModel archivo = ObtenerArchivoDeTabla(id, "archivos_pagos_energia");
+            if (archivo == null)
+                return HttpNotFound();
+
+            string rutaFisica = Server.MapPath(archivo.RutaArchivo);
+            if (!System.IO.File.Exists(rutaFisica))
+                return HttpNotFound();
+
+            string contentType = MimeMapping.GetMimeMapping(rutaFisica);
+            return File(rutaFisica, contentType);
+        }
+
+        [HttpGet]
+        public ActionResult DescargarPagoEnergia(int id)
+        {
+            var usuario = ObtenerUsuarioActual();
+            if (usuario == null)
+                return RedirectToAction("Login", "Login");
+
+            ArchivoModel archivo = ObtenerArchivoDeTabla(id, "archivos_pagos_energia");
+            if (archivo == null)
+                return HttpNotFound();
+
+            string rutaFisica = Server.MapPath(archivo.RutaArchivo);
+            if (!System.IO.File.Exists(rutaFisica))
+                return HttpNotFound();
+
+            string contentType = MimeMapping.GetMimeMapping(rutaFisica);
+            return File(rutaFisica, contentType, archivo.NombreArchivo);
+        }
+
+        [HttpPost]
+        public ActionResult EliminarPagoEnergia(int id)
+        {
+            return EliminarArchivoDeTabla(id, "archivos_pagos_energia");
+        }
+
+        [HttpPost]
+        public ActionResult SubirPagoEnergiaAjax(HttpPostedFileBase archivo)
+        {
+            return SubirArchivoATabla(archivo, "archivos_pagos_energia", ObtenerCarpetaPagosEnergia(), "~/Uploads/PagosEnergia/");
+        }
+
+        // =====================================================================
+        // =================== MÉTODOS AUXILIARES GENÉRICOS ====================
+        // =====================================================================
+
+        private ArchivoModel ObtenerArchivoDeTabla(int id, string nombreTabla)
+        {
+            ArchivoModel archivo = null;
+            connectionString();
+            using (var cx = new SqlConnection(con.ConnectionString))
+            {
+                cx.Open();
+                using (var cmd = new SqlCommand($@"
+                    SELECT Id, NombreArchivo, RutaArchivo, TipoArchivo, FechaCarga
+                    FROM [lightcon_lumin].[{nombreTabla}]
+                    WHERE Id = @Id", cx))
+                {
+                    cmd.Parameters.AddWithValue("@Id", id);
+                    using (var dr = cmd.ExecuteReader())
+                    {
+                        if (dr.Read())
+                        {
+                            archivo = new ArchivoModel
+                            {
+                                Id = Convert.ToInt32(dr["Id"]),
+                                NombreArchivo = dr["NombreArchivo"].ToString(),
+                                RutaArchivo = dr["RutaArchivo"].ToString(),
+                                TipoArchivo = dr["TipoArchivo"].ToString(),
+                                FechaCarga = dr["FechaCarga"] != DBNull.Value ? Convert.ToDateTime(dr["FechaCarga"]) : (DateTime?)null
+                            };
+                        }
+                    }
+                }
+            }
+            return archivo;
+        }
+
+        private ActionResult EliminarArchivoDeTabla(int id, string nombreTabla)
+        {
+            if (!EsAdminOAdminLocal())
+                return Json(new { success = false, message = "No tiene permisos para eliminar archivos." });
+
+            try
+            {
+                ArchivoModel archivo = ObtenerArchivoDeTabla(id, nombreTabla);
+                if (archivo == null)
+                    return Json(new { success = false, message = "Archivo no encontrado." });
+
+                connectionString();
+                using (var cx = new SqlConnection(con.ConnectionString))
+                {
+                    cx.Open();
+                    using (var cmd = new SqlCommand($"DELETE FROM [lightcon_lumin].[{nombreTabla}] WHERE Id = @Id", cx))
+                    {
+                        cmd.Parameters.AddWithValue("@Id", id);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                string rutaFisica = Server.MapPath(archivo.RutaArchivo);
+                if (System.IO.File.Exists(rutaFisica))
+                    System.IO.File.Delete(rutaFisica);
+
+                return Json(new { success = true, message = "Archivo eliminado correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error al eliminar: " + ex.Message });
+            }
+        }
+
+        private ActionResult SubirArchivoATabla(HttpPostedFileBase archivo, string nombreTabla, string carpetaFisica, string rutaRelativaBase)
+        {
+            if (!EsAdminOAdminLocal())
+                return Json(new { success = false, message = "No tiene permisos para cargar archivos." });
+
+            if (archivo == null || archivo.ContentLength == 0)
+                return Json(new { success = false, message = "Debes seleccionar un archivo para cargar." });
+
+            try
+            {
+                string extension = Path.GetExtension(archivo.FileName).ToLower();
+                string nombreBase = Path.GetFileNameWithoutExtension(archivo.FileName);
+                string tipoArchivo = ObtenerTipoArchivo(extension);
+
+                string nombreFinal = nombreBase + "_" + DateTime.Now.ToString("yyyyMMddHHmmss") + extension;
+                string rutaFisica = Path.Combine(carpetaFisica, nombreFinal);
+
+                archivo.SaveAs(rutaFisica);
+
+                string rutaRelativa = rutaRelativaBase + nombreFinal;
+
+                connectionString();
+                using (var cx = new SqlConnection(con.ConnectionString))
+                {
+                    cx.Open();
+                    using (var cmd = new SqlCommand($@"
+                        INSERT INTO [lightcon_lumin].[{nombreTabla}]
+                        (NombreArchivo, RutaArchivo, TipoArchivo, FechaCarga)
+                        VALUES (@NombreArchivo, @RutaArchivo, @TipoArchivo, @FechaCarga)", cx))
+                    {
+                        cmd.Parameters.AddWithValue("@NombreArchivo", archivo.FileName);
+                        cmd.Parameters.AddWithValue("@RutaArchivo", rutaRelativa);
+                        cmd.Parameters.AddWithValue("@TipoArchivo", tipoArchivo);
+                        cmd.Parameters.AddWithValue("@FechaCarga", DateTime.Now);
+                        cmd.ExecuteNonQuery();
+                    }
+                }
+
+                return Json(new { success = true, message = "Archivo cargado correctamente." });
+            }
+            catch (Exception ex)
+            {
+                return Json(new { success = false, message = "Error al guardar el archivo: " + ex.Message });
+            }
+        }
     }
 }

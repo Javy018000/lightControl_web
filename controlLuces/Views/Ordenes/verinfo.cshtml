@@ -208,6 +208,47 @@
                 padding: 16px;
             }
         }
+
+        /* Contador de tiempo activo */
+        .tiempo-activo-badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 16px;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 14px;
+            margin-top: 12px;
+            background: linear-gradient(135deg, #f59e0b, #d97706);
+            color: #fff;
+            box-shadow: 0 6px 18px rgba(245, 158, 11, 0.35);
+        }
+
+        .tiempo-activo-badge i {
+            font-size: 18px;
+        }
+
+        .tiempo-activo-badge .tiempo-valor {
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 15px;
+            letter-spacing: 0.5px;
+        }
+
+        .tiempo-activo-badge.tiempo-urgente {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            box-shadow: 0 6px 18px rgba(239, 68, 68, 0.35);
+            animation: pulse-urgente 2s infinite;
+        }
+
+        .tiempo-activo-badge.tiempo-normal {
+            background: linear-gradient(135deg, #22c55e, #16a34a);
+            box-shadow: 0 6px 18px rgba(34, 197, 94, 0.35);
+        }
+
+        @@keyframes pulse-urgente {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.85; }
+        }
     </style>
 </head>
 <body>
@@ -242,6 +283,36 @@
                             <div class="pqrs-meta-item"><i class="fa-solid fa-users"></i> @Model.Cuadrilla</div>
                             <div class="pqrs-meta-item"><i class="fa-solid fa-list-check"></i> @Model.TipoDeOrden</div>
                             <div class="pqrs-meta-item"><i class="fa-solid fa-bolt"></i> Prioridad: @Model.OrdenPrioridad</div>
+                        </div>
+
+                        @{
+                            var fechaInicio = Model.FechaARealizar;
+                            var ahora = DateTime.Now;
+                            var diferencia = ahora - fechaInicio;
+                            var dias = (int)diferencia.TotalDays;
+                            var horas = diferencia.Hours;
+                            var minutos = diferencia.Minutes;
+                            var claseUrgencia = dias >= 3 ? "tiempo-urgente" : dias >= 1 ? "" : "tiempo-normal";
+                        }
+                        <div class="tiempo-activo-badge @claseUrgencia"
+                             id="tiempoActivoBadge"
+                             data-fecha-inicio="@fechaInicio.ToString("yyyy-MM-ddTHH:mm:ss")">
+                            <i class="fas fa-stopwatch"></i>
+                            <span>Tiempo activo:</span>
+                            <span class="tiempo-valor" id="tiempoValor">
+                                @if (dias > 0)
+                                {
+                                    @(dias + "d " + horas + "h " + minutos + "m")
+                                }
+                                else if (horas > 0)
+                                {
+                                    @(horas + "h " + minutos + "m")
+                                }
+                                else
+                                {
+                                    @(minutos + "m")
+                                }
+                            </span>
                         </div>
                     </div>
 
@@ -377,5 +448,49 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Actualizar contador de tiempo en tiempo real
+        function actualizarContadorTiempo() {
+            var badge = document.getElementById('tiempoActivoBadge');
+            var valorSpan = document.getElementById('tiempoValor');
+
+            if (!badge || !valorSpan) return;
+
+            var fechaInicio = new Date(badge.getAttribute('data-fecha-inicio'));
+            var ahora = new Date();
+            var diferencia = ahora - fechaInicio;
+
+            // Calcular dias, horas y minutos
+            var totalMinutos = Math.floor(diferencia / 60000);
+            var totalHoras = Math.floor(totalMinutos / 60);
+            var dias = Math.floor(totalHoras / 24);
+            var horas = totalHoras % 24;
+            var minutos = totalMinutos % 60;
+
+            // Formatear el tiempo
+            var tiempoTexto = '';
+            if (dias > 0) {
+                tiempoTexto = dias + 'd ' + horas + 'h ' + minutos + 'm';
+            } else if (horas > 0) {
+                tiempoTexto = horas + 'h ' + minutos + 'm';
+            } else {
+                tiempoTexto = minutos + 'm';
+            }
+
+            // Actualizar el texto
+            valorSpan.textContent = tiempoTexto;
+
+            // Actualizar clase de urgencia
+            badge.classList.remove('tiempo-urgente', 'tiempo-normal');
+            if (dias >= 3) {
+                badge.classList.add('tiempo-urgente');
+            } else if (dias < 1) {
+                badge.classList.add('tiempo-normal');
+            }
+        }
+
+        // Actualizar cada minuto
+        setInterval(actualizarContadorTiempo, 60000);
+    </script>
 </body>
 </html>

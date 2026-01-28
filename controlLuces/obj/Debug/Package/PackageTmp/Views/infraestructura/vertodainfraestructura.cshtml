@@ -540,7 +540,11 @@
 
         <div class="content">
             <!-- Tabla -->
-            <div class="table-card">
+            <div class="table-card" id="tableContainer">
+                <div id="loadingIndicator" style="display:none; text-align:center; padding:20px;">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p style="margin-top:10px; color:var(--c1); font-weight:600;">Cargando datos...</p>
+                </div>
                 <table class="table table-hover">
                     <thead>
                         <tr>
@@ -553,16 +557,20 @@
                         </tr>
                     </thead>
                     <tbody id="infraestructuraTable">
+                        @{ var counter = 0; }
                         @foreach (var i in Model)
                         {
                             if (i.tipo == "LED" || i.tipo == "SODIO" || i.tipo == "LED-SOLAR" || i.tipo == "PROYECTOR_LED")
                             {
+                                var displayStyle = counter < 100 ? "" : "display:none;";
                                 <tr data-muni="@i.municipio"
                                     data-idm="@(i.IdMunicipio.HasValue ? i.IdMunicipio.Value.ToString() : "")"
                                     data-tipo="@i.tipo"
                                     data-lat="@i.latitud.ToString().Replace(',', '.')"
                                     data-lng="@i.longitud.ToString().Replace(',', '.')"
-                                    data-code="@i.codigo">
+                                    data-code="@i.codigo"
+                                    data-loaded="@(counter < 100 ? "true" : "false")"
+                                    style="@displayStyle">
                                     <td>@i.codigo</td>
                                     <td>@i.latitud.ToString().Replace(',', '.')</td>
                                     <td>@i.longitud.ToString().Replace(',', '.')</td>
@@ -574,10 +582,17 @@
                                         </a>
                                     </td>
                                 </tr>
+                                counter++;
                             }
                         }
                     </tbody>
                 </table>
+                <div id="loadMoreIndicator" style="text-align:center; padding:15px; display:none;">
+                    <button class="btn btn-primary" id="loadMoreBtn" style="border-radius:12px;">
+                        <i class="fas fa-plus me-2"></i>Cargar más registros
+                    </button>
+                    <span id="recordCount" style="margin-left:15px; color:var(--muted); font-size:14px;"></span>
+                </div>
             </div>
 
             <!-- Mapa -->
@@ -1011,6 +1026,58 @@
             // Permitir que el formulario se envíe
             this.submit();
         });
+
+        // ========================================
+        // LAZY LOADING - Carga progresiva de filas
+        // ========================================
+        var BATCH_SIZE = 100;
+        var currentVisible = 100;
+        var totalRows = $('#infraestructuraTable tr').length;
+
+        function updateRecordCount() {
+            var visibleCount = $('#infraestructuraTable tr:visible').length;
+            var hiddenCount = $('#infraestructuraTable tr[data-loaded="false"]').length;
+            if (hiddenCount > 0) {
+                $('#loadMoreIndicator').show();
+                $('#recordCount').text('Mostrando ' + visibleCount + ' de ' + totalRows + ' registros');
+            } else {
+                $('#loadMoreIndicator').hide();
+            }
+        }
+
+        function loadMoreRows() {
+            var hiddenRows = $('#infraestructuraTable tr[data-loaded="false"]');
+            var toShow = hiddenRows.slice(0, BATCH_SIZE);
+
+            toShow.each(function() {
+                $(this).attr('data-loaded', 'true').show();
+            });
+
+            currentVisible += toShow.length;
+            updateRecordCount();
+
+            // Aplicar filtros actuales a las nuevas filas
+            applyFilters();
+        }
+
+        // Cargar más al hacer click en el botón
+        $('#loadMoreBtn').on('click', function() {
+            loadMoreRows();
+        });
+
+        // Cargar más al hacer scroll hasta el final de la tabla
+        $('#tableContainer').on('scroll', function() {
+            var $this = $(this);
+            if ($this.scrollTop() + $this.innerHeight() >= $this[0].scrollHeight - 50) {
+                var hiddenRows = $('#infraestructuraTable tr[data-loaded="false"]');
+                if (hiddenRows.length > 0) {
+                    loadMoreRows();
+                }
+            }
+        });
+
+        // Mostrar contador inicial
+        setTimeout(updateRecordCount, 100);
     });
     </script>
 </body>
